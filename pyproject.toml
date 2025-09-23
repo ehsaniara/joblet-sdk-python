@@ -41,6 +41,7 @@ dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
     "mypy>=1.5.0",
+    "types-PyYAML>=6.0.0",
     "flake8>=6.0.0",
     "pip-tools>=7.0.0",
     "safety>=3.0.0",
@@ -118,6 +119,8 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "network: marks tests that require network access",
+    "certificates: marks tests that require certificate files",
 ]
 
 [tool.coverage.run]

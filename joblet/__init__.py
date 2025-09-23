@@ -43,7 +43,7 @@ Repository: https://github.com/ehsaniara/joblet-proto
 """
 
 __version__ = "0.1.0"
-__author__ = "Joblet Team"
+__author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
 # Main client class - the primary entry point

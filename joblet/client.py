@@ -1,46 +1,14 @@
-"""
-Joblet Python SDK - Main Client Module
+"""Joblet client for running jobs on a server."""
 
-This module provides the main JobletClient class which serves as the primary
-entry point for interacting with a Joblet job orchestration server. The client
-handles mTLS authentication, connection management, service initialization, and
-provides a clean interface to all Joblet functionality.
-
-All Joblet communication requires mutual TLS (mTLS) authentication for security.
-
-Example:
-    Basic usage with mTLS certificates:
-
-    >>> from joblet import JobletClient
-    >>> with JobletClient(
-    ...     host="joblet.company.com",
-    ...     port=50051,
-    ...     ca_cert_path="/path/to/ca-cert.pem",
-    ...     client_cert_path="/path/to/client-cert.pem",
-    ...     client_key_path="/path/to/client-key.pem"
-    ... ) as client:
-    ...     if client.health_check():
-    ...         job = client.jobs.run_job(command="echo", args=["Hello"])
-    ...         print(f"Job started: {job['job_uuid']}")
-
-    Environment-based certificate configuration:
-
-    >>> import os
-    >>> with JobletClient(
-    ...     host=os.getenv('JOBLET_HOST', 'localhost'),
-    ...     port=int(os.getenv('JOBLET_PORT', '50051')),
-    ...     ca_cert_path=os.getenv('JOBLET_CA_CERT_PATH'),
-    ...     client_cert_path=os.getenv('JOBLET_CLIENT_CERT_PATH'),
-    ...     client_key_path=os.getenv('JOBLET_CLIENT_KEY_PATH')
-    ... ) as client:
-    ...     jobs = client.jobs.list_jobs()
-    ...     print(f"Found {len(jobs)} jobs")
-"""
-
+import os
 from typing import Any, Dict, Optional
 
 import grpc
 
+# Debug: Check gRPC environment setup
+_grpc_debug = os.environ.get("JOBLET_DEBUG_GRPC", False)
+
+from .config import ConfigLoader
 from .exceptions import ConnectionError
 from .services import (
     JobService,
@@ -52,216 +20,174 @@ from .services import (
 
 
 class JobletClient:
-    """
-    Main client for interacting with Joblet server.
+    """Client for connecting to a Joblet server.
 
-    The JobletClient provides a high-level interface to all Joblet services including
-    job execution, workflow management, runtime environments, networking, storage,
-    and system monitoring. It manages the underlying gRPC connection and provides
-    lazy-loaded service instances for optimal performance.
-
-    This class is designed to be used as a context manager to ensure proper cleanup
-    of network resources, though it can also be used directly with manual cleanup.
-
-    Attributes:
-        host (str): The hostname or IP address of the Joblet server
-        port (int): The port number of the Joblet server
-        ca_cert_path (str): Path to the CA certificate file
-        client_cert_path (str): Path to the client certificate file
-        client_key_path (str): Path to the client private key file
-        jobs (JobService): Service for managing jobs and workflows
-        networks (NetworkService): Service for managing networks
-        volumes (VolumeService): Service for managing storage volumes
-        monitoring (MonitoringService): Service for system monitoring
-        runtimes (RuntimeService): Service for managing execution runtimes
-
-    Example:
-        >>> # Using context manager (recommended)
-        >>> with JobletClient(
-        ...     host="joblet.company.com",
-        ...     ca_cert_path="/certs/ca.pem",
-        ...     client_cert_path="/certs/client.pem",
-        ...     client_key_path="/certs/client.key"
-        ... ) as client:
-        ...     jobs = client.jobs.list_jobs()
-        ...     print(f"Found {len(jobs)} jobs")
-
-        >>> # Manual cleanup
-        >>> client = JobletClient(
-        ...     host="remote-server",
-        ...     port=50051,
-        ...     ca_cert_path="/certs/ca.pem",
-        ...     client_cert_path="/certs/client.pem",
-        ...     client_key_path="/certs/client.key"
-        ... )
-        >>> try:
-        ...     status = client.monitoring.get_system_status()
-        ... finally:
-        ...     client.close()
+    Loads config from ~/.rnx/rnx-config.yml or use explicit params.
+    Use with 'with' statement for automatic cleanup.
     """
 
     def __init__(
         self,
-        ca_cert_path: str,
-        client_cert_path: str,
-        client_key_path: str,
-        host: str = "localhost",
-        port: int = 50051,
+        ca_cert_path: Optional[str] = None,
+        client_cert_path: Optional[str] = None,
+        client_key_path: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
         options: Optional[Dict[str, Any]] = None,
+        config_path: Optional[str] = None,
+        node_name: str = "default",
+        insecure: bool = True,
     ):
-        """
-        Initialize a new Joblet client connection with mTLS authentication.
-
-        Creates a secure mTLS connection to the specified Joblet server using
-        the provided certificate files. All Joblet communication requires
-        mutual TLS authentication for security.
+        """Connect to Joblet server.
 
         Args:
-            host (str, optional): Hostname or IP address of the Joblet server.
-                Defaults to "localhost".
-            port (int, optional): Port number of the Joblet server.
-                Defaults to 50051 (standard gRPC port).
-            ca_cert_path (str): Path to the CA certificate file (.pem format)
-                that signed the server's certificate.
-            client_cert_path (str): Path to the client certificate file (.pem format)
-                used for client authentication.
-            client_key_path (str): Path to the client private key file (.pem format)
-                corresponding to the client certificate.
-            options (Dict[str, Any], optional): Additional gRPC channel options
-                such as timeouts, keepalive settings, etc. See gRPC documentation
-                for available options.
-
-        Raises:
-            ConnectionError: If the connection to the Joblet server fails.
-                This can happen due to network issues, incorrect host/port,
-                authentication failures, or server unavailability.
-            FileNotFoundError: If any of the certificate files cannot be found.
-            ValueError: If certificate files are invalid or malformed.
-
-        Example:
-            >>> # Standard mTLS connection
-            >>> client = JobletClient(
-            ...     host="joblet.company.com",
-            ...     port=50051,
-            ...     ca_cert_path="/path/to/ca-cert.pem",
-            ...     client_cert_path="/path/to/client-cert.pem",
-            ...     client_key_path="/path/to/client-key.pem"
-            ... )
-
-            >>> # With custom gRPC options
-            >>> options = {
-            ...     'grpc.keepalive_time_ms': 30000,
-            ...     'grpc.keepalive_timeout_ms': 5000,
-            ... }
-            >>> client = JobletClient(
-            ...     host="joblet.company.com",
-            ...     port=50051,
-            ...     ca_cert_path="/certs/ca.pem",
-            ...     client_cert_path="/certs/client.pem",
-            ...     client_key_path="/certs/client.key",
-            ...     options=options
-            ... )
-
-            >>> # Environment-based certificate paths
-            >>> import os
-            >>> client = JobletClient(
-            ...     host=os.getenv('JOBLET_HOST'),
-            ...     ca_cert_path=os.getenv('JOBLET_CA_CERT'),
-            ...     client_cert_path=os.getenv('JOBLET_CLIENT_CERT'),
-            ...     client_key_path=os.getenv('JOBLET_CLIENT_KEY')
-            ... )
+            host: Server hostname (optional if using config)
+            port: Server port (optional if using config)
+            ca_cert_path: CA cert path (optional if insecure=True)
+            client_cert_path: Client cert path (optional if insecure=True)
+            client_key_path: Client key path (optional if insecure=True)
+            options: Extra gRPC options
+            config_path: Config file path (default: ~/.rnx/rnx-config.yml)
+            node_name: Config node to use (default: "default")
+            insecure: Skip SSL validation (default: True, since Joblet uses self-signed certs)
         """
+        self._config_loader: Optional[ConfigLoader] = None
+
+        # Try to load from config file if not all parameters are provided
+        if not all([host, port, ca_cert_path, client_cert_path, client_key_path]):
+            self._config_loader = ConfigLoader(config_path)
+            if self._config_loader.load():
+                config_info = self._config_loader.extract_connection_info(node_name)
+                if config_info:
+                    # Use config values for any missing parameters
+                    host = host or config_info.get("host")
+                    port = port or config_info.get("port")
+                    ca_cert_path = ca_cert_path or config_info.get("ca_cert_path")
+                    client_cert_path = client_cert_path or config_info.get(
+                        "client_cert_path"
+                    )
+                    client_key_path = client_key_path or config_info.get(
+                        "client_key_path"
+                    )
+
+        # Validate that we have all required parameters (unless using insecure mode)
+        if not insecure and not all(
+            [host, port, ca_cert_path, client_cert_path, client_key_path]
+        ):
+            missing = []
+            if not host:
+                missing.append("host")
+            if not port:
+                missing.append("port")
+            if not ca_cert_path:
+                missing.append("ca_cert_path")
+            if not client_cert_path:
+                missing.append("client_cert_path")
+            if not client_key_path:
+                missing.append("client_key_path")
+            raise ValueError(
+                f"Missing: {', '.join(missing)}. "
+                f"Provide all params or check config file."
+            )
+        elif insecure and not all([host, port]):
+            missing = []
+            if not host:
+                missing.append("host")
+            if not port:
+                missing.append("port")
+            raise ValueError(f"Missing for insecure connection: {', '.join(missing)}")
+
         # Store connection parameters
         self.host = host
         self.port = port
         self.ca_cert_path = ca_cert_path
         self.client_cert_path = client_cert_path
         self.client_key_path = client_key_path
+        self.insecure = insecure
         self._channel: Optional[grpc.Channel] = None
         self._options = options or {}
 
-        # Service instances - initialized lazily for better performance
-        # These will be created only when first accessed
+        # Services - created when first used
         self._job_service: Optional[JobService] = None
         self._network_service: Optional[NetworkService] = None
         self._volume_service: Optional[VolumeService] = None
         self._monitoring_service: Optional[MonitoringService] = None
         self._runtime_service: Optional[RuntimeService] = None
 
-        # Establish the connection to the server immediately
+        # Connect now
         self._connect()
 
     def _connect(self) -> None:
-        """
-        Establish the mTLS gRPC connection to the Joblet server.
+        """Connect to server with mTLS or insecure connection."""
+        target = f"{self.host}:{self.port}"
 
-        This method loads the required certificate files and creates a secure
-        mTLS connection using mutual TLS authentication.
-
-        Raises:
-            ConnectionError: If the connection cannot be established due to
-                network issues, authentication failures, or server problems.
-            FileNotFoundError: If any certificate files cannot be found.
-            ValueError: If certificate files are invalid or malformed.
-        """
         try:
-            # Load certificate files
-            try:
-                with open(self.ca_cert_path, "rb") as f:
-                    ca_cert = f.read()
-                with open(self.client_cert_path, "rb") as f:
-                    client_cert = f.read()
-                with open(self.client_key_path, "rb") as f:
-                    client_key = f.read()
-            except FileNotFoundError as e:
-                raise FileNotFoundError(f"Certificate file not found: {e.filename}")
-            except Exception as e:
-                raise ValueError(f"Error reading certificate files: {e}")
+            # Add default gRPC options
+            default_options = [
+                ("grpc.keepalive_time_ms", 30000),
+                ("grpc.keepalive_timeout_ms", 5000),
+                ("grpc.keepalive_permit_without_calls", True),
+                ("grpc.http2.max_pings_without_data", 0),
+                ("grpc.http2.min_ping_interval_without_data_ms", 300000),
+                ("grpc.http2.min_time_between_pings_ms", 10000),
+            ]
 
-            # Validate certificate content
-            if not ca_cert:
-                raise ValueError(f"CA certificate file is empty: {self.ca_cert_path}")
-            if not client_cert:
-                raise ValueError(
-                    f"Client certificate file is empty: {self.client_cert_path}"
+            # Merge with user options
+            all_options = default_options + list(self._options.items())
+
+            if self.insecure:
+                # Use insecure connection - no SSL validation at all
+                self._channel = grpc.insecure_channel(target, options=all_options)
+            else:
+                # Use secure connection with custom certificates
+                # Load certs
+                assert self.ca_cert_path is not None
+                assert self.client_cert_path is not None
+                assert self.client_key_path is not None
+
+                try:
+                    with open(self.ca_cert_path, "rb") as f:
+                        ca_cert = f.read()
+                    with open(self.client_cert_path, "rb") as f:
+                        client_cert = f.read()
+                    with open(self.client_key_path, "rb") as f:
+                        client_key = f.read()
+                except FileNotFoundError as e:
+                    raise FileNotFoundError(f"Can't find: {e.filename}")
+                except Exception as e:
+                    raise ValueError(f"Can't read certs: {e}")
+
+                # Check certs
+                if not ca_cert:
+                    raise ValueError(f"Empty CA cert: {self.ca_cert_path}")
+                if not client_cert:
+                    raise ValueError(f"Empty client cert: {self.client_cert_path}")
+                if not client_key:
+                    raise ValueError(f"Empty key: {self.client_key_path}")
+
+                # Check format
+                if b"BEGIN CERTIFICATE" not in ca_cert:
+                    raise ValueError(f"Bad CA cert: {self.ca_cert_path}")
+                if b"BEGIN CERTIFICATE" not in client_cert:
+                    raise ValueError(f"Bad client cert: {self.client_cert_path}")
+                if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
+                    raise ValueError(f"Bad key: {self.client_key_path}")
+
+                # Setup mTLS with custom root certificate - trust only our CA, not system CAs
+                credentials = grpc.ssl_channel_credentials(
+                    root_certificates=ca_cert,  # Use ONLY our CA cert, ignore system certs
+                    private_key=client_key,
+                    certificate_chain=client_cert,
                 )
-            if not client_key:
-                raise ValueError(f"Client key file is empty: {self.client_key_path}")
 
-            # Basic format validation
-            if b"BEGIN CERTIFICATE" not in ca_cert:
-                raise ValueError(f"Invalid CA certificate format: {self.ca_cert_path}")
-            if b"BEGIN CERTIFICATE" not in client_cert:
-                raise ValueError(
-                    f"Invalid client certificate format: {self.client_cert_path}"
+                self._channel = grpc.secure_channel(
+                    target, credentials, options=all_options
                 )
-            if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
-                raise ValueError(f"Invalid private key format: {self.client_key_path}")
-
-            # Create mTLS credentials
-            credentials = grpc.ssl_channel_credentials(
-                root_certificates=ca_cert,
-                private_key=client_key,
-                certificate_chain=client_cert,
-            )
-
-            # Construct the target address for the gRPC connection
-            target = f"{self.host}:{self.port}"
-
-            # Create secure mTLS channel
-            self._channel = grpc.secure_channel(
-                target, credentials, options=list(self._options.items())
-            )
 
         except (FileNotFoundError, ValueError) as e:
-            # Re-raise certificate-related errors as-is
             raise e
         except Exception as e:
-            # Wrap any other connection errors in our custom exception type
-            target = f"{self.host}:{self.port}"
-            raise ConnectionError(
-                f"Failed to connect to Joblet server at {target}: {e}"
-            )
+            raise ConnectionError(f"Can't connect to {target}: {e}")
 
     def close(self) -> None:
         """
@@ -278,6 +204,10 @@ class JobletClient:
         if self._channel:
             self._channel.close()
             self._channel = None
+
+        # Clean up config loader and temporary certificate files
+        if self._config_loader:
+            self._config_loader.cleanup()
 
     def __enter__(self) -> "JobletClient":
         """
@@ -433,7 +363,7 @@ class JobletClient:
             ...         print(f"- {runtime['name']}: {runtime['language']}")
             ...
             ...     # Test a specific runtime
-            ...     result = client.runtimes.test_runtime("python-3.11")
+            ...     result = client.runtimes.test_runtime("python:3.11")
             ...     print(
             ...         f"Runtime test: {'passed' if result['success'] else 'failed'}"
             ...     )
