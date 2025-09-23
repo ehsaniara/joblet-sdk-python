@@ -30,8 +30,8 @@ def print_metrics(metrics, title="System Metrics"):
 
     if "memory" in metrics:
         memory = metrics["memory"]
-        total_gb = memory['total_bytes'] / (1024**3)
-        used_gb = memory['used_bytes'] / (1024**3)
+        total_gb = memory["total_bytes"] / (1024**3)
+        used_gb = memory["used_bytes"] / (1024**3)
         print(f"\nMemory Metrics:")
         print(f"  Total: {total_gb:.2f} GB")
         print(f"  Used: {used_gb:.2f} GB ({memory['usage_percent']:.2f}%)")
@@ -40,8 +40,8 @@ def print_metrics(metrics, title="System Metrics"):
     if "disks" in metrics:
         print(f"\nDisk Metrics:")
         for disk in metrics["disks"]:
-            total_gb = disk['total_bytes'] / (1024**3)
-            used_gb = disk['used_bytes'] / (1024**3)
+            total_gb = disk["total_bytes"] / (1024**3)
+            used_gb = disk["used_bytes"] / (1024**3)
             print(f"  {disk['device']} ({disk['mount_point']}):")
             print(f"    Total: {total_gb:.2f} GB")
             print(f"    Used: {used_gb:.2f} GB ({disk['usage_percent']:.2f}%)")
@@ -49,8 +49,8 @@ def print_metrics(metrics, title="System Metrics"):
     if "networks" in metrics:
         print(f"\nNetwork Metrics:")
         for net in metrics["networks"]:
-            rx_mb = net['bytes_received'] / (1024**2)
-            tx_mb = net['bytes_sent'] / (1024**2)
+            rx_mb = net["bytes_received"] / (1024**2)
+            tx_mb = net["bytes_sent"] / (1024**2)
             print(f"  {net['interface']}:")
             print(f"    RX: {rx_mb:.2f} MB ({net['receive_rate']:.2f} B/s)")
             print(f"    TX: {tx_mb:.2f} MB ({net['transmit_rate']:.2f} B/s)")
@@ -59,17 +59,17 @@ def print_metrics(metrics, title="System Metrics"):
 def main():
     # Connect to Joblet server
     # Get certificate paths from environment variables
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Connect to Joblet server with mTLS
     with JobletClient(
-        host=os.getenv('JOBLET_HOST', 'localhost'),
-        port=int(os.getenv('JOBLET_PORT', '50051')),
+        host=os.getenv("JOBLET_HOST", "localhost"),
+        port=int(os.getenv("JOBLET_PORT", "50051")),
         ca_cert_path=ca_cert_path,
         client_cert_path=client_cert_path,
-        client_key_path=client_key_path
+        client_key_path=client_key_path,
     ) as client:
 
         if not client.health_check():

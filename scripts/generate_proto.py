@@ -45,6 +45,7 @@ def check_dependencies():
     # Check for required Python packages
     try:
         import grpc_tools
+
         print("✅ grpcio-tools is available")
     except ImportError:
         print("❌ grpcio-tools is not installed. Run: pip install grpcio-tools")
@@ -81,9 +82,13 @@ def clone_joblet_proto(temp_dir, version=None):
 
     # Get tag info if on a tag
     try:
-        result = run_command(["git", "describe", "--exact-match", "--tags", "HEAD"], cwd=repo_dir)
+        result = run_command(
+            ["git", "describe", "--exact-match", "--tags", "HEAD"], cwd=repo_dir
+        )
         tag_name = result.stdout.strip()
-        print(f"📋 Using tag: {tag_name} (commit: {commit_hash[:8]} - {commit_message})")
+        print(
+            f"📋 Using tag: {tag_name} (commit: {commit_hash[:8]} - {commit_message})"
+        )
     except:
         print(f"📋 Using commit: {commit_hash[:8]} - {commit_message}")
         tag_name = None
@@ -106,12 +111,14 @@ def generate_python_bindings(proto_dir, output_dir):
 
     # Generate Python protobuf bindings
     cmd = [
-        "python", "-m", "grpc_tools.protoc",
+        "python",
+        "-m",
+        "grpc_tools.protoc",
         f"--proto_path={os.path.join(proto_dir, 'proto')}",
         f"--python_out={output_dir}",
         f"--pyi_out={output_dir}",  # Generate type stubs
         f"--grpc_python_out={output_dir}",
-        "joblet.proto"
+        "joblet.proto",
     ]
 
     run_command(cmd)
@@ -130,7 +137,7 @@ def update_generation_info(output_dir, commit_hash, tag_name=None):
     """Create a file with generation information."""
     info_file = os.path.join(output_dir, "_proto_generation_info.py")
 
-    tag_info = f'PROTO_TAG = "{tag_name}"' if tag_name else 'PROTO_TAG = None'
+    tag_info = f'PROTO_TAG = "{tag_name}"' if tag_name else "PROTO_TAG = None"
 
     content = f'''"""
 Proto Generation Information
@@ -160,7 +167,7 @@ except:
     GRPCIO_TOOLS_VERSION = "unknown"
 '''
 
-    with open(info_file, 'w') as f:
+    with open(info_file, "w") as f:
         f.write(content)
 
     print(f"✅ Created generation info: {info_file}")
@@ -170,9 +177,15 @@ def main():
     """Main generation process."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Generate Python proto bindings from joblet-proto repository')
-    parser.add_argument('--version', help='Specific git tag or commit to checkout (default: latest)')
-    parser.add_argument('--list-tags', action='store_true', help='List available tags and exit')
+    parser = argparse.ArgumentParser(
+        description="Generate Python proto bindings from joblet-proto repository"
+    )
+    parser.add_argument(
+        "--version", help="Specific git tag or commit to checkout (default: latest)"
+    )
+    parser.add_argument(
+        "--list-tags", action="store_true", help="List available tags and exit"
+    )
     args = parser.parse_args()
 
     print("🔐 Joblet SDK - Proto Generation Script")
@@ -204,8 +217,10 @@ def main():
             repo_url = "https://github.com/ehsaniara/joblet-proto.git"
             repo_dir = os.path.join(temp_dir, "joblet-proto")
             run_command(["git", "clone", repo_url, repo_dir])
-            result = run_command(["git", "tag", "-l", "--sort=-version:refname"], cwd=repo_dir)
-            tags = result.stdout.strip().split('\n')
+            result = run_command(
+                ["git", "tag", "-l", "--sort=-version:refname"], cwd=repo_dir
+            )
+            tags = result.stdout.strip().split("\n")
             if tags and tags[0]:
                 print("\n📋 Available tags (newest first):")
                 for tag in tags[:10]:  # Show latest 10 tags
@@ -233,7 +248,12 @@ def main():
 
     print("\n🎉 Proto generation completed successfully!")
     print("\nGenerated files:")
-    for file_name in ["joblet_pb2.py", "joblet_pb2_grpc.py", "joblet_pb2.pyi", "_proto_generation_info.py"]:
+    for file_name in [
+        "joblet_pb2.py",
+        "joblet_pb2_grpc.py",
+        "joblet_pb2.pyi",
+        "_proto_generation_info.py",
+    ]:
         file_path = os.path.join(joblet_dir, file_name)
         if os.path.exists(file_path):
             size = os.path.getsize(file_path)

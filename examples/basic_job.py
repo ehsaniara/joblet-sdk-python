@@ -8,17 +8,17 @@ import time
 
 def main():
     # Get certificate paths from environment variables
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Connect to Joblet server with mTLS
     with JobletClient(
-        host=os.getenv('JOBLET_HOST', 'localhost'),
-        port=int(os.getenv('JOBLET_PORT', '50051')),
+        host=os.getenv("JOBLET_HOST", "localhost"),
+        port=int(os.getenv("JOBLET_PORT", "50051")),
         ca_cert_path=ca_cert_path,
         client_cert_path=client_cert_path,
-        client_key_path=client_key_path
+        client_key_path=client_key_path,
     ) as client:
 
         # Check server health
@@ -35,7 +35,7 @@ def main():
             args=["Hello, World!"],
             name="hello-world-job",
             max_memory=100,  # 100MB
-            runtime="python-3.11"
+            runtime="python-3.11",
         )
 
         job_uuid = job_response["job_uuid"]
@@ -61,7 +61,7 @@ def main():
             for chunk in client.jobs.get_job_logs(job_uuid):
                 logs += chunk
 
-            print(logs.decode('utf-8'))
+            print(logs.decode("utf-8"))
         except Exception as e:
             print(f"Failed to get logs: {e}")
 

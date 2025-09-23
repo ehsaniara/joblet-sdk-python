@@ -7,17 +7,17 @@ import os
 
 def main():
     # Get certificate paths from environment variables
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Connect to Joblet server with mTLS
     with JobletClient(
-        host=os.getenv('JOBLET_HOST', 'localhost'),
-        port=int(os.getenv('JOBLET_PORT', '50051')),
+        host=os.getenv("JOBLET_HOST", "localhost"),
+        port=int(os.getenv("JOBLET_PORT", "50051")),
         ca_cert_path=ca_cert_path,
         client_cert_path=client_cert_path,
-        client_key_path=client_key_path
+        client_key_path=client_key_path,
     ) as client:
 
         if not client.health_check():
@@ -35,7 +35,9 @@ def main():
             networks = client.networks.list_networks()
             if networks:
                 for network in networks:
-                    print(f"- {network['name']}: {network['cidr']} (bridge: {network['bridge']}, jobs: {network['job_count']})")
+                    print(
+                        f"- {network['name']}: {network['cidr']} (bridge: {network['bridge']}, jobs: {network['job_count']})"
+                    )
             else:
                 print("No networks found")
         except Exception as e:
@@ -45,8 +47,7 @@ def main():
         print("\n--- Creating Network ---")
         try:
             network_result = client.networks.create_network(
-                name="test-network",
-                cidr="10.0.100.0/24"
+                name="test-network", cidr="10.0.100.0/24"
             )
             print(f"Created network: {network_result['name']}")
             print(f"  CIDR: {network_result['cidr']}")
@@ -60,7 +61,9 @@ def main():
         try:
             networks = client.networks.list_networks()
             for network in networks:
-                print(f"- {network['name']}: {network['cidr']} (bridge: {network['bridge']}, jobs: {network['job_count']})")
+                print(
+                    f"- {network['name']}: {network['cidr']} (bridge: {network['bridge']}, jobs: {network['job_count']})"
+                )
         except Exception as e:
             print(f"Failed to list networks: {e}")
 
@@ -73,7 +76,9 @@ def main():
             volumes = client.volumes.list_volumes()
             if volumes:
                 for volume in volumes:
-                    print(f"- {volume['name']}: {volume['size']} ({volume['type']}, path: {volume['path']}, jobs: {volume['job_count']})")
+                    print(
+                        f"- {volume['name']}: {volume['size']} ({volume['type']}, path: {volume['path']}, jobs: {volume['job_count']})"
+                    )
             else:
                 print("No volumes found")
         except Exception as e:
@@ -84,15 +89,13 @@ def main():
         volume_configs = [
             {"name": "data-volume", "size": "1GB", "type": "filesystem"},
             {"name": "cache-volume", "size": "512MB", "type": "memory"},
-            {"name": "logs-volume", "size": "2GB", "type": "filesystem"}
+            {"name": "logs-volume", "size": "2GB", "type": "filesystem"},
         ]
 
         for config in volume_configs:
             try:
                 volume_result = client.volumes.create_volume(
-                    name=config["name"],
-                    size=config["size"],
-                    volume_type=config["type"]
+                    name=config["name"], size=config["size"], volume_type=config["type"]
                 )
                 print(f"Created volume: {volume_result['name']}")
                 print(f"  Size: {volume_result['size']}")
@@ -107,7 +110,9 @@ def main():
         try:
             volumes = client.volumes.list_volumes()
             for volume in volumes:
-                print(f"- {volume['name']}: {volume['size']} ({volume['type']}, path: {volume['path']}, jobs: {volume['job_count']})")
+                print(
+                    f"- {volume['name']}: {volume['size']} ({volume['type']}, path: {volume['path']}, jobs: {volume['job_count']})"
+                )
         except Exception as e:
             print(f"Failed to list volumes: {e}")
 
@@ -121,7 +126,7 @@ def main():
                 network="test-network",
                 volumes=["data-volume:/data", "cache-volume:/cache"],
                 runtime="alpine",
-                max_memory=128
+                max_memory=128,
             )
 
             job_uuid = job_response["job_uuid"]
@@ -131,6 +136,7 @@ def main():
 
             # Wait for job to complete
             import time
+
             for _ in range(30):  # Wait up to 30 seconds
                 status = client.jobs.get_job_status(job_uuid)
                 if status["status"] in ["completed", "failed", "cancelled"]:
@@ -152,7 +158,9 @@ def main():
                 if result["success"]:
                     print(f"✓ Removed volume: {volume_name}")
                 else:
-                    print(f"✗ Failed to remove volume {volume_name}: {result['message']}")
+                    print(
+                        f"✗ Failed to remove volume {volume_name}: {result['message']}"
+                    )
             except Exception as e:
                 print(f"✗ Error removing volume {volume_name}: {e}")
 

@@ -12,7 +12,7 @@ from .exceptions import (
     RuntimeNotFoundError,
     NetworkError,
     VolumeError,
-    ValidationError
+    ValidationError,
 )
 
 
@@ -38,7 +38,7 @@ class JobService:
         work_dir: Optional[str] = None,
         environment: Optional[Dict[str, str]] = None,
         secret_environment: Optional[Dict[str, str]] = None,
-        uploads: Optional[List[Dict[str, Any]]] = None
+        uploads: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """Run a new job
 
@@ -76,7 +76,7 @@ class JobService:
             runtime=runtime or "",
             workDir=work_dir or "",
             environment=environment or {},
-            secret_environment=secret_environment or {}
+            secret_environment=secret_environment or {},
         )
 
         # Add file uploads if provided
@@ -86,7 +86,7 @@ class JobService:
                     path=upload.get("path", ""),
                     content=upload.get("content", b""),
                     mode=upload.get("mode", 0o644),
-                    isDirectory=upload.get("is_directory", False)
+                    isDirectory=upload.get("is_directory", False),
                 )
                 request.uploads.append(file_upload)
 
@@ -104,7 +104,7 @@ class JobService:
                 "start_time": response.startTime,
                 "end_time": response.endTime,
                 "exit_code": response.exitCode,
-                "scheduled_time": response.scheduledTime
+                "scheduled_time": response.scheduledTime,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to run job: {e.details()}")
@@ -144,7 +144,7 @@ class JobService:
                 "work_dir": response.workDir,
                 "uploads": list(response.uploads),
                 "dependencies": list(response.dependencies),
-                "workflow_uuid": response.workflowUuid
+                "workflow_uuid": response.workflowUuid,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")
@@ -166,7 +166,7 @@ class JobService:
                 "uuid": response.uuid,
                 "status": response.status,
                 "end_time": response.endTime,
-                "exit_code": response.exitCode
+                "exit_code": response.exitCode,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to stop job {job_uuid}: {e.details()}")
@@ -187,7 +187,7 @@ class JobService:
             return {
                 "uuid": response.uuid,
                 "success": response.success,
-                "message": response.message
+                "message": response.message,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to delete job {job_uuid}: {e.details()}")
@@ -206,7 +206,7 @@ class JobService:
                 "success": response.success,
                 "message": response.message,
                 "deleted_count": response.deleted_count,
-                "skipped_count": response.skipped_count
+                "skipped_count": response.skipped_count,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to delete all jobs: {e.details()}")
@@ -242,24 +242,26 @@ class JobService:
             response = self.stub.ListJobs(request)
             jobs = []
             for job in response.jobs:
-                jobs.append({
-                    "uuid": job.uuid,
-                    "name": job.name,
-                    "command": job.command,
-                    "args": list(job.args),
-                    "max_cpu": job.maxCPU,
-                    "cpu_cores": job.cpuCores,
-                    "max_memory": job.maxMemory,
-                    "max_iobps": job.maxIOBPS,
-                    "status": job.status,
-                    "start_time": job.startTime,
-                    "end_time": job.endTime,
-                    "exit_code": job.exitCode,
-                    "scheduled_time": job.scheduledTime,
-                    "runtime": job.runtime,
-                    "environment": dict(job.environment),
-                    "secret_environment": dict(job.secret_environment)
-                })
+                jobs.append(
+                    {
+                        "uuid": job.uuid,
+                        "name": job.name,
+                        "command": job.command,
+                        "args": list(job.args),
+                        "max_cpu": job.maxCPU,
+                        "cpu_cores": job.cpuCores,
+                        "max_memory": job.maxMemory,
+                        "max_iobps": job.maxIOBPS,
+                        "status": job.status,
+                        "start_time": job.startTime,
+                        "end_time": job.endTime,
+                        "exit_code": job.exitCode,
+                        "scheduled_time": job.scheduledTime,
+                        "runtime": job.runtime,
+                        "environment": dict(job.environment),
+                        "secret_environment": dict(job.secret_environment),
+                    }
+                )
             return jobs
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to list jobs: {e.details()}")
@@ -268,7 +270,7 @@ class JobService:
         self,
         workflow: str,
         yaml_content: Optional[str] = None,
-        workflow_files: Optional[List[Dict[str, Any]]] = None
+        workflow_files: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """Run a workflow
 
@@ -281,8 +283,7 @@ class JobService:
             Workflow response dictionary
         """
         request = joblet_pb2.RunWorkflowRequest(
-            workflow=workflow,
-            yamlContent=yaml_content or ""
+            workflow=workflow, yamlContent=yaml_content or ""
         )
 
         # Add workflow files if provided
@@ -292,16 +293,13 @@ class JobService:
                     path=file_info.get("path", ""),
                     content=file_info.get("content", b""),
                     mode=file_info.get("mode", 0o644),
-                    isDirectory=file_info.get("is_directory", False)
+                    isDirectory=file_info.get("is_directory", False),
                 )
                 request.workflowFiles.append(file_upload)
 
         try:
             response = self.stub.RunWorkflow(request)
-            return {
-                "workflow_uuid": response.workflowUuid,
-                "status": response.status
-            }
+            return {"workflow_uuid": response.workflowUuid, "status": response.status}
         except grpc.RpcError as e:
             raise WorkflowNotFoundError(f"Failed to run workflow: {e.details()}")
 
@@ -322,15 +320,17 @@ class JobService:
             jobs = []
 
             for job in response.jobs:
-                jobs.append({
-                    "job_uuid": job.jobUuid,
-                    "job_name": job.jobName,
-                    "status": job.status,
-                    "dependencies": list(job.dependencies),
-                    "start_time": self._timestamp_to_datetime(job.startTime),
-                    "end_time": self._timestamp_to_datetime(job.endTime),
-                    "exit_code": job.exitCode
-                })
+                jobs.append(
+                    {
+                        "job_uuid": job.jobUuid,
+                        "job_name": job.jobName,
+                        "status": job.status,
+                        "dependencies": list(job.dependencies),
+                        "start_time": self._timestamp_to_datetime(job.startTime),
+                        "end_time": self._timestamp_to_datetime(job.endTime),
+                        "exit_code": job.exitCode,
+                    }
+                )
 
             return {
                 "workflow": {
@@ -344,9 +344,9 @@ class JobService:
                     "created_at": self._timestamp_to_datetime(workflow.createdAt),
                     "started_at": self._timestamp_to_datetime(workflow.startedAt),
                     "completed_at": self._timestamp_to_datetime(workflow.completedAt),
-                    "yaml_content": workflow.yamlContent
+                    "yaml_content": workflow.yamlContent,
                 },
-                "jobs": jobs
+                "jobs": jobs,
             }
         except grpc.RpcError as e:
             raise WorkflowNotFoundError(
@@ -369,18 +369,22 @@ class JobService:
             workflows = []
 
             for workflow in response.workflows:
-                workflows.append({
-                    "uuid": workflow.uuid,
-                    "workflow": workflow.workflow,
-                    "status": workflow.status,
-                    "total_jobs": workflow.totalJobs,
-                    "completed_jobs": workflow.completedJobs,
-                    "failed_jobs": workflow.failedJobs,
-                    "canceled_jobs": workflow.canceledJobs,
-                    "created_at": self._timestamp_to_datetime(workflow.createdAt),
-                    "started_at": self._timestamp_to_datetime(workflow.startedAt),
-                    "completed_at": self._timestamp_to_datetime(workflow.completedAt)
-                })
+                workflows.append(
+                    {
+                        "uuid": workflow.uuid,
+                        "workflow": workflow.workflow,
+                        "status": workflow.status,
+                        "total_jobs": workflow.totalJobs,
+                        "completed_jobs": workflow.completedJobs,
+                        "failed_jobs": workflow.failedJobs,
+                        "canceled_jobs": workflow.canceledJobs,
+                        "created_at": self._timestamp_to_datetime(workflow.createdAt),
+                        "started_at": self._timestamp_to_datetime(workflow.startedAt),
+                        "completed_at": self._timestamp_to_datetime(
+                            workflow.completedAt
+                        ),
+                    }
+                )
 
             return workflows
         except grpc.RpcError as e:
@@ -402,15 +406,17 @@ class JobService:
             jobs = []
 
             for job in response.jobs:
-                jobs.append({
-                    "job_uuid": job.jobUuid,
-                    "job_name": job.jobName,
-                    "status": job.status,
-                    "dependencies": list(job.dependencies),
-                    "start_time": self._timestamp_to_datetime(job.startTime),
-                    "end_time": self._timestamp_to_datetime(job.endTime),
-                    "exit_code": job.exitCode
-                })
+                jobs.append(
+                    {
+                        "job_uuid": job.jobUuid,
+                        "job_name": job.jobName,
+                        "status": job.status,
+                        "dependencies": list(job.dependencies),
+                        "start_time": self._timestamp_to_datetime(job.startTime),
+                        "end_time": self._timestamp_to_datetime(job.endTime),
+                        "exit_code": job.exitCode,
+                    }
+                )
 
             return jobs
         except grpc.RpcError as e:
@@ -449,7 +455,7 @@ class NetworkService:
             return {
                 "name": response.name,
                 "cidr": response.cidr,
-                "bridge": response.bridge
+                "bridge": response.bridge,
             }
         except grpc.RpcError as e:
             raise NetworkError(f"Failed to create network: {e.details()}")
@@ -466,12 +472,14 @@ class NetworkService:
             response = self.stub.ListNetworks(request)
             networks = []
             for network in response.networks:
-                networks.append({
-                    "name": network.name,
-                    "cidr": network.cidr,
-                    "bridge": network.bridge,
-                    "job_count": network.jobCount
-                })
+                networks.append(
+                    {
+                        "name": network.name,
+                        "cidr": network.cidr,
+                        "bridge": network.bridge,
+                        "job_count": network.jobCount,
+                    }
+                )
             return networks
         except grpc.RpcError as e:
             raise NetworkError(f"Failed to list networks: {e.details()}")
@@ -489,10 +497,7 @@ class NetworkService:
 
         try:
             response = self.stub.RemoveNetwork(request)
-            return {
-                "success": response.success,
-                "message": response.message
-            }
+            return {"success": response.success, "message": response.message}
         except grpc.RpcError as e:
             raise NetworkError(f"Failed to remove network: {e.details()}")
 
@@ -504,10 +509,7 @@ class VolumeService:
         self.stub = joblet_pb2_grpc.VolumeServiceStub(channel)
 
     def create_volume(
-        self,
-        name: str,
-        size: str,
-        volume_type: str = "filesystem"
+        self, name: str, size: str, volume_type: str = "filesystem"
     ) -> Dict[str, Any]:
         """Create a new volume
 
@@ -519,11 +521,7 @@ class VolumeService:
         Returns:
             Volume creation response
         """
-        request = joblet_pb2.CreateVolumeReq(
-            name=name,
-            size=size,
-            type=volume_type
-        )
+        request = joblet_pb2.CreateVolumeReq(name=name, size=size, type=volume_type)
 
         try:
             response = self.stub.CreateVolume(request)
@@ -531,7 +529,7 @@ class VolumeService:
                 "name": response.name,
                 "size": response.size,
                 "type": response.type,
-                "path": response.path
+                "path": response.path,
             }
         except grpc.RpcError as e:
             raise VolumeError(f"Failed to create volume: {e.details()}")
@@ -548,14 +546,16 @@ class VolumeService:
             response = self.stub.ListVolumes(request)
             volumes = []
             for volume in response.volumes:
-                volumes.append({
-                    "name": volume.name,
-                    "size": volume.size,
-                    "type": volume.type,
-                    "path": volume.path,
-                    "created_time": volume.createdTime,
-                    "job_count": volume.jobCount
-                })
+                volumes.append(
+                    {
+                        "name": volume.name,
+                        "size": volume.size,
+                        "type": volume.type,
+                        "path": volume.path,
+                        "created_time": volume.createdTime,
+                        "job_count": volume.jobCount,
+                    }
+                )
             return volumes
         except grpc.RpcError as e:
             raise VolumeError(f"Failed to list volumes: {e.details()}")
@@ -573,10 +573,7 @@ class VolumeService:
 
         try:
             response = self.stub.RemoveVolume(request)
-            return {
-                "success": response.success,
-                "message": response.message
-            }
+            return {"success": response.success, "message": response.message}
         except grpc.RpcError as e:
             raise VolumeError(f"Failed to remove volume: {e.details()}")
 
@@ -602,9 +599,7 @@ class MonitoringService:
             raise RuntimeError(f"Failed to get system status: {e.details()}")
 
     def stream_system_metrics(
-        self,
-        interval_seconds: int = 5,
-        metric_types: Optional[List[str]] = None
+        self, interval_seconds: int = 5, metric_types: Optional[List[str]] = None
     ) -> Iterator[Dict[str, Any]]:
         """Stream system metrics
 
@@ -616,8 +611,7 @@ class MonitoringService:
             System metrics dictionaries
         """
         request = joblet_pb2.StreamMetricsReq(
-            intervalSeconds=interval_seconds,
-            metricTypes=metric_types or []
+            intervalSeconds=interval_seconds, metricTypes=metric_types or []
         )
 
         try:
@@ -628,10 +622,7 @@ class MonitoringService:
 
     def _parse_system_status(self, response) -> Dict[str, Any]:
         """Parse system status response"""
-        result = {
-            "timestamp": response.timestamp,
-            "available": response.available
-        }
+        result = {"timestamp": response.timestamp, "available": response.available}
 
         if response.HasField("host"):
             result["host"] = self._parse_host_info(response.host)
@@ -640,9 +631,7 @@ class MonitoringService:
         if response.HasField("memory"):
             result["memory"] = self._parse_memory_metrics(response.memory)
         if response.disks:
-            result["disks"] = [
-                self._parse_disk_metrics(d) for d in response.disks
-            ]
+            result["disks"] = [self._parse_disk_metrics(d) for d in response.disks]
         if response.networks:
             result["networks"] = [
                 self._parse_network_metrics(n) for n in response.networks
@@ -650,9 +639,7 @@ class MonitoringService:
         if response.HasField("io"):
             result["io"] = self._parse_io_metrics(response.io)
         if response.HasField("processes"):
-            result["processes"] = self._parse_process_metrics(
-                response.processes
-            )
+            result["processes"] = self._parse_process_metrics(response.processes)
         if response.HasField("cloud"):
             result["cloud"] = self._parse_cloud_info(response.cloud)
         if response.HasField("server_version"):
@@ -673,9 +660,7 @@ class MonitoringService:
         if response.HasField("memory"):
             result["memory"] = self._parse_memory_metrics(response.memory)
         if response.disks:
-            result["disks"] = [
-                self._parse_disk_metrics(d) for d in response.disks
-            ]
+            result["disks"] = [self._parse_disk_metrics(d) for d in response.disks]
         if response.networks:
             result["networks"] = [
                 self._parse_network_metrics(n) for n in response.networks
@@ -683,9 +668,7 @@ class MonitoringService:
         if response.HasField("io"):
             result["io"] = self._parse_io_metrics(response.io)
         if response.HasField("processes"):
-            result["processes"] = self._parse_process_metrics(
-                response.processes
-            )
+            result["processes"] = self._parse_process_metrics(response.processes)
         if response.HasField("cloud"):
             result["cloud"] = self._parse_cloud_info(response.cloud)
 
@@ -706,7 +689,7 @@ class MonitoringService:
             "cpu_count": host.cpuCount,
             "total_memory": host.totalMemory,
             "boot_time": host.bootTime,
-            "uptime": host.uptime
+            "uptime": host.uptime,
         }
 
     @staticmethod
@@ -721,7 +704,7 @@ class MonitoringService:
             "io_wait_time": cpu.ioWaitTime,
             "steal_time": cpu.stealTime,
             "load_average": list(cpu.loadAverage),
-            "per_core_usage": list(cpu.perCoreUsage)
+            "per_core_usage": list(cpu.perCoreUsage),
         }
 
     @staticmethod
@@ -737,7 +720,7 @@ class MonitoringService:
             "buffered_bytes": memory.bufferedBytes,
             "swap_total": memory.swapTotal,
             "swap_used": memory.swapUsed,
-            "swap_free": memory.swapFree
+            "swap_free": memory.swapFree,
         }
 
     @staticmethod
@@ -754,7 +737,7 @@ class MonitoringService:
             "inodes_total": disk.inodesTotal,
             "inodes_used": disk.inodesUsed,
             "inodes_free": disk.inodesFree,
-            "inodes_usage_percent": disk.inodesUsagePercent
+            "inodes_usage_percent": disk.inodesUsagePercent,
         }
 
     @staticmethod
@@ -771,7 +754,7 @@ class MonitoringService:
             "drops_in": network.dropsIn,
             "drops_out": network.dropsOut,
             "receive_rate": network.receiveRate,
-            "transmit_rate": network.transmitRate
+            "transmit_rate": network.transmitRate,
         }
 
     @staticmethod
@@ -783,23 +766,25 @@ class MonitoringService:
             "read_bytes": io.readBytes,
             "write_bytes": io.writeBytes,
             "read_rate": io.readRate,
-            "write_rate": io.writeRate
+            "write_rate": io.writeRate,
         }
 
         if io.diskIO:
             result["disk_io"] = []
             for disk_io in io.diskIO:
-                result["disk_io"].append({
-                    "device": disk_io.device,
-                    "reads_completed": disk_io.readsCompleted,
-                    "writes_completed": disk_io.writesCompleted,
-                    "read_bytes": disk_io.readBytes,
-                    "write_bytes": disk_io.writeBytes,
-                    "read_time": disk_io.readTime,
-                    "write_time": disk_io.writeTime,
-                    "io_time": disk_io.ioTime,
-                    "utilization": disk_io.utilization
-                })
+                result["disk_io"].append(
+                    {
+                        "device": disk_io.device,
+                        "reads_completed": disk_io.readsCompleted,
+                        "writes_completed": disk_io.writesCompleted,
+                        "read_bytes": disk_io.readBytes,
+                        "write_bytes": disk_io.writeBytes,
+                        "read_time": disk_io.readTime,
+                        "write_time": disk_io.writeTime,
+                        "io_time": disk_io.ioTime,
+                        "utilization": disk_io.utilization,
+                    }
+                )
 
         return result
 
@@ -812,40 +797,44 @@ class MonitoringService:
             "sleeping_processes": processes.sleepingProcesses,
             "stopped_processes": processes.stoppedProcesses,
             "zombie_processes": processes.zombieProcesses,
-            "total_threads": processes.totalThreads
+            "total_threads": processes.totalThreads,
         }
 
         if processes.topByCPU:
             result["top_by_cpu"] = []
             for proc in processes.topByCPU:
-                result["top_by_cpu"].append({
-                    "pid": proc.pid,
-                    "ppid": proc.ppid,
-                    "name": proc.name,
-                    "command": proc.command,
-                    "cpu_percent": proc.cpuPercent,
-                    "memory_percent": proc.memoryPercent,
-                    "memory_bytes": proc.memoryBytes,
-                    "status": proc.status,
-                    "start_time": proc.startTime,
-                    "user": proc.user
-                })
+                result["top_by_cpu"].append(
+                    {
+                        "pid": proc.pid,
+                        "ppid": proc.ppid,
+                        "name": proc.name,
+                        "command": proc.command,
+                        "cpu_percent": proc.cpuPercent,
+                        "memory_percent": proc.memoryPercent,
+                        "memory_bytes": proc.memoryBytes,
+                        "status": proc.status,
+                        "start_time": proc.startTime,
+                        "user": proc.user,
+                    }
+                )
 
         if processes.topByMemory:
             result["top_by_memory"] = []
             for proc in processes.topByMemory:
-                result["top_by_memory"].append({
-                    "pid": proc.pid,
-                    "ppid": proc.ppid,
-                    "name": proc.name,
-                    "command": proc.command,
-                    "cpu_percent": proc.cpuPercent,
-                    "memory_percent": proc.memoryPercent,
-                    "memory_bytes": proc.memoryBytes,
-                    "status": proc.status,
-                    "start_time": proc.startTime,
-                    "user": proc.user
-                })
+                result["top_by_memory"].append(
+                    {
+                        "pid": proc.pid,
+                        "ppid": proc.ppid,
+                        "name": proc.name,
+                        "command": proc.command,
+                        "cpu_percent": proc.cpuPercent,
+                        "memory_percent": proc.memoryPercent,
+                        "memory_bytes": proc.memoryBytes,
+                        "status": proc.status,
+                        "start_time": proc.startTime,
+                        "user": proc.user,
+                    }
+                )
 
         return result
 
@@ -859,7 +848,7 @@ class MonitoringService:
             "instance_id": cloud.instanceID,
             "instance_type": cloud.instanceType,
             "hypervisor_type": cloud.hypervisorType,
-            "metadata": dict(cloud.metadata)
+            "metadata": dict(cloud.metadata),
         }
 
     @staticmethod
@@ -874,7 +863,7 @@ class MonitoringService:
             "go_version": version.go_version,
             "platform": version.platform,
             "proto_commit": version.proto_commit,
-            "proto_tag": version.proto_tag
+            "proto_tag": version.proto_tag,
         }
 
 
@@ -903,13 +892,13 @@ class RuntimeService:
                     "description": runtime.description,
                     "size_bytes": runtime.sizeBytes,
                     "packages": list(runtime.packages),
-                    "available": runtime.available
+                    "available": runtime.available,
                 }
 
                 if runtime.HasField("requirements"):
                     runtime_dict["requirements"] = {
                         "architectures": list(runtime.requirements.architectures),
-                        "gpu": runtime.requirements.gpu
+                        "gpu": runtime.requirements.gpu,
                     }
 
                 runtimes.append(runtime_dict)
@@ -941,13 +930,13 @@ class RuntimeService:
                 "description": response.runtime.description,
                 "size_bytes": response.runtime.sizeBytes,
                 "packages": list(response.runtime.packages),
-                "available": response.runtime.available
+                "available": response.runtime.available,
             }
 
             if response.runtime.HasField("requirements"):
                 runtime_info["requirements"] = {
                     "architectures": list(response.runtime.requirements.architectures),
-                    "gpu": response.runtime.requirements.gpu
+                    "gpu": response.runtime.requirements.gpu,
                 }
 
             return runtime_info
@@ -971,7 +960,7 @@ class RuntimeService:
                 "success": response.success,
                 "output": response.output,
                 "error": response.error,
-                "exit_code": response.exitCode
+                "exit_code": response.exitCode,
             }
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to test runtime: {e.details()}")
@@ -983,7 +972,7 @@ class RuntimeService:
         branch: Optional[str] = None,
         path: Optional[str] = None,
         force_reinstall: bool = False,
-        stream: bool = False
+        stream: bool = False,
     ):
         """Install runtime from GitHub repository
 
@@ -1003,7 +992,7 @@ class RuntimeService:
             repository=repository,
             branch=branch or "",
             path=path or "",
-            forceReinstall=force_reinstall
+            forceReinstall=force_reinstall,
         )
 
         try:
@@ -1019,7 +1008,7 @@ class RuntimeService:
                     "status": response.status,
                     "message": response.message,
                     "repository": response.repository,
-                    "resolved_path": response.resolvedPath
+                    "resolved_path": response.resolvedPath,
                 }
         except grpc.RpcError as e:
             raise RuntimeError(f"Failed to install runtime: {e.details()}")
@@ -1029,7 +1018,7 @@ class RuntimeService:
         runtime_spec: str,
         files: List[Dict[str, Any]],
         force_reinstall: bool = False,
-        stream: bool = False
+        stream: bool = False,
     ):
         """Install runtime from local files
 
@@ -1043,15 +1032,14 @@ class RuntimeService:
             Installation response or stream iterator
         """
         request = joblet_pb2.InstallRuntimeFromLocalRequest(
-            runtimeSpec=runtime_spec,
-            forceReinstall=force_reinstall
+            runtimeSpec=runtime_spec, forceReinstall=force_reinstall
         )
 
         for file_info in files:
             runtime_file = joblet_pb2.RuntimeFile(
                 path=file_info.get("path", ""),
                 content=file_info.get("content", b""),
-                executable=file_info.get("executable", False)
+                executable=file_info.get("executable", False),
             )
             request.files.append(runtime_file)
 
@@ -1066,7 +1054,7 @@ class RuntimeService:
                     "build_job_uuid": response.buildJobUuid,
                     "runtime_spec": response.runtimeSpec,
                     "status": response.status,
-                    "message": response.message
+                    "message": response.message,
                 }
         except grpc.RpcError as e:
             raise RuntimeError(f"Failed to install runtime: {e.details()}")
@@ -1080,14 +1068,11 @@ class RuntimeService:
                     "type": "progress",
                     "message": progress.message,
                     "step": progress.step,
-                    "total_steps": progress.total_steps
+                    "total_steps": progress.total_steps,
                 }
             elif chunk.HasField("log"):
                 log = chunk.log
-                yield {
-                    "type": "log",
-                    "data": log.data
-                }
+                yield {"type": "log", "data": log.data}
             elif chunk.HasField("result"):
                 result = chunk.result
                 yield {
@@ -1095,7 +1080,7 @@ class RuntimeService:
                     "success": result.success,
                     "message": result.message,
                     "runtime_spec": result.runtime_spec,
-                    "install_path": result.install_path
+                    "install_path": result.install_path,
                 }
 
     def validate_runtime_spec(self, runtime_spec: str) -> Dict[str, Any]:
@@ -1114,7 +1099,7 @@ class RuntimeService:
             result = {
                 "valid": response.valid,
                 "message": response.message,
-                "normalized_spec": response.normalizedSpec
+                "normalized_spec": response.normalizedSpec,
             }
 
             if response.HasField("specInfo"):
@@ -1122,7 +1107,7 @@ class RuntimeService:
                     "language": response.specInfo.language,
                     "version": response.specInfo.version,
                     "variants": list(response.specInfo.variants),
-                    "architecture": response.specInfo.architecture
+                    "architecture": response.specInfo.architecture,
                 }
 
             return result
@@ -1145,7 +1130,7 @@ class RuntimeService:
             return {
                 "success": response.success,
                 "message": response.message,
-                "freed_space_bytes": response.freedSpaceBytes
+                "freed_space_bytes": response.freedSpaceBytes,
             }
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to remove runtime: {e.details()}")
@@ -1156,5 +1141,5 @@ __all__ = [
     "NetworkService",
     "VolumeService",
     "MonitoringService",
-    "RuntimeService"
+    "RuntimeService",
 ]

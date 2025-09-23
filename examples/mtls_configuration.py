@@ -42,7 +42,7 @@ def example_1_basic_mtls():
             port=50051,
             ca_cert_path=ca_cert_path,
             client_cert_path=client_cert_path,
-            client_key_path=client_key_path
+            client_key_path=client_key_path,
         ) as client:
 
             if client.health_check():
@@ -76,11 +76,11 @@ def example_2_environment_based_config():
 
     # Configuration from environment variables
     config = {
-        'host': os.getenv('JOBLET_HOST', 'localhost'),
-        'port': int(os.getenv('JOBLET_PORT', '50051')),
-        'ca_cert_path': os.getenv('JOBLET_CA_CERT_PATH'),
-        'client_cert_path': os.getenv('JOBLET_CLIENT_CERT_PATH'),
-        'client_key_path': os.getenv('JOBLET_CLIENT_KEY_PATH'),
+        "host": os.getenv("JOBLET_HOST", "localhost"),
+        "port": int(os.getenv("JOBLET_PORT", "50051")),
+        "ca_cert_path": os.getenv("JOBLET_CA_CERT_PATH"),
+        "client_cert_path": os.getenv("JOBLET_CLIENT_CERT_PATH"),
+        "client_key_path": os.getenv("JOBLET_CLIENT_KEY_PATH"),
     }
 
     print(f"📋 Configuration:")
@@ -92,12 +92,12 @@ def example_2_environment_based_config():
 
     # Validate required environment variables
     missing_vars = []
-    if not config['ca_cert_path']:
-        missing_vars.append('JOBLET_CA_CERT_PATH')
-    if not config['client_cert_path']:
-        missing_vars.append('JOBLET_CLIENT_CERT_PATH')
-    if not config['client_key_path']:
-        missing_vars.append('JOBLET_CLIENT_KEY_PATH')
+    if not config["ca_cert_path"]:
+        missing_vars.append("JOBLET_CA_CERT_PATH")
+    if not config["client_cert_path"]:
+        missing_vars.append("JOBLET_CLIENT_CERT_PATH")
+    if not config["client_key_path"]:
+        missing_vars.append("JOBLET_CLIENT_KEY_PATH")
 
     if missing_vars:
         print(f"⚠️  Missing environment variables: {', '.join(missing_vars)}")
@@ -106,11 +106,11 @@ def example_2_environment_based_config():
 
     try:
         with JobletClient(
-            host=config['host'],
-            port=config['port'],
-            ca_cert_path=config['ca_cert_path'],
-            client_cert_path=config['client_cert_path'],
-            client_key_path=config['client_key_path']
+            host=config["host"],
+            port=config["port"],
+            ca_cert_path=config["ca_cert_path"],
+            client_cert_path=config["client_cert_path"],
+            client_key_path=config["client_key_path"],
         ) as client:
 
             if client.health_check():
@@ -118,8 +118,10 @@ def example_2_environment_based_config():
 
                 # Test the connection with system status
                 status = client.monitoring.get_system_status()
-                if status.get('available'):
-                    print(f"🖥️  Server is healthy (CPU: {status.get('cpu', {}).get('usage_percent', 'unknown'):.1f}%)")
+                if status.get("available"):
+                    print(
+                        f"🖥️  Server is healthy (CPU: {status.get('cpu', {}).get('usage_percent', 'unknown'):.1f}%)"
+                    )
             else:
                 print("❌ Server not available")
 
@@ -146,19 +148,28 @@ def example_3_certificate_validation():
             return False, f"{cert_type} file not found: {cert_path}"
 
         try:
-            with open(cert_path, 'rb') as f:
+            with open(cert_path, "rb") as f:
                 content = f.read()
 
             if not content:
                 return False, f"{cert_type} file is empty: {cert_path}"
 
             # Basic format validation
-            if cert_type.lower() in ['certificate', 'ca certificate']:
-                if b'BEGIN CERTIFICATE' not in content:
-                    return False, f"{cert_type} file doesn't appear to be a valid PEM certificate"
-            elif cert_type.lower() == 'private key':
-                if b'BEGIN PRIVATE KEY' not in content and b'BEGIN RSA PRIVATE KEY' not in content:
-                    return False, f"{cert_type} file doesn't appear to be a valid PEM private key"
+            if cert_type.lower() in ["certificate", "ca certificate"]:
+                if b"BEGIN CERTIFICATE" not in content:
+                    return (
+                        False,
+                        f"{cert_type} file doesn't appear to be a valid PEM certificate",
+                    )
+            elif cert_type.lower() == "private key":
+                if (
+                    b"BEGIN PRIVATE KEY" not in content
+                    and b"BEGIN RSA PRIVATE KEY" not in content
+                ):
+                    return (
+                        False,
+                        f"{cert_type} file doesn't appear to be a valid PEM private key",
+                    )
 
             return True, f"{cert_type} file is valid"
 
@@ -167,9 +178,11 @@ def example_3_certificate_validation():
 
     # Example certificate paths (from environment or default)
     cert_paths = {
-        'CA Certificate': os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem'),
-        'Client Certificate': os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem'),
-        'Private Key': os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+        "CA Certificate": os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem"),
+        "Client Certificate": os.getenv(
+            "JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem"
+        ),
+        "Private Key": os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem"),
     }
 
     print("🔍 Validating certificate files:")
@@ -200,32 +213,35 @@ def example_4_custom_grpc_options():
     print("\n=== Example 4: Custom gRPC Options ===")
 
     # Certificate paths
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Custom gRPC options for improved reliability
     options = {
-        'grpc.keepalive_time_ms': 30000,          # Send keepalive ping every 30 seconds
-        'grpc.keepalive_timeout_ms': 5000,        # Wait 5 seconds for ping ack
-        'grpc.keepalive_permit_without_calls': True,  # Send pings even when no RPC
-        'grpc.http2.max_pings_without_data': 0,   # Allow unlimited pings
-        'grpc.http2.min_time_between_pings_ms': 10000,  # Min 10 seconds between pings
-        'grpc.http2.min_ping_interval_without_data_ms': 300000,  # Min 5 minutes without data
+        "grpc.keepalive_time_ms": 30000,  # Send keepalive ping every 30 seconds
+        "grpc.keepalive_timeout_ms": 5000,  # Wait 5 seconds for ping ack
+        "grpc.keepalive_permit_without_calls": True,  # Send pings even when no RPC
+        "grpc.http2.max_pings_without_data": 0,  # Allow unlimited pings
+        "grpc.http2.min_time_between_pings_ms": 10000,  # Min 10 seconds between pings
+        "grpc.http2.min_ping_interval_without_data_ms": 300000,  # Min 5 minutes without data
     }
 
-    if not all(os.path.exists(path) for path in [ca_cert_path, client_cert_path, client_key_path]):
+    if not all(
+        os.path.exists(path)
+        for path in [ca_cert_path, client_cert_path, client_key_path]
+    ):
         print("⚠️  Certificate files not found, skipping example")
         return
 
     try:
         with JobletClient(
-            host=os.getenv('JOBLET_HOST', 'localhost'),
-            port=int(os.getenv('JOBLET_PORT', '50051')),
+            host=os.getenv("JOBLET_HOST", "localhost"),
+            port=int(os.getenv("JOBLET_PORT", "50051")),
             ca_cert_path=ca_cert_path,
             client_cert_path=client_cert_path,
             client_key_path=client_key_path,
-            options=options
+            options=options,
         ) as client:
 
             if client.health_check():
@@ -235,10 +251,12 @@ def example_4_custom_grpc_options():
                 print("🔄 Testing streaming metrics (press Ctrl+C to stop)...")
                 try:
                     count = 0
-                    for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
+                    for metrics in client.monitoring.stream_system_metrics(
+                        interval_seconds=5
+                    ):
                         count += 1
-                        cpu = metrics.get('cpu', {}).get('usage_percent', 0)
-                        memory = metrics.get('memory', {}).get('usage_percent', 0)
+                        cpu = metrics.get("cpu", {}).get("usage_percent", 0)
+                        memory = metrics.get("memory", {}).get("usage_percent", 0)
                         print(f"   {count}: CPU: {cpu:.1f}%, Memory: {memory:.1f}%")
 
                         if count >= 3:  # Just show 3 samples
@@ -267,19 +285,19 @@ def main():
     placeholder_files = [
         "certs/ca-cert.pem",
         "certs/client-cert.pem",
-        "certs/client-key.pem"
+        "certs/client-key.pem",
     ]
 
     for file_path in placeholder_files:
         if not os.path.exists(file_path):
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 f.write(f"# Placeholder {os.path.basename(file_path)}\n")
                 f.write("# Replace with your actual certificate content\n")
-                if 'ca-cert' in file_path or 'client-cert' in file_path:
+                if "ca-cert" in file_path or "client-cert" in file_path:
                     f.write("-----BEGIN CERTIFICATE-----\n")
                     f.write("# Your certificate content here\n")
                     f.write("-----END CERTIFICATE-----\n")
-                elif 'client-key' in file_path:
+                elif "client-key" in file_path:
                     f.write("-----BEGIN PRIVATE KEY-----\n")
                     f.write("# Your private key content here\n")
                     f.write("-----END PRIVATE KEY-----\n")

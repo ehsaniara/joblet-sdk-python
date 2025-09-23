@@ -44,7 +44,7 @@ from .services import (
     NetworkService,
     VolumeService,
     MonitoringService,
-    RuntimeService
+    RuntimeService,
 )
 from .exceptions import ConnectionError
 
@@ -105,7 +105,7 @@ class JobletClient:
         client_key_path: str,
         host: str = "localhost",
         port: int = 50051,
-        options: Optional[Dict[str, Any]] = None
+        options: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize a new Joblet client connection with mTLS authentication.
@@ -205,11 +205,11 @@ class JobletClient:
         try:
             # Load certificate files
             try:
-                with open(self.ca_cert_path, 'rb') as f:
+                with open(self.ca_cert_path, "rb") as f:
                     ca_cert = f.read()
-                with open(self.client_cert_path, 'rb') as f:
+                with open(self.client_cert_path, "rb") as f:
                     client_cert = f.read()
-                with open(self.client_key_path, 'rb') as f:
+                with open(self.client_key_path, "rb") as f:
                     client_key = f.read()
             except FileNotFoundError as e:
                 raise FileNotFoundError(f"Certificate file not found: {e.filename}")
@@ -224,27 +224,23 @@ class JobletClient:
                     f"Client certificate file is empty: {self.client_cert_path}"
                 )
             if not client_key:
-                raise ValueError(
-                    f"Client key file is empty: {self.client_key_path}"
-                )
+                raise ValueError(f"Client key file is empty: {self.client_key_path}")
 
             # Basic format validation
-            if b'BEGIN CERTIFICATE' not in ca_cert:
+            if b"BEGIN CERTIFICATE" not in ca_cert:
                 raise ValueError(f"Invalid CA certificate format: {self.ca_cert_path}")
-            if b'BEGIN CERTIFICATE' not in client_cert:
+            if b"BEGIN CERTIFICATE" not in client_cert:
                 raise ValueError(
                     f"Invalid client certificate format: {self.client_cert_path}"
                 )
-            if b'BEGIN' not in client_key or b'PRIVATE KEY' not in client_key:
-                raise ValueError(
-                    f"Invalid private key format: {self.client_key_path}"
-                )
+            if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
+                raise ValueError(f"Invalid private key format: {self.client_key_path}")
 
             # Create mTLS credentials
             credentials = grpc.ssl_channel_credentials(
                 root_certificates=ca_cert,
                 private_key=client_key,
-                certificate_chain=client_cert
+                certificate_chain=client_cert,
             )
 
             # Construct the target address for the gRPC connection
@@ -252,9 +248,7 @@ class JobletClient:
 
             # Create secure mTLS channel
             self._channel = grpc.secure_channel(
-                target,
-                credentials,
-                options=list(self._options.items())
+                target, credentials, options=list(self._options.items())
             )
 
         except (FileNotFoundError, ValueError) as e:
@@ -468,7 +462,7 @@ class JobletClient:
             # Attempt to get system status from the monitoring service
             # This verifies both connectivity and basic server functionality
             status = self.monitoring.get_system_status()
-            return status.get('available', False)
+            return status.get("available", False)
         except Exception:
             # Any exception (network, auth, server error) means unhealthy
             return False

@@ -24,6 +24,7 @@ except Exception:
 # Python grpcio-tools version
 try:
     import grpc_tools
+
     GRPCIO_TOOLS_VERSION = grpc_tools.__version__
 except Exception:
     GRPCIO_TOOLS_VERSION = "unknown"

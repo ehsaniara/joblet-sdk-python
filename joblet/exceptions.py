@@ -42,6 +42,7 @@ class JobletException(Exception):
         ... except JobletException as e:
         ...     print(f"Joblet operation failed: {e}")
     """
+
     pass
 
 
@@ -61,6 +62,7 @@ class ConnectionError(JobletException):
         ... except ConnectionError as e:
         ...     print(f"Could not connect to server: {e}")
     """
+
     pass
 
 
@@ -81,6 +83,7 @@ class AuthenticationError(JobletException):
         ... except AuthenticationError as e:
         ...     print(f"Authentication failed: {e}")
     """
+
     pass
 
 
@@ -98,6 +101,7 @@ class JobNotFoundError(JobletException):
         ... except JobNotFoundError as e:
         ...     print(f"Job not found: {e}")
     """
+
     pass
 
 
@@ -115,6 +119,7 @@ class WorkflowNotFoundError(JobletException):
         ... except WorkflowNotFoundError as e:
         ...     print(f"Workflow not found: {e}")
     """
+
     pass
 
 
@@ -134,6 +139,7 @@ class RuntimeNotFoundError(JobletException):
         ... except RuntimeNotFoundError as e:
         ...     print(f"Runtime not available: {e}")
     """
+
     pass
 
 
@@ -151,6 +157,7 @@ class NetworkError(JobletException):
         ... except NetworkError as e:
         ...     print(f"Network operation failed: {e}")
     """
+
     pass
 
 
@@ -168,6 +175,7 @@ class VolumeError(JobletException):
         ... except VolumeError as e:
         ...     print(f"Volume operation failed: {e}")
     """
+
     pass
 
 
@@ -185,6 +193,7 @@ class ValidationError(JobletException):
         ... except ValidationError as e:
         ...     print(f"Invalid input: {e}")
     """
+
     pass
 
 
@@ -203,4 +212,5 @@ class TimeoutError(JobletException):
         ... except TimeoutError as e:
         ...     print(f"Operation timed out: {e}")
     """
+
     pass

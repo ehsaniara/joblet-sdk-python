@@ -8,17 +8,17 @@ import time
 
 def main():
     # Get certificate paths from environment variables
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Connect to Joblet server with mTLS
     with JobletClient(
-        host=os.getenv('JOBLET_HOST', 'localhost'),
-        port=int(os.getenv('JOBLET_PORT', '50051')),
+        host=os.getenv("JOBLET_HOST", "localhost"),
+        port=int(os.getenv("JOBLET_PORT", "50051")),
         ca_cert_path=ca_cert_path,
         client_cert_path=client_cert_path,
-        client_key_path=client_key_path
+        client_key_path=client_key_path,
     ) as client:
 
         if not client.health_check():
@@ -37,7 +37,11 @@ def main():
             else:
                 for runtime in runtimes:
                     status = "✓" if runtime["available"] else "✗"
-                    size_mb = runtime["size_bytes"] / (1024**2) if runtime["size_bytes"] else 0
+                    size_mb = (
+                        runtime["size_bytes"] / (1024**2)
+                        if runtime["size_bytes"]
+                        else 0
+                    )
 
                     print(f"{status} {runtime['name']}")
                     print(f"   Language: {runtime['language']} {runtime['version']}")
@@ -87,7 +91,7 @@ def main():
             "python-3.11-ml",
             "node-18",
             "go-1.21",
-            "invalid-runtime-spec"
+            "invalid-runtime-spec",
         ]
 
         for spec in test_specs:
@@ -108,7 +112,8 @@ def main():
         print("\n--- Installing Runtime from GitHub (Example) ---")
         print("This example shows how to install a runtime, but won't actually install")
         print("to avoid side effects. Uncomment to try:")
-        print("""
+        print(
+            """
         # try:
         #     install_result = client.runtimes.install_runtime_from_github(
         #         runtime_spec="python-3.12-custom",
@@ -120,11 +125,13 @@ def main():
         #     print(f"Installation started: {install_result['build_job_uuid']}")
         # except Exception as e:
         #     print(f"Installation failed: {e}")
-        """)
+        """
+        )
 
         print("\n--- Streaming Installation (Example) ---")
         print("This example shows how to stream installation progress:")
-        print("""
+        print(
+            """
         # for chunk in client.runtimes.install_runtime_from_github(
         #     runtime_spec="python-3.12-custom",
         #     repository="your-org/python-runtime",
@@ -136,7 +143,8 @@ def main():
         #         print(f"Log: {chunk['data'].decode('utf-8', errors='ignore')}")
         #     elif chunk["type"] == "result":
         #         print(f"Result: {chunk['success']} - {chunk['message']}")
-        """)
+        """
+        )
 
         print("\nRuntime management example completed")
 

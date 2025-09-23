@@ -9,17 +9,17 @@ import yaml
 
 def main():
     # Get certificate paths from environment variables
-    ca_cert_path = os.getenv('JOBLET_CA_CERT_PATH', 'certs/ca-cert.pem')
-    client_cert_path = os.getenv('JOBLET_CLIENT_CERT_PATH', 'certs/client-cert.pem')
-    client_key_path = os.getenv('JOBLET_CLIENT_KEY_PATH', 'certs/client-key.pem')
+    ca_cert_path = os.getenv("JOBLET_CA_CERT_PATH", "certs/ca-cert.pem")
+    client_cert_path = os.getenv("JOBLET_CLIENT_CERT_PATH", "certs/client-cert.pem")
+    client_key_path = os.getenv("JOBLET_CLIENT_KEY_PATH", "certs/client-key.pem")
 
     # Connect to Joblet server with mTLS
     with JobletClient(
-        host=os.getenv('JOBLET_HOST', 'localhost'),
-        port=int(os.getenv('JOBLET_PORT', '50051')),
+        host=os.getenv("JOBLET_HOST", "localhost"),
+        port=int(os.getenv("JOBLET_PORT", "50051")),
         ca_cert_path=ca_cert_path,
         client_cert_path=client_cert_path,
-        client_key_path=client_key_path
+        client_key_path=client_key_path,
     ) as client:
 
         if not client.health_check():
@@ -58,8 +58,7 @@ jobs:
 
         # Run the workflow
         workflow_response = client.jobs.run_workflow(
-            workflow="data-processing-workflow.yml",
-            yaml_content=workflow_yaml
+            workflow="data-processing-workflow.yml", yaml_content=workflow_yaml
         )
 
         workflow_uuid = workflow_response["workflow_uuid"]
@@ -92,7 +91,9 @@ jobs:
         print("\n--- All workflows ---")
         workflows = client.jobs.list_workflows(include_completed=True)
         for workflow in workflows:
-            print(f"- {workflow['uuid']}: {workflow['workflow']} ({workflow['status']})")
+            print(
+                f"- {workflow['uuid']}: {workflow['workflow']} ({workflow['status']})"
+            )
 
 
 if __name__ == "__main__":
