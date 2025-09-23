@@ -100,11 +100,11 @@ class JobletClient:
 
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 50051,
         ca_cert_path: str,
         client_cert_path: str,
         client_key_path: str,
+        host: str = "localhost",
+        port: int = 50051,
         options: Optional[Dict[str, Any]] = None
     ):
         """
@@ -220,17 +220,25 @@ class JobletClient:
             if not ca_cert:
                 raise ValueError(f"CA certificate file is empty: {self.ca_cert_path}")
             if not client_cert:
-                raise ValueError(f"Client certificate file is empty: {self.client_cert_path}")
+                raise ValueError(
+                    f"Client certificate file is empty: {self.client_cert_path}"
+                )
             if not client_key:
-                raise ValueError(f"Client key file is empty: {self.client_key_path}")
+                raise ValueError(
+                    f"Client key file is empty: {self.client_key_path}"
+                )
 
             # Basic format validation
             if b'BEGIN CERTIFICATE' not in ca_cert:
                 raise ValueError(f"Invalid CA certificate format: {self.ca_cert_path}")
             if b'BEGIN CERTIFICATE' not in client_cert:
-                raise ValueError(f"Invalid client certificate format: {self.client_cert_path}")
+                raise ValueError(
+                    f"Invalid client certificate format: {self.client_cert_path}"
+                )
             if b'BEGIN' not in client_key or b'PRIVATE KEY' not in client_key:
-                raise ValueError(f"Invalid private key format: {self.client_key_path}")
+                raise ValueError(
+                    f"Invalid private key format: {self.client_key_path}"
+                )
 
             # Create mTLS credentials
             credentials = grpc.ssl_channel_credentials(
@@ -255,7 +263,9 @@ class JobletClient:
         except Exception as e:
             # Wrap any other connection errors in our custom exception type
             target = f"{self.host}:{self.port}"
-            raise ConnectionError(f"Failed to connect to Joblet server at {target}: {e}")
+            raise ConnectionError(
+                f"Failed to connect to Joblet server at {target}: {e}"
+            )
 
     def close(self):
         """
@@ -420,7 +430,9 @@ class JobletClient:
             ...
             ...     # Test a specific runtime
             ...     result = client.runtimes.test_runtime("python-3.11")
-            ...     print(f"Runtime test: {'passed' if result['success'] else 'failed'}")
+            ...     print(
+            ...         f"Runtime test: {'passed' if result['success'] else 'failed'}"
+            ...     )
         """
         if not self._runtime_service:
             self._runtime_service = RuntimeService(self._channel)

@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "joblet-sdk"
 description = "Python SDK for Joblet job orchestration system"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 authors = [
-    {name = "Joblet Team"},
+    { name = "Joblet Team" },
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -61,7 +61,7 @@ joblet-proto-gen = "joblet.scripts.generate_proto:main"
 packages = ["joblet"]
 
 [tool.setuptools.dynamic]
-version = {attr = "joblet.__version__"}
+version = { attr = "joblet.__version__" }
 
 [tool.black]
 line-length = 88

@@ -841,17 +841,17 @@ Want jobs to run in order? Use the `depends_on` field:
 jobs:
   - name: "download-data"
     command: "curl"
-    args: ["-o", "data.json", "https://api.example.com/data"]
+    args: [ "-o", "data.json", "https://api.example.com/data" ]
 
   - name: "process-data"
     command: "python"
-    args: ["process.py", "data.json"]
-    depends_on: ["download-data"]  # Wait for download first!
+    args: [ "process.py", "data.json" ]
+    depends_on: [ "download-data" ]  # Wait for download first!
 
   - name: "upload-results"
     command: "python"
-    args: ["upload.py", "results.json"]
-    depends_on: ["process-data"]  # Then wait for processing
+    args: [ "upload.py", "results.json" ]
+    depends_on: [ "process-data" ]  # Then wait for processing
 ```
 
 ### Uploading Files

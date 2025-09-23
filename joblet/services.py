@@ -1,9 +1,8 @@
 """Service classes for Joblet SDK"""
 
 import grpc
-from typing import Optional, List, Dict, Any, Iterator, BinaryIO
+from typing import Optional, List, Dict, Any, Iterator
 from datetime import datetime
-import yaml
 
 from . import joblet_pb2
 from . import joblet_pb2_grpc
@@ -227,7 +226,9 @@ class JobService:
             for chunk in self.stub.GetJobLogs(request):
                 yield chunk.payload
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to get logs for job {job_uuid}: {e.details()}")
+            raise JobNotFoundError(
+                f"Failed to get logs for job {job_uuid}: {e.details()}"
+            )
 
     def list_jobs(self) -> List[Dict[str, Any]]:
         """List all jobs
@@ -348,7 +349,9 @@ class JobService:
                 "jobs": jobs
             }
         except grpc.RpcError as e:
-            raise WorkflowNotFoundError(f"Workflow {workflow_uuid} not found: {e.details()}")
+            raise WorkflowNotFoundError(
+                f"Workflow {workflow_uuid} not found: {e.details()}"
+            )
 
     def list_workflows(self, include_completed: bool = False) -> List[Dict[str, Any]]:
         """List workflows
@@ -411,7 +414,9 @@ class JobService:
 
             return jobs
         except grpc.RpcError as e:
-            raise WorkflowNotFoundError(f"Failed to get jobs for workflow {workflow_uuid}: {e.details()}")
+            raise WorkflowNotFoundError(
+                f"Failed to get jobs for workflow {workflow_uuid}: {e.details()}"
+            )
 
     @staticmethod
     def _timestamp_to_datetime(timestamp) -> Optional[datetime]:
@@ -635,17 +640,25 @@ class MonitoringService:
         if response.HasField("memory"):
             result["memory"] = self._parse_memory_metrics(response.memory)
         if response.disks:
-            result["disks"] = [self._parse_disk_metrics(d) for d in response.disks]
+            result["disks"] = [
+                self._parse_disk_metrics(d) for d in response.disks
+            ]
         if response.networks:
-            result["networks"] = [self._parse_network_metrics(n) for n in response.networks]
+            result["networks"] = [
+                self._parse_network_metrics(n) for n in response.networks
+            ]
         if response.HasField("io"):
             result["io"] = self._parse_io_metrics(response.io)
         if response.HasField("processes"):
-            result["processes"] = self._parse_process_metrics(response.processes)
+            result["processes"] = self._parse_process_metrics(
+                response.processes
+            )
         if response.HasField("cloud"):
             result["cloud"] = self._parse_cloud_info(response.cloud)
         if response.HasField("server_version"):
-            result["server_version"] = self._parse_server_version(response.server_version)
+            result["server_version"] = self._parse_server_version(
+                response.server_version
+            )
 
         return result
 
@@ -660,13 +673,19 @@ class MonitoringService:
         if response.HasField("memory"):
             result["memory"] = self._parse_memory_metrics(response.memory)
         if response.disks:
-            result["disks"] = [self._parse_disk_metrics(d) for d in response.disks]
+            result["disks"] = [
+                self._parse_disk_metrics(d) for d in response.disks
+            ]
         if response.networks:
-            result["networks"] = [self._parse_network_metrics(n) for n in response.networks]
+            result["networks"] = [
+                self._parse_network_metrics(n) for n in response.networks
+            ]
         if response.HasField("io"):
             result["io"] = self._parse_io_metrics(response.io)
         if response.HasField("processes"):
-            result["processes"] = self._parse_process_metrics(response.processes)
+            result["processes"] = self._parse_process_metrics(
+                response.processes
+            )
         if response.HasField("cloud"):
             result["cloud"] = self._parse_cloud_info(response.cloud)
 
