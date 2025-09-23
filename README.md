@@ -732,12 +732,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **[Joblet](https://github.com/ehsaniara/joblet)** - The main Joblet job orchestration system
 - **[Joblet Proto](https://github.com/ehsaniara/joblet-proto)** - Protocol buffer definitions
 
-## 🤝 Need help?
-
-- **Something broken?** [Open an issue](https://github.com/yourusername/joblet-sdk-python/issues)
-- **Want to understand how something works?** Check the [API docs](API_REFERENCE.md)
-- **Learn by example?** Browse the [examples/](examples/) directory
-
----
-
-**Built with ❤️ by developers, for developers**

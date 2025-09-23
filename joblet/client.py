@@ -177,21 +177,21 @@ class JobletClient:
         self.ca_cert_path = ca_cert_path
         self.client_cert_path = client_cert_path
         self.client_key_path = client_key_path
-        self._channel = None
+        self._channel: Optional[grpc.Channel] = None
         self._options = options or {}
 
         # Service instances - initialized lazily for better performance
         # These will be created only when first accessed
-        self._job_service = None
-        self._network_service = None
-        self._volume_service = None
-        self._monitoring_service = None
-        self._runtime_service = None
+        self._job_service: Optional[JobService] = None
+        self._network_service: Optional[NetworkService] = None
+        self._volume_service: Optional[VolumeService] = None
+        self._monitoring_service: Optional[MonitoringService] = None
+        self._runtime_service: Optional[RuntimeService] = None
 
         # Establish the connection to the server immediately
         self._connect()
 
-    def _connect(self):
+    def _connect(self) -> None:
         """
         Establish the mTLS gRPC connection to the Joblet server.
 
@@ -263,7 +263,7 @@ class JobletClient:
                 f"Failed to connect to Joblet server at {target}: {e}"
             )
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the connection to the Joblet server and clean up resources.
 
@@ -279,7 +279,7 @@ class JobletClient:
             self._channel.close()
             self._channel = None
 
-    def __enter__(self):
+    def __enter__(self) -> "JobletClient":
         """
         Context manager entry point.
 
@@ -288,7 +288,7 @@ class JobletClient:
         """
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """
         Context manager exit point.
 
@@ -324,6 +324,8 @@ class JobletClient:
             ...     print(f"Job status: {status['status']}")
         """
         if not self._job_service:
+            if self._channel is None:
+                raise ConnectionError("Client is not connected to server")
             self._job_service = JobService(self._channel)
         return self._job_service
 
@@ -349,6 +351,8 @@ class JobletClient:
             ...     print(f"Created network: {network['name']}")
         """
         if not self._network_service:
+            if self._channel is None:
+                raise ConnectionError("Client is not connected to server")
             self._network_service = NetworkService(self._channel)
         return self._network_service
 
@@ -375,6 +379,8 @@ class JobletClient:
             ...     print(f"Volume path: {volume['path']}")
         """
         if not self._volume_service:
+            if self._channel is None:
+                raise ConnectionError("Client is not connected to server")
             self._volume_service = VolumeService(self._channel)
         return self._volume_service
 
@@ -401,6 +407,8 @@ class JobletClient:
             ...         print(f"Memory: {metrics['memory']['usage_percent']:.1f}%")
         """
         if not self._monitoring_service:
+            if self._channel is None:
+                raise ConnectionError("Client is not connected to server")
             self._monitoring_service = MonitoringService(self._channel)
         return self._monitoring_service
 
@@ -431,6 +439,8 @@ class JobletClient:
             ...     )
         """
         if not self._runtime_service:
+            if self._channel is None:
+                raise ConnectionError("Client is not connected to server")
             self._runtime_service = RuntimeService(self._channel)
         return self._runtime_service
 
@@ -464,7 +474,7 @@ class JobletClient:
             # Attempt to get system status from the monitoring service
             # This verifies both connectivity and basic server functionality
             status = self.monitoring.get_system_status()
-            return status.get("available", False)
+            return bool(status.get("available", False))
         except Exception:
             # Any exception (network, auth, server error) means unhealthy
             return False

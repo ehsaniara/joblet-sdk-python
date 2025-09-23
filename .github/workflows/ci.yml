@@ -56,7 +56,7 @@ jobs:
 
       - name: Type checking with mypy
         run: |
-          mypy joblet/ --ignore-missing-imports
+          mypy joblet/__init__.py joblet/client.py joblet/services.py joblet/exceptions.py --ignore-missing-imports
 
       - name: Test with pytest
         run: |

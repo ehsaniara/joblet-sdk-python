@@ -425,7 +425,7 @@ class JobService:
             )
 
     @staticmethod
-    def _timestamp_to_datetime(timestamp) -> Optional[datetime]:
+    def _timestamp_to_datetime(timestamp: Any) -> Optional[datetime]:
         """Convert protobuf timestamp to datetime"""
         if timestamp and timestamp.seconds:
             return datetime.fromtimestamp(timestamp.seconds + timestamp.nanos / 1e9)
