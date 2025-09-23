@@ -7,10 +7,10 @@ repository and generates Python bindings for use in the SDK.
 """
 
 import os
-import sys
-import subprocess
-import tempfile
 import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 

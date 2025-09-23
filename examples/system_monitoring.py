@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """System monitoring example with mTLS authentication"""
 
-from joblet import JobletClient
+import json
 import os
 import time
-import json
+
+from joblet import JobletClient
 
 
 def print_metrics(metrics, title="System Metrics"):

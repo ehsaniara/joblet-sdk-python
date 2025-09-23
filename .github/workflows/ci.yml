@@ -48,11 +48,11 @@ jobs:
 
       - name: Format check with black
         run: |
-          black --check joblet/ examples/ scripts/
+          black --check joblet/ examples/ scripts/ --extend-exclude "joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi"
 
       - name: Import sorting check with isort
         run: |
-          isort --check-only joblet/ examples/ scripts/
+          isort --check-only joblet/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi
 
       - name: Type checking with mypy
         run: |

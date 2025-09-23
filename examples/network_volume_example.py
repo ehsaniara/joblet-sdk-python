@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Network and volume management example with mTLS authentication"""
 
-from joblet import JobletClient
 import os
+
+from joblet import JobletClient
 
 
 def main():

@@ -49,27 +49,27 @@ __license__ = "MIT"
 # Main client class - the primary entry point
 from .client import JobletClient
 
+# Exception classes - for proper error handling
+from .exceptions import (
+    AuthenticationError,
+    ConnectionError,
+    JobletException,
+    JobNotFoundError,
+    NetworkError,
+    RuntimeNotFoundError,
+    TimeoutError,
+    ValidationError,
+    VolumeError,
+    WorkflowNotFoundError,
+)
+
 # Service classes - accessed through client properties
 from .services import (
     JobService,
-    NetworkService,
-    VolumeService,
     MonitoringService,
+    NetworkService,
     RuntimeService,
-)
-
-# Exception classes - for proper error handling
-from .exceptions import (
-    JobletException,
-    ConnectionError,
-    AuthenticationError,
-    JobNotFoundError,
-    WorkflowNotFoundError,
-    RuntimeNotFoundError,
-    NetworkError,
-    VolumeError,
-    ValidationError,
-    TimeoutError,
+    VolumeService,
 )
 
 # Public API - these classes/functions are available when importing the package

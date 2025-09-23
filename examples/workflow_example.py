@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Workflow execution example with mTLS authentication"""
 
-from joblet import JobletClient
 import os
 import time
+
 import yaml
+
+from joblet import JobletClient
 
 
 def main():

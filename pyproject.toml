@@ -66,13 +66,12 @@ version = { attr = "joblet.__version__" }
 [tool.black]
 line-length = 88
 target-version = ['py38']
-include = '\.pyi?$'
 extend-exclude = '''
 /(
   # Exclude generated proto files
-  joblet_pb2\.py
-  | joblet_pb2_grpc\.py
-  | joblet_pb2\.pyi
+  .*/joblet_pb2\.py
+  | .*/joblet_pb2_grpc\.py
+  | .*/joblet_pb2\.pyi
 )/
 '''
 

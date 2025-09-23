@@ -9,7 +9,8 @@ for security.
 
 import os
 from pathlib import Path
-from joblet import JobletClient, ConnectionError
+
+from joblet import ConnectionError, JobletClient
 
 
 def example_1_basic_mtls():

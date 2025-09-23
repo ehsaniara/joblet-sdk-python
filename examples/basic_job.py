@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Basic job execution example with mTLS authentication"""
 
-from joblet import JobletClient
 import os
 import time
+
+from joblet import JobletClient
 
 
 def main():

@@ -37,16 +37,18 @@ Example:
     ...     print(f"Found {len(jobs)} jobs")
 """
 
+from typing import Any, Dict, Optional
+
 import grpc
-from typing import Optional, Dict, Any
+
+from .exceptions import ConnectionError
 from .services import (
     JobService,
-    NetworkService,
-    VolumeService,
     MonitoringService,
+    NetworkService,
     RuntimeService,
+    VolumeService,
 )
-from .exceptions import ConnectionError
 
 
 class JobletClient:
