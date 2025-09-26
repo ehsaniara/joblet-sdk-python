@@ -26,7 +26,7 @@ pip install joblet-sdk
 
 Or add to your `requirements.txt`:
 ```txt
-joblet-sdk>=0.1.0
+joblet-sdk>=1.0.0
 ```
 
 ### For latest development features
