@@ -1,8 +1,17 @@
 # Joblet Python SDK
 
-The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a powerful distributed job orchestration system.
+The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a powerful distributed job orchestration system with GPU support.
 
 With this SDK, you can easily run jobs, manage complex workflows, and interact with Joblet servers directly from your Python applications. No need to worry about gRPC complexities or protocol details - we've got you covered!
+
+## ✨ What's New in v1.0.2
+
+- **🚀 GPU Support**: Full GPU acceleration support for ML/AI workloads
+- **🔧 Enhanced API**: New GPU parameters in `run_job()` method
+- **📊 GPU Monitoring**: Track GPU allocation and usage in job status
+- **🏃 Runtime Isolation**: Improved container runtime and workload isolation
+- **🧪 Comprehensive Testing**: Full test coverage for GPU features
+- **📚 Rich Examples**: GPU workflow examples and documentation
 
 ## Quick Start
 
@@ -123,7 +132,7 @@ from joblet import JobletClient
 client = JobletClient(host="your-server", port=6060, insecure=True)
 
 # Run a GPU-enabled job
-response = client.jobs().run_job(
+response = client.jobs.run_job(
     command="nvidia-smi",
     name="gpu-info",
     gpu_count=1,        # Request 1 GPU
@@ -135,7 +144,7 @@ response = client.jobs().run_job(
 ### Multi-GPU Training
 ```python
 # Distribute training across multiple GPUs
-response = client.jobs().run_job(
+response = client.jobs.run_job(
     command="python",
     args=["train_model.py", "--distributed"],
     name="multi-gpu-training",
@@ -146,7 +155,7 @@ response = client.jobs().run_job(
 )
 
 # Check which GPUs were allocated
-status = client.jobs().get_job_status(response['job_uuid'])
+status = client.jobs.get_job_status(response['job_uuid'])
 print(f"Allocated GPUs: {status['gpu_indices']}")  # e.g., [0, 1]
 ```
 
@@ -171,7 +180,7 @@ jobs:
     depends_on: [train]
 """
 
-client.jobs().run_workflow("ml-pipeline.yaml", yaml_content=workflow_yaml)
+client.jobs.run_workflow("ml-pipeline.yaml", yaml_content=workflow_yaml)
 ```
 
 **Want to see more GPU examples?** Check out `examples/gpu_example.py` for comprehensive demos!
@@ -287,17 +296,45 @@ We're friendly and happy to help if you get stuck. This is a welcoming project! 
 
 ## What is Joblet?
 
-[Joblet](https://github.com/ehsaniara/joblet) is like having a super-powered task runner that works across multiple machines. Think of it as cron on steroids with a modern API.
+[Joblet](https://github.com/ehsaniara/joblet) is a powerful distributed job orchestration and container runtime system for running isolated workloads. It simplifies deploying and managing applications across multiple machines with built-in job scheduling, resource management, and GPU support.
 
-Here's what makes it cool:
+### Key Features
 
-- **Run anything, anywhere**: Execute commands and scripts across your entire infrastructure
-- **Smart workflows**: Chain jobs together with dependencies (job B runs only after job A succeeds)
-- **Scales up and down**: Start small, grow big - Joblet handles the complexity
-- **Real-time monitoring**: See what's running, what failed, and why
-- **Security first**: Everything is encrypted and authenticated
+- **🚀 GPU Acceleration**: Native support for GPU workloads with automatic resource allocation
+- **🔗 Smart Workflows**: Chain jobs with complex dependencies and conditional execution
+- **⚡ High Performance**: Built with Go for speed and efficiency
+- **🔒 Security First**: mTLS encryption and authentication out of the box
+- **📊 Real-time Monitoring**: Live job status, logs, and system metrics
+- **🌐 Multi-Node**: Seamlessly distribute work across your infrastructure
+- **🏃 Runtime Isolation**: Secure container isolation for workloads
+- **📦 Resource Management**: CPU, memory, and GPU resource limits and quotas
 
-This Python SDK is your friendly gateway to all that power. No need to learn gRPC or mess with protocol buffers - just import and go!
+### Use Cases
+
+- **Machine Learning**: Train models across multiple GPUs with automatic resource scheduling
+- **Data Processing**: Run ETL pipelines with complex dependencies and error handling
+- **Batch Jobs**: Replace cron with a more reliable, observable job scheduler
+- **CI/CD**: Build and deploy applications with parallel execution
+- **Scientific Computing**: High-performance computing workloads with GPU support
+- **Microservices**: Container orchestration for distributed applications
+- **Edge Computing**: Lightweight runtime for resource-constrained environments
+
+### Architecture
+
+Joblet provides a complete container orchestration solution:
+- **Server**: The core orchestration engine that manages jobs and resources
+- **Runtime**: Native container runtime that isolates workloads securely
+- **Agents**: Worker nodes that execute jobs across your infrastructure
+- **SDK**: Client libraries (like this Python SDK) for easy integration
+
+Key advantages of Joblet:
+- Simple deployment and management
+- Low resource overhead
+- Built-in job scheduling and workflows
+- Native GPU support with automatic allocation
+- Direct integration with your applications via SDK
+
+This Python SDK provides a simple, pythonic interface to all Joblet features. No need to learn gRPC or mess with protocol buffers - just import and go!
 
 ## The Joblet Family
 
