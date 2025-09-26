@@ -42,7 +42,7 @@ For more examples and detailed documentation, see:
 Repository: https://github.com/ehsaniara/joblet-proto
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.2"
 __author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
