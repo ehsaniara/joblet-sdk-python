@@ -2,9 +2,7 @@
 Unit tests for JobletClient
 """
 
-import os
-import tempfile
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import grpc
 import pytest
@@ -121,9 +119,9 @@ class TestJobletClient:
             mock_secure_channel.return_value = mock_channel
 
             with JobletClient(
-                ca_cert_path=temp_cert_files["ca_cert_path"],
-                client_cert_path=temp_cert_files["client_cert_path"],
-                client_key_path=temp_cert_files["client_key_path"],
+                    ca_cert_path=temp_cert_files["ca_cert_path"],
+                    client_cert_path=temp_cert_files["client_cert_path"],
+                    client_key_path=temp_cert_files["client_key_path"],
             ) as client:
                 assert client._channel is not None
 

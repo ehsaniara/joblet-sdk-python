@@ -2,7 +2,7 @@
 Unit tests for Network, Volume, Monitoring, and Runtime services
 """
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import grpc
 import pytest
@@ -10,7 +10,6 @@ import pytest
 from joblet.exceptions import (
     NetworkError,
     RuntimeNotFoundError,
-    ValidationError,
     VolumeError,
 )
 from joblet.services import (

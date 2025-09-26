@@ -39,6 +39,8 @@ class JobService:
         environment: Optional[Dict[str, str]] = None,
         secret_environment: Optional[Dict[str, str]] = None,
         uploads: Optional[List[Dict[str, Any]]] = None,
+        gpu_count: Optional[int] = None,
+        gpu_memory_mb: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Run a new job
 
@@ -58,6 +60,8 @@ class JobService:
             environment: Environment variables
             secret_environment: Secret environment variables
             uploads: Files to upload
+            gpu_count: Number of GPUs to allocate
+            gpu_memory_mb: Minimum GPU memory required in MB
 
         Returns:
             Job response dictionary
@@ -77,6 +81,8 @@ class JobService:
             workDir=work_dir or "",
             environment=environment or {},
             secret_environment=secret_environment or {},
+            gpu_count=gpu_count or 0,
+            gpu_memory_mb=gpu_memory_mb or 0,
         )
 
         # Add file uploads if provided
@@ -145,6 +151,9 @@ class JobService:
                 "uploads": list(response.uploads),
                 "dependencies": list(response.dependencies),
                 "workflow_uuid": response.workflowUuid,
+                "gpu_indices": list(response.gpu_indices),
+                "gpu_count": response.gpu_count,
+                "gpu_memory_mb": response.gpu_memory_mb,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")

@@ -2,12 +2,11 @@
 Unit tests for JobService
 """
 
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import grpc
 import pytest
 
-from joblet import joblet_pb2
 from joblet.exceptions import JobNotFoundError, WorkflowNotFoundError
 from joblet.services import JobService
 
@@ -170,6 +169,9 @@ class TestJobService:
         mock_grpc_response.uploads = []
         mock_grpc_response.dependencies = []
         mock_grpc_response.workflowUuid = ""
+        mock_grpc_response.gpu_indices = [0, 1]
+        mock_grpc_response.gpu_count = 2
+        mock_grpc_response.gpu_memory_mb = 8192
 
         mock_stub.GetJobStatus.return_value = mock_grpc_response
 
@@ -181,6 +183,9 @@ class TestJobService:
         assert result["args"] == ["hello"]
         assert result["status"] == "completed"
         assert result["exit_code"] == 0
+        assert result["gpu_indices"] == [0, 1]
+        assert result["gpu_count"] == 2
+        assert result["gpu_memory_mb"] == 8192
 
         mock_stub.GetJobStatus.assert_called_once()
 
@@ -453,3 +458,49 @@ class TestJobService:
         assert result[0]["status"] == "completed"
         assert result[0]["total_jobs"] == 2
         assert result[0]["completed_jobs"] == 2
+
+    def test_run_job_with_gpu(self, job_service, sample_job_response):
+        """Test running a job with GPU parameters"""
+        mock_stub = Mock()
+        job_service.stub = mock_stub
+
+        # Create mock response with GPU fields
+        mock_grpc_response = Mock()
+        mock_grpc_response.jobUuid = sample_job_response["job_uuid"]
+        mock_grpc_response.status = sample_job_response["status"]
+        mock_grpc_response.command = "python"
+        mock_grpc_response.args = ["train.py"]
+        mock_grpc_response.maxCpu = sample_job_response["max_cpu"]
+        mock_grpc_response.cpuCores = sample_job_response["cpu_cores"]
+        mock_grpc_response.maxMemory = sample_job_response["max_memory"]
+        mock_grpc_response.maxIobps = sample_job_response["max_iobps"]
+        mock_grpc_response.startTime = sample_job_response["start_time"]
+        mock_grpc_response.endTime = sample_job_response["end_time"]
+        mock_grpc_response.exitCode = sample_job_response["exit_code"]
+        mock_grpc_response.scheduledTime = sample_job_response["scheduled_time"]
+        mock_grpc_response.gpu_indices = [0, 1]
+        mock_grpc_response.gpu_count = 2
+        mock_grpc_response.gpu_memory_mb = 8192
+
+        mock_stub.RunJob.return_value = mock_grpc_response
+
+        result = job_service.run_job(
+            command="python",
+            args=["train.py"],
+            name="gpu-job",
+            gpu_count=2,
+            gpu_memory_mb=8192,
+            runtime="python-3.11-ml"
+        )
+
+        # Verify the result contains GPU info
+        assert result["job_uuid"] == sample_job_response["job_uuid"]
+        assert result["command"] == "python"
+        assert result["args"] == ["train.py"]
+
+        # Verify the request was made with GPU parameters
+        call_args = mock_stub.RunJob.call_args[0][0]
+        assert call_args.gpu_count == 2
+        assert call_args.gpu_memory_mb == 8192
+        assert call_args.command == "python"
+        assert call_args.args == ["train.py"]

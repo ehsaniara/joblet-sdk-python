@@ -26,8 +26,7 @@ class TestJobletClientIntegration:
 
             # Mock all service stubs
             with patch("joblet.services.joblet_pb2_grpc.JobServiceStub") as mock_job_stub, \
-                 patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub") as mock_monitoring_stub:
-
+                    patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub") as mock_monitoring_stub:
                 # Setup monitoring service for health check
                 mock_monitoring_instance = Mock()
                 mock_monitoring_instance.GetSystemStatus.return_value = Mock(
@@ -60,11 +59,11 @@ class TestJobletClientIntegration:
 
                 # Test the full flow
                 with JobletClient(
-                    ca_cert_path=temp_cert_files["ca_cert_path"],
-                    client_cert_path=temp_cert_files["client_cert_path"],
-                    client_key_path=temp_cert_files["client_key_path"],
-                    host="test-server",
-                    port=50051
+                        ca_cert_path=temp_cert_files["ca_cert_path"],
+                        client_cert_path=temp_cert_files["client_cert_path"],
+                        client_key_path=temp_cert_files["client_key_path"],
+                        host="test-server",
+                        port=50051
                 ) as client:
                     # Test health check
                     assert client.health_check() is True
@@ -92,11 +91,10 @@ class TestJobletClientIntegration:
 
             # Mock all service stubs
             with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.RuntimeServiceStub"):
-
+                    patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
+                    patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), \
+                    patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub"), \
+                    patch("joblet.services.joblet_pb2_grpc.RuntimeServiceStub"):
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
@@ -148,15 +146,14 @@ class TestJobletClientIntegration:
     def test_concurrent_service_access(self, temp_cert_files):
         """Test concurrent access to different services"""
         import threading
-        import time
 
         with patch("joblet.client.grpc.secure_channel") as mock_secure_channel:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
             with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
-                 patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
+                    patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
+                    patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
 
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
@@ -255,6 +252,9 @@ class TestServiceIntegration:
                 mock_status_response.uploads = []
                 mock_status_response.dependencies = []
                 mock_status_response.workflowUuid = ""
+                mock_status_response.gpu_indices = []
+                mock_status_response.gpu_count = 0
+                mock_status_response.gpu_memory_mb = 0
                 mock_job_instance.GetJobStatus.return_value = mock_status_response
 
                 # Mock get_job_logs response

@@ -1,5 +1,5 @@
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, \
-    Union as _Union
+from collections.abc import Iterable as _Iterable, Mapping as _Mapping
+from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -18,7 +18,8 @@ class Jobs(_message.Message):
 
 class Job(_message.Message):
     __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status",
-                 "startTime", "endTime", "exitCode", "scheduledTime", "runtime", "environment", "secret_environment")
+                 "startTime", "endTime", "exitCode", "scheduledTime", "runtime", "environment", "secret_environment",
+                 "gpu_indices", "gpu_count", "gpu_memory_mb")
 
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -54,6 +55,9 @@ class Job(_message.Message):
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
     ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
     SECRET_ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
+    GPU_INDICES_FIELD_NUMBER: _ClassVar[int]
+    GPU_COUNT_FIELD_NUMBER: _ClassVar[int]
+    GPU_MEMORY_MB_FIELD_NUMBER: _ClassVar[int]
     uuid: str
     name: str
     command: str
@@ -70,6 +74,9 @@ class Job(_message.Message):
     runtime: str
     environment: _containers.ScalarMap[str, str]
     secret_environment: _containers.ScalarMap[str, str]
+    gpu_indices: _containers.RepeatedScalarFieldContainer[int]
+    gpu_count: int
+    gpu_memory_mb: int
 
     def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ...,
                  args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
@@ -77,7 +84,8 @@ class Job(_message.Message):
                  startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ...,
                  scheduledTime: _Optional[str] = ..., runtime: _Optional[str] = ...,
                  environment: _Optional[_Mapping[str, str]] = ...,
-                 secret_environment: _Optional[_Mapping[str, str]] = ...) -> None: ...
+                 secret_environment: _Optional[_Mapping[str, str]] = ..., gpu_indices: _Optional[_Iterable[int]] = ...,
+                 gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
 
 
 class EmptyRequest(_message.Message):
@@ -112,7 +120,8 @@ class GetJobStatusReq(_message.Message):
 class GetJobStatusRes(_message.Message):
     __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status",
                  "startTime", "endTime", "exitCode", "scheduledTime", "environment", "secret_environment", "network",
-                 "volumes", "runtime", "workDir", "uploads", "dependencies", "workflowUuid")
+                 "volumes", "runtime", "workDir", "uploads", "dependencies", "workflowUuid", "gpu_indices", "gpu_count",
+                 "gpu_memory_mb")
 
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -154,6 +163,9 @@ class GetJobStatusRes(_message.Message):
     UPLOADS_FIELD_NUMBER: _ClassVar[int]
     DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
     WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
+    GPU_INDICES_FIELD_NUMBER: _ClassVar[int]
+    GPU_COUNT_FIELD_NUMBER: _ClassVar[int]
+    GPU_MEMORY_MB_FIELD_NUMBER: _ClassVar[int]
     uuid: str
     name: str
     command: str
@@ -176,6 +188,9 @@ class GetJobStatusRes(_message.Message):
     uploads: _containers.RepeatedScalarFieldContainer[str]
     dependencies: _containers.RepeatedScalarFieldContainer[str]
     workflowUuid: str
+    gpu_indices: _containers.RepeatedScalarFieldContainer[int]
+    gpu_count: int
+    gpu_memory_mb: int
 
     def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ...,
                  args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
@@ -185,7 +200,8 @@ class GetJobStatusRes(_message.Message):
                  secret_environment: _Optional[_Mapping[str, str]] = ..., network: _Optional[str] = ...,
                  volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ...,
                  uploads: _Optional[_Iterable[str]] = ..., dependencies: _Optional[_Iterable[str]] = ...,
-                 workflowUuid: _Optional[str] = ...) -> None: ...
+                 workflowUuid: _Optional[str] = ..., gpu_indices: _Optional[_Iterable[int]] = ...,
+                 gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
 
 
 class StopJobReq(_message.Message):
@@ -1024,7 +1040,7 @@ class RunJobRequest(_message.Message):
 
 class RunJobResponse(_message.Message):
     __slots__ = ("jobUuid", "status", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "startTime",
-                 "endTime", "exitCode", "scheduledTime", "gpu_indices", "gpu_count", "gpu_memory_mb")
+                 "endTime", "exitCode", "scheduledTime")
     JOBUUID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     COMMAND_FIELD_NUMBER: _ClassVar[int]
@@ -1037,9 +1053,6 @@ class RunJobResponse(_message.Message):
     ENDTIME_FIELD_NUMBER: _ClassVar[int]
     EXITCODE_FIELD_NUMBER: _ClassVar[int]
     SCHEDULEDTIME_FIELD_NUMBER: _ClassVar[int]
-    GPU_INDICES_FIELD_NUMBER: _ClassVar[int]
-    GPU_COUNT_FIELD_NUMBER: _ClassVar[int]
-    GPU_MEMORY_MB_FIELD_NUMBER: _ClassVar[int]
     jobUuid: str
     status: str
     command: str
@@ -1052,17 +1065,12 @@ class RunJobResponse(_message.Message):
     endTime: str
     exitCode: int
     scheduledTime: str
-    gpu_indices: _containers.RepeatedScalarFieldContainer[int]
-    gpu_count: int
-    gpu_memory_mb: int
 
     def __init__(self, jobUuid: _Optional[str] = ..., status: _Optional[str] = ..., command: _Optional[str] = ...,
                  args: _Optional[_Iterable[str]] = ..., maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
                  maxMemory: _Optional[int] = ..., maxIobps: _Optional[int] = ..., startTime: _Optional[str] = ...,
                  endTime: _Optional[str] = ..., exitCode: _Optional[int] = ...,
-                 scheduledTime: _Optional[str] = ...,
-                 gpu_indices: _Optional[_Iterable[int]] = ..., gpu_count: _Optional[int] = ...,
-                 gpu_memory_mb: _Optional[int] = ...) -> None: ...
+                 scheduledTime: _Optional[str] = ...) -> None: ...
 
 
 class JobRequirement(_message.Message):

@@ -4,13 +4,11 @@ Pytest configuration and shared fixtures for Joblet SDK tests
 
 import os
 import tempfile
-from typing import Any, Dict
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import grpc
 import pytest
 
-from joblet import JobletClient
 from joblet.services import (
     JobService,
     MonitoringService,

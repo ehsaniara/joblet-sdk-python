@@ -112,6 +112,70 @@ Once you've got a client connected, you can access all the cool Joblet features:
 - **`client.monitoring`** - Keep an eye on system health and performance
 - **`client.runtimes`** - Manage different execution environments
 
+## GPU Support 🚀
+
+Joblet now supports GPU-accelerated workloads! Perfect for machine learning, AI training, and compute-intensive tasks.
+
+### Basic GPU Job
+```python
+from joblet import JobletClient
+
+client = JobletClient(host="your-server", port=6060, insecure=True)
+
+# Run a GPU-enabled job
+response = client.jobs().run_job(
+    command="nvidia-smi",
+    name="gpu-info",
+    gpu_count=1,        # Request 1 GPU
+    gpu_memory_mb=4096, # Require 4GB GPU memory
+    runtime="python-3.11-ml"
+)
+```
+
+### Multi-GPU Training
+```python
+# Distribute training across multiple GPUs
+response = client.jobs().run_job(
+    command="python",
+    args=["train_model.py", "--distributed"],
+    name="multi-gpu-training",
+    gpu_count=2,        # Use 2 GPUs
+    gpu_memory_mb=8192, # 8GB per GPU
+    runtime="python-3.11-ml",
+    environment={"CUDA_VISIBLE_DEVICES": "0,1"}
+)
+
+# Check which GPUs were allocated
+status = client.jobs().get_job_status(response['job_uuid'])
+print(f"Allocated GPUs: {status['gpu_indices']}")  # e.g., [0, 1]
+```
+
+### GPU Workflows
+Use GPUs in complex multi-step workflows:
+```python
+workflow_yaml = """
+name: gpu-ml-pipeline
+jobs:
+  train:
+    command: python
+    args: ["train.py"]
+    gpu_count: 1
+    gpu_memory_mb: 6144
+    runtime: python-3.11-ml
+
+  evaluate:
+    command: python
+    args: ["evaluate.py"]
+    gpu_count: 1
+    gpu_memory_mb: 4096
+    depends_on: [train]
+"""
+
+client.jobs().run_workflow("ml-pipeline.yaml", yaml_content=workflow_yaml)
+```
+
+**Want to see more GPU examples?** Check out `examples/gpu_example.py` for comprehensive demos!
+
 ## Try It Out!
 
 Want to see it in action? We've got examples ready to go:
