@@ -291,7 +291,10 @@ class TestMonitoringService:
         assert result["available"] == sample_system_status["available"]
         assert result["host"]["hostname"] == sample_system_status["host"]["hostname"]
         assert result["cpu"]["cores"] == sample_system_status["cpu"]["cores"]
-        assert result["memory"]["total_bytes"] == sample_system_status["memory"]["total_bytes"]
+        assert (
+            result["memory"]["total_bytes"]
+            == sample_system_status["memory"]["total_bytes"]
+        )
 
     def test_stream_system_metrics(self, monitoring_service):
         """Test streaming system metrics"""
@@ -363,7 +366,9 @@ class TestRuntimeService:
 
             # Mock requirements
             mock_requirements = Mock()
-            mock_requirements.architectures = runtime_data["requirements"]["architectures"]
+            mock_requirements.architectures = runtime_data["requirements"][
+                "architectures"
+            ]
             mock_requirements.gpu = runtime_data["requirements"]["gpu"]
 
             mock_runtime.HasField = lambda field: field == "requirements"
@@ -539,7 +544,7 @@ class TestRuntimeService:
             repository="user/python-runtime",
             branch="main",
             path="runtimes/python:3.12",
-            force_reinstall=True
+            force_reinstall=True,
         )
 
         assert result["build_job_uuid"] == "build-job-123"

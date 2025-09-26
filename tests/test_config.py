@@ -24,21 +24,21 @@ class TestConfigLoader:
                     "address": "192.168.1.100:50051",
                     "cert": "-----BEGIN CERTIFICATE-----\ntest_cert\n-----END CERTIFICATE-----",
                     "key": "-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----",
-                    "ca": "-----BEGIN CERTIFICATE-----\ntest_ca\n-----END CERTIFICATE-----"
+                    "ca": "-----BEGIN CERTIFICATE-----\ntest_ca\n-----END CERTIFICATE-----",
                 },
                 "production": {
                     "address": "prod.example.com:50051",
                     "cert": "-----BEGIN CERTIFICATE-----\nprod_cert\n-----END CERTIFICATE-----",
                     "key": "-----BEGIN PRIVATE KEY-----\nprod_key\n-----END PRIVATE KEY-----",
-                    "ca": "-----BEGIN CERTIFICATE-----\nprod_ca\n-----END CERTIFICATE-----"
-                }
-            }
+                    "ca": "-----BEGIN CERTIFICATE-----\nprod_ca\n-----END CERTIFICATE-----",
+                },
+            },
         }
 
     @pytest.fixture
     def temp_config_file(self, sample_config):
         """Create a temporary config file"""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(sample_config, f)
             config_path = f.name
 
@@ -57,7 +57,7 @@ class TestConfigLoader:
 
     def test_init_with_env_variable(self, temp_config_file):
         """Test initialization with RNX_CONFIG_PATH environment variable"""
-        with patch.dict(os.environ, {'RNX_CONFIG_PATH': temp_config_file}):
+        with patch.dict(os.environ, {"RNX_CONFIG_PATH": temp_config_file}):
             loader = ConfigLoader()
             assert loader.config_path == Path(temp_config_file)
 
@@ -81,7 +81,7 @@ class TestConfigLoader:
 
     def test_load_invalid_yaml(self):
         """Test loading invalid YAML file"""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("invalid: yaml: content: [")
             invalid_path = f.name
 
@@ -125,7 +125,7 @@ class TestConfigLoader:
         # Modify config to have address without port
         sample_config["nodes"]["default"]["address"] = "192.168.1.100"
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(sample_config, f)
             config_path = f.name
 
@@ -140,7 +140,7 @@ class TestConfigLoader:
         finally:
             os.unlink(config_path)
 
-    @patch('os.path.exists')
+    @patch("os.path.exists")
     def test_extract_connection_info_with_ca_cert(self, mock_exists, temp_config_file):
         """Test extracting connection info finds CA certificate"""
         mock_exists.return_value = True
@@ -148,7 +148,7 @@ class TestConfigLoader:
         loader = ConfigLoader(config_path=temp_config_file)
         loader.load()
 
-        with patch('pathlib.Path.exists', return_value=True):
+        with patch("pathlib.Path.exists", return_value=True):
             conn_info = loader.extract_connection_info("default")
             assert conn_info is not None
             # Should find ca.crt in ~/.rnx/
@@ -162,7 +162,7 @@ class TestConfigLoader:
         node_config = loader.get_node_config("default")
 
         # Mock the CA cert path
-        with patch('pathlib.Path.exists', return_value=True):
+        with patch("pathlib.Path.exists", return_value=True):
             cert_paths = loader._create_cert_files(node_config)
             assert cert_paths is not None
 
@@ -185,7 +185,7 @@ class TestConfigLoader:
         loader.load()
 
         # Create some temp files
-        with patch('pathlib.Path.exists', return_value=True):
+        with patch("pathlib.Path.exists", return_value=True):
             conn_info = loader.extract_connection_info("default")
 
             # Record temp files
@@ -206,9 +206,11 @@ class TestConfigLoader:
     def test_config_loader_with_embedded_ca_cert(self, sample_config):
         """Test config with embedded CA certificate"""
         # Add CA cert to config
-        sample_config["nodes"]["default"]["ca_cert"] = "-----BEGIN CERTIFICATE-----\nca_cert\n-----END CERTIFICATE-----"
+        sample_config["nodes"]["default"][
+            "ca_cert"
+        ] = "-----BEGIN CERTIFICATE-----\nca_cert\n-----END CERTIFICATE-----"
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(sample_config, f)
             config_path = f.name
 
@@ -241,12 +243,12 @@ class TestJobletClientWithConfig:
                 "default": {
                     "address": "test-server:50051",
                     "cert": "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
-                    "key": "-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----"
+                    "key": "-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----",
                 }
-            }
+            },
         }
 
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(config_data, f)
             config_path = f.name
 
@@ -257,9 +259,11 @@ class TestJobletClientWithConfig:
         except:
             pass
 
-    @patch('joblet.client.grpc.secure_channel')
-    @patch('pathlib.Path.exists')
-    def test_client_init_with_config(self, mock_path_exists, mock_secure_channel, mock_config_file):
+    @patch("joblet.client.grpc.secure_channel")
+    @patch("pathlib.Path.exists")
+    def test_client_init_with_config(
+        self, mock_path_exists, mock_secure_channel, mock_config_file
+    ):
         """Test JobletClient initialization with config file"""
         from joblet import JobletClient
 
@@ -276,8 +280,10 @@ class TestJobletClientWithConfig:
         # Cleanup
         client.close()
 
-    @patch('joblet.client.grpc.secure_channel')
-    def test_client_init_with_explicit_params_override(self, mock_secure_channel, temp_cert_files):
+    @patch("joblet.client.grpc.secure_channel")
+    def test_client_init_with_explicit_params_override(
+        self, mock_secure_channel, temp_cert_files
+    ):
         """Test that explicit parameters override config values"""
         from joblet import JobletClient
 
@@ -290,7 +296,7 @@ class TestJobletClientWithConfig:
             port=9999,
             ca_cert_path=temp_cert_files["ca_cert_path"],
             client_cert_path=temp_cert_files["client_cert_path"],
-            client_key_path=temp_cert_files["client_key_path"]
+            client_key_path=temp_cert_files["client_key_path"],
         )
 
         assert client.host == "explicit-host"
@@ -307,7 +313,7 @@ class TestJobletClientWithConfig:
             client = JobletClient(
                 host="test-host",
                 # Missing certificates and no config
-                config_path="/non/existent/config.yml"
+                config_path="/non/existent/config.yml",
             )
 
         assert "Missing for insecure connection: port" in str(exc_info.value)

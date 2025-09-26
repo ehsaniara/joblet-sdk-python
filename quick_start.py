@@ -52,7 +52,7 @@ def setup_options():
     while True:
         try:
             choice = input("\nChoose an option (1-5): ").strip()
-            if choice in ['1', '2', '3', '4', '5']:
+            if choice in ["1", "2", "3", "4", "5"]:
                 return choice
             else:
                 print("Please enter a number between 1 and 5")
@@ -90,15 +90,18 @@ def test_installation():
     print("\n🧪 Testing installation...")
     try:
         import joblet
+
         print(f"✅ Joblet SDK {joblet.__version__} is working!")
 
         # Test basic import
         from joblet import JobletClient
+
         print("✅ JobletClient import successful")
 
         # Show proto info
         try:
             from joblet._proto_generation_info import PROTO_TAG
+
             print(f"✅ Proto files from version {PROTO_TAG}")
         except ImportError:
             print("⚠️  Proto generation info not available")
@@ -127,7 +130,7 @@ def show_config_help():
         print("2. Or manually create with this content:")
         print()
         print("server:")
-        print("  host: \"your-server-host\"")
+        print('  host: "your-server-host"')
         print("  port: 50051")
         print()
 
@@ -141,7 +144,7 @@ def run_demo():
     print("\n🎯 Ready to test?")
     response = input("Run demo example? (y/N): ").strip().lower()
 
-    if response in ['y', 'yes']:
+    if response in ["y", "yes"]:
         print("\n🚀 Running enhanced demo...")
         try:
             subprocess.run([sys.executable, "examples/demo_with_guidance.py"])
@@ -184,22 +187,22 @@ def main():
     while True:
         choice = setup_options()
 
-        if choice == '1':
+        if choice == "1":
             if run_dev_setup():
                 run_demo()
                 break
-        elif choice == '2':
+        elif choice == "2":
             if run_user_install():
                 run_demo()
                 break
-        elif choice == '3':
+        elif choice == "3":
             if test_installation():
                 run_demo()
                 break
-        elif choice == '4':
+        elif choice == "4":
             show_config_help()
             continue
-        elif choice == '5':
+        elif choice == "5":
             print("\n👋 Goodbye!")
             sys.exit(0)
 

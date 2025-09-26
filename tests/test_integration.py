@@ -25,8 +25,11 @@ class TestJobletClientIntegration:
             mock_secure_channel.return_value = mock_channel
 
             # Mock all service stubs
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub") as mock_job_stub, \
-                    patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub") as mock_monitoring_stub:
+            with patch(
+                "joblet.services.joblet_pb2_grpc.JobServiceStub"
+            ) as mock_job_stub, patch(
+                "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
+            ) as mock_monitoring_stub:
                 # Setup monitoring service for health check
                 mock_monitoring_instance = Mock()
                 mock_monitoring_instance.GetSystemStatus.return_value = Mock(
@@ -34,7 +37,7 @@ class TestJobletClientIntegration:
                     timestamp="2023-01-01T12:00:00Z",
                     HasField=lambda x: False,
                     disks=[],
-                    networks=[]
+                    networks=[],
                 )
                 mock_monitoring_stub.return_value = mock_monitoring_instance
 
@@ -59,20 +62,18 @@ class TestJobletClientIntegration:
 
                 # Test the full flow
                 with JobletClient(
-                        ca_cert_path=temp_cert_files["ca_cert_path"],
-                        client_cert_path=temp_cert_files["client_cert_path"],
-                        client_key_path=temp_cert_files["client_key_path"],
-                        host="test-server",
-                        port=50051
+                    ca_cert_path=temp_cert_files["ca_cert_path"],
+                    client_cert_path=temp_cert_files["client_cert_path"],
+                    client_key_path=temp_cert_files["client_key_path"],
+                    host="test-server",
+                    port=50051,
                 ) as client:
                     # Test health check
                     assert client.health_check() is True
 
                     # Test job creation
                     job = client.jobs.run_job(
-                        command="echo",
-                        args=["hello"],
-                        name="integration-test-job"
+                        command="echo", args=["hello"], name="integration-test-job"
                     )
 
                     assert job["job_uuid"] == "test-job-123"
@@ -90,11 +91,13 @@ class TestJobletClientIntegration:
             mock_secure_channel.return_value = mock_channel
 
             # Mock all service stubs
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.RuntimeServiceStub"):
+            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
+                "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
+            ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), patch(
+                "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
+            ), patch(
+                "joblet.services.joblet_pb2_grpc.RuntimeServiceStub"
+            ):
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
@@ -133,7 +136,7 @@ class TestJobletClientIntegration:
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
                 host="nonexistent-host-12345.invalid",
-                port=99999
+                port=99999,
             )
             # If initialization succeeds, health_check should return False for invalid host
             assert client.health_check() is False
@@ -151,9 +154,9 @@ class TestJobletClientIntegration:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"), \
-                    patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
+            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
+                "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
+            ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
 
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
@@ -180,7 +183,9 @@ class TestJobletClientIntegration:
                 # Create threads for concurrent access
                 threads = []
                 for service_name in ["jobs", "networks", "volumes"]:
-                    thread = threading.Thread(target=access_service, args=(service_name,))
+                    thread = threading.Thread(
+                        target=access_service, args=(service_name,)
+                    )
                     threads.append(thread)
 
                 # Start all threads
@@ -208,7 +213,9 @@ class TestServiceIntegration:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub") as mock_job_stub:
+            with patch(
+                "joblet.services.joblet_pb2_grpc.JobServiceStub"
+            ) as mock_job_stub:
                 # Setup job service responses
                 mock_job_instance = Mock()
 
@@ -312,7 +319,7 @@ class TestStressIntegration:
                         client_cert_path=temp_cert_files["client_cert_path"],
                         client_key_path=temp_cert_files["client_key_path"],
                         host=f"test-host-{i}",
-                        port=50051 + i
+                        port=50051 + i,
                     )
                     clients.append(client)
 

@@ -95,12 +95,14 @@ class TestJobService:
             work_dir="/app",
             environment={"ENV": "test", "DEBUG": "true"},
             secret_environment={"API_KEY": "secret"},
-            uploads=[{
-                "path": "script.py",
-                "content": b"print('hello')",
-                "mode": 0o755,
-                "is_directory": False,
-            }],
+            uploads=[
+                {
+                    "path": "script.py",
+                    "content": b"print('hello')",
+                    "mode": 0o755,
+                    "is_directory": False,
+                }
+            ],
         )
 
         # Verify the result
@@ -358,8 +360,7 @@ class TestJobService:
         """
 
         result = job_service.run_workflow(
-            workflow="test-workflow.yml",
-            yaml_content=yaml_content
+            workflow="test-workflow.yml", yaml_content=yaml_content
         )
 
         assert result["workflow_uuid"] == sample_workflow_response["workflow_uuid"]
@@ -396,7 +397,9 @@ class TestJobService:
         mock_workflow.completedJobs = 1
         mock_workflow.failedJobs = 0
         mock_workflow.canceledJobs = 0
-        mock_workflow.createdAt = Mock(seconds=1672574400, nanos=0)  # 2023-01-01T12:00:00Z
+        mock_workflow.createdAt = Mock(
+            seconds=1672574400, nanos=0
+        )  # 2023-01-01T12:00:00Z
         mock_workflow.startedAt = Mock(seconds=1672574400, nanos=0)
         mock_workflow.completedAt = Mock(seconds=0, nanos=0)
         mock_workflow.yamlContent = "yaml content"
@@ -490,7 +493,7 @@ class TestJobService:
             name="gpu-job",
             gpu_count=2,
             gpu_memory_mb=8192,
-            runtime="python-3.11-ml"
+            runtime="python-3.11-ml",
         )
 
         # Verify the result contains GPU info

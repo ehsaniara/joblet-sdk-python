@@ -38,28 +38,35 @@ def check_python_version():
     """Check if Python version is compatible."""
     version = sys.version_info
     if version < (3, 8):
-        print(f"❌ Python {version.major}.{version.minor} is not supported. Please use Python 3.8+")
+        print(
+            f"❌ Python {version.major}.{version.minor} is not supported. Please use Python 3.8+"
+        )
         sys.exit(1)
     print(f"✅ Python {version.major}.{version.minor}.{version.micro} detected")
 
 
 def install_package_dev_mode():
     """Install the package in development mode."""
-    run_command([sys.executable, "-m", "pip", "install", "-e", "."],
-                "Installing package in development mode")
+    run_command(
+        [sys.executable, "-m", "pip", "install", "-e", "."],
+        "Installing package in development mode",
+    )
 
 
 def install_dev_dependencies():
     """Install development dependencies."""
-    run_command([sys.executable, "-m", "pip", "install", "-e", ".[dev]"],
-                "Installing development dependencies")
+    run_command(
+        [sys.executable, "-m", "pip", "install", "-e", ".[dev]"],
+        "Installing development dependencies",
+    )
 
 
 def regenerate_proto_files():
     """Regenerate proto files for current gRPC version."""
     script_path = Path(__file__).parent / "scripts" / "generate_proto.py"
-    run_command([sys.executable, str(script_path), "--force"],
-                "Regenerating proto files")
+    run_command(
+        [sys.executable, str(script_path), "--force"], "Regenerating proto files"
+    )
 
 
 def validate_installation():
@@ -68,6 +75,7 @@ def validate_installation():
     try:
         # Test import
         import joblet
+
         print(f"   ✅ Successfully imported joblet SDK version {joblet.__version__}")
 
         # Test client creation (without connection)
@@ -81,7 +89,10 @@ def validate_installation():
 
         # Check proto generation info
         from joblet._proto_generation_info import GRPCIO_TOOLS_VERSION, PROTO_TAG
-        print(f"   ✅ Proto files generated from version {PROTO_TAG} with gRPC Tools {GRPCIO_TOOLS_VERSION}")
+
+        print(
+            f"   ✅ Proto files generated from version {PROTO_TAG} with gRPC Tools {GRPCIO_TOOLS_VERSION}"
+        )
 
     except ImportError as e:
         print(f"   ❌ Import failed: {e}")
@@ -118,7 +129,7 @@ server:
 # Note: You can override these settings by passing parameters directly to JobletClient()
 """
 
-        with open(config_file, 'w') as f:
+        with open(config_file, "w") as f:
             f.write(example_config)
 
         print(f"   ✅ Created example config at {config_file}")
@@ -160,8 +171,12 @@ def main():
     print("5. Type check: mypy joblet")
     print("\nUseful commands:")
     print("- Regenerate proto files: python scripts/generate_proto.py")
-    print("- List available proto versions: python scripts/generate_proto.py --list-tags")
-    print("- Install specific proto version: python scripts/generate_proto.py --version v1.0.1")
+    print(
+        "- List available proto versions: python scripts/generate_proto.py --list-tags"
+    )
+    print(
+        "- Install specific proto version: python scripts/generate_proto.py --version v1.0.1"
+    )
 
 
 if __name__ == "__main__":

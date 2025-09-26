@@ -160,7 +160,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -172,29 +172,31 @@ jobs:
         run: |
           cat > Dockerfile << 'EOF'
           FROM python:3.11-slim
-          
+
           # Install system dependencies
           RUN apt-get update && apt-get install -y \
               protobuf-compiler \
               git \
               && rm -rf /var/lib/apt/lists/*
-          
-          # Install the SDK
-          ARG RELEASE_VERSION=${{ needs.create-release.outputs.release_version }}
-          RUN pip install joblet-sdk==${RELEASE_VERSION#v}
-          
+
           # Set up working directory
           WORKDIR /app
-          
-          # Copy examples
-          COPY examples/ /app/examples/
-          
+
+          # Copy the entire project
+          COPY . /app/
+
+          # Install the SDK from source
+          RUN pip install -e .
+
+          # Generate proto files
+          RUN python scripts/generate_proto.py --version v1.0.1
+
           # Default command
-          CMD ["python", "-c", "from joblet import JobletClient; print('Joblet SDK installed successfully!')"]
+          CMD ["python", "-c", "from joblet import JobletClient; print('Joblet SDK installed successfully with GPU support!')"]
           EOF
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v4
         with:
           context: .
           push: true

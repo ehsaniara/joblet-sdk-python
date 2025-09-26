@@ -5,9 +5,6 @@ from typing import Any, Dict, Optional
 
 import grpc
 
-# Debug: Check gRPC environment setup
-_grpc_debug = os.environ.get("JOBLET_DEBUG_GRPC", False)
-
 from .config import ConfigLoader
 from .exceptions import ConnectionError
 from .services import (
@@ -17,6 +14,9 @@ from .services import (
     RuntimeService,
     VolumeService,
 )
+
+# Debug: Check gRPC environment setup
+_grpc_debug = os.environ.get("JOBLET_DEBUG_GRPC", False)
 
 
 class JobletClient:
@@ -49,7 +49,8 @@ class JobletClient:
             options: Extra gRPC options
             config_path: Config file path (default: ~/.rnx/rnx-config.yml)
             node_name: Config node to use (default: "default")
-            insecure: Skip SSL validation (default: True, since Joblet uses self-signed certs)
+            insecure: Skip SSL validation
+                (default: True, since Joblet uses self-signed certs)
         """
         self._config_loader: Optional[ConfigLoader] = None
 
@@ -173,9 +174,10 @@ class JobletClient:
                 if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
                     raise ValueError(f"Bad key: {self.client_key_path}")
 
-                # Setup mTLS with custom root certificate - trust only our CA, not system CAs
+                # Setup mTLS with custom root certificate
+                # Trust only our CA, not system CAs
                 credentials = grpc.ssl_channel_credentials(
-                    root_certificates=ca_cert,  # Use ONLY our CA cert, ignore system certs
+                    root_certificates=ca_cert,  # Use ONLY our CA cert
                     private_key=client_key,
                     certificate_chain=client_cert,
                 )

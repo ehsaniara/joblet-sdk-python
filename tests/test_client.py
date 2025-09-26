@@ -119,9 +119,9 @@ class TestJobletClient:
             mock_secure_channel.return_value = mock_channel
 
             with JobletClient(
-                    ca_cert_path=temp_cert_files["ca_cert_path"],
-                    client_cert_path=temp_cert_files["client_cert_path"],
-                    client_key_path=temp_cert_files["client_key_path"],
+                ca_cert_path=temp_cert_files["ca_cert_path"],
+                client_cert_path=temp_cert_files["client_cert_path"],
+                client_key_path=temp_cert_files["client_key_path"],
             ) as client:
                 assert client._channel is not None
 
@@ -265,7 +265,9 @@ class TestJobletClient:
 
             client.close()
 
-            with pytest.raises(ConnectionError, match="Client is not connected to server"):
+            with pytest.raises(
+                ConnectionError, match="Client is not connected to server"
+            ):
                 _ = client.jobs
 
     def test_health_check_success(self, temp_cert_files, sample_system_status):
@@ -276,7 +278,9 @@ class TestJobletClient:
 
             with patch("joblet.client.MonitoringService") as mock_monitoring_service:
                 mock_service_instance = Mock()
-                mock_service_instance.get_system_status.return_value = sample_system_status
+                mock_service_instance.get_system_status.return_value = (
+                    sample_system_status
+                )
                 mock_monitoring_service.return_value = mock_service_instance
 
                 client = JobletClient(
@@ -297,7 +301,9 @@ class TestJobletClient:
 
             with patch("joblet.client.MonitoringService") as mock_monitoring_service:
                 mock_service_instance = Mock()
-                mock_service_instance.get_system_status.return_value = {"available": False}
+                mock_service_instance.get_system_status.return_value = {
+                    "available": False
+                }
                 mock_monitoring_service.return_value = mock_service_instance
 
                 client = JobletClient(
@@ -317,7 +323,9 @@ class TestJobletClient:
 
             with patch("joblet.client.MonitoringService") as mock_monitoring_service:
                 mock_service_instance = Mock()
-                mock_service_instance.get_system_status.side_effect = Exception("Connection failed")
+                mock_service_instance.get_system_status.side_effect = Exception(
+                    "Connection failed"
+                )
                 mock_monitoring_service.return_value = mock_service_instance
 
                 client = JobletClient(
@@ -352,7 +360,9 @@ class TestJobletClient:
         with patch("joblet.client.grpc.secure_channel") as mock_secure_channel:
             mock_secure_channel.side_effect = Exception("gRPC connection failed")
 
-            with pytest.raises(ConnectionError, match="Failed to connect to Joblet server"):
+            with pytest.raises(
+                ConnectionError, match="Failed to connect to Joblet server"
+            ):
                 JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],

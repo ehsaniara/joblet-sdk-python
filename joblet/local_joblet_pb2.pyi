@@ -10,19 +10,37 @@ from google.protobuf.internal import containers as _containers
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-
 class Jobs(_message.Message):
     __slots__ = ("jobs",)
     JOBS_FIELD_NUMBER: _ClassVar[int]
     jobs: _containers.RepeatedCompositeFieldContainer[Job]
 
-    def __init__(self, jobs: _Optional[_Iterable[_Union[Job, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, jobs: _Optional[_Iterable[_Union[Job, _Mapping]]] = ...
+    ) -> None: ...
 
 class Job(_message.Message):
-    __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status",
-                 "startTime", "endTime", "exitCode", "scheduledTime", "runtime", "environment", "secret_environment",
-                 "gpu_indices", "gpu_count", "gpu_memory_mb")
+    __slots__ = (
+        "uuid",
+        "name",
+        "command",
+        "args",
+        "maxCPU",
+        "cpuCores",
+        "maxMemory",
+        "maxIOBPS",
+        "status",
+        "startTime",
+        "endTime",
+        "exitCode",
+        "scheduledTime",
+        "runtime",
+        "environment",
+        "secret_environment",
+        "gpu_indices",
+        "gpu_count",
+        "gpu_memory_mb",
+    )
 
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -31,7 +49,9 @@ class Job(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     class SecretEnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -40,7 +60,9 @@ class Job(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     UUID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -81,21 +103,33 @@ class Job(_message.Message):
     gpu_count: int
     gpu_memory_mb: int
 
-    def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ...,
-                 args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
-                 maxMemory: _Optional[int] = ..., maxIOBPS: _Optional[int] = ..., status: _Optional[str] = ...,
-                 startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ...,
-                 scheduledTime: _Optional[str] = ..., runtime: _Optional[str] = ...,
-                 environment: _Optional[_Mapping[str, str]] = ...,
-                 secret_environment: _Optional[_Mapping[str, str]] = ..., gpu_indices: _Optional[_Iterable[int]] = ...,
-                 gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        uuid: _Optional[str] = ...,
+        name: _Optional[str] = ...,
+        command: _Optional[str] = ...,
+        args: _Optional[_Iterable[str]] = ...,
+        maxCPU: _Optional[int] = ...,
+        cpuCores: _Optional[str] = ...,
+        maxMemory: _Optional[int] = ...,
+        maxIOBPS: _Optional[int] = ...,
+        status: _Optional[str] = ...,
+        startTime: _Optional[str] = ...,
+        endTime: _Optional[str] = ...,
+        exitCode: _Optional[int] = ...,
+        scheduledTime: _Optional[str] = ...,
+        runtime: _Optional[str] = ...,
+        environment: _Optional[_Mapping[str, str]] = ...,
+        secret_environment: _Optional[_Mapping[str, str]] = ...,
+        gpu_indices: _Optional[_Iterable[int]] = ...,
+        gpu_count: _Optional[int] = ...,
+        gpu_memory_mb: _Optional[int] = ...,
+    ) -> None: ...
 
 class EmptyRequest(_message.Message):
     __slots__ = ()
 
     def __init__(self) -> None: ...
-
 
 class FileUpload(_message.Message):
     __slots__ = ("path", "content", "mode", "isDirectory")
@@ -108,9 +142,13 @@ class FileUpload(_message.Message):
     mode: int
     isDirectory: bool
 
-    def __init__(self, path: _Optional[str] = ..., content: _Optional[bytes] = ..., mode: _Optional[int] = ...,
-                 isDirectory: bool = ...) -> None: ...
-
+    def __init__(
+        self,
+        path: _Optional[str] = ...,
+        content: _Optional[bytes] = ...,
+        mode: _Optional[int] = ...,
+        isDirectory: bool = ...,
+    ) -> None: ...
 
 class GetJobStatusReq(_message.Message):
     __slots__ = ("uuid",)
@@ -119,12 +157,34 @@ class GetJobStatusReq(_message.Message):
 
     def __init__(self, uuid: _Optional[str] = ...) -> None: ...
 
-
 class GetJobStatusRes(_message.Message):
-    __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status",
-                 "startTime", "endTime", "exitCode", "scheduledTime", "environment", "secret_environment", "network",
-                 "volumes", "runtime", "workDir", "uploads", "dependencies", "workflowUuid", "gpu_indices", "gpu_count",
-                 "gpu_memory_mb")
+    __slots__ = (
+        "uuid",
+        "name",
+        "command",
+        "args",
+        "maxCPU",
+        "cpuCores",
+        "maxMemory",
+        "maxIOBPS",
+        "status",
+        "startTime",
+        "endTime",
+        "exitCode",
+        "scheduledTime",
+        "environment",
+        "secret_environment",
+        "network",
+        "volumes",
+        "runtime",
+        "workDir",
+        "uploads",
+        "dependencies",
+        "workflowUuid",
+        "gpu_indices",
+        "gpu_count",
+        "gpu_memory_mb",
+    )
 
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -133,7 +193,9 @@ class GetJobStatusRes(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     class SecretEnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -142,7 +204,9 @@ class GetJobStatusRes(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     UUID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -195,17 +259,34 @@ class GetJobStatusRes(_message.Message):
     gpu_count: int
     gpu_memory_mb: int
 
-    def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ...,
-                 args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
-                 maxMemory: _Optional[int] = ..., maxIOBPS: _Optional[int] = ..., status: _Optional[str] = ...,
-                 startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ...,
-                 scheduledTime: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ...,
-                 secret_environment: _Optional[_Mapping[str, str]] = ..., network: _Optional[str] = ...,
-                 volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ...,
-                 uploads: _Optional[_Iterable[str]] = ..., dependencies: _Optional[_Iterable[str]] = ...,
-                 workflowUuid: _Optional[str] = ..., gpu_indices: _Optional[_Iterable[int]] = ...,
-                 gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        uuid: _Optional[str] = ...,
+        name: _Optional[str] = ...,
+        command: _Optional[str] = ...,
+        args: _Optional[_Iterable[str]] = ...,
+        maxCPU: _Optional[int] = ...,
+        cpuCores: _Optional[str] = ...,
+        maxMemory: _Optional[int] = ...,
+        maxIOBPS: _Optional[int] = ...,
+        status: _Optional[str] = ...,
+        startTime: _Optional[str] = ...,
+        endTime: _Optional[str] = ...,
+        exitCode: _Optional[int] = ...,
+        scheduledTime: _Optional[str] = ...,
+        environment: _Optional[_Mapping[str, str]] = ...,
+        secret_environment: _Optional[_Mapping[str, str]] = ...,
+        network: _Optional[str] = ...,
+        volumes: _Optional[_Iterable[str]] = ...,
+        runtime: _Optional[str] = ...,
+        workDir: _Optional[str] = ...,
+        uploads: _Optional[_Iterable[str]] = ...,
+        dependencies: _Optional[_Iterable[str]] = ...,
+        workflowUuid: _Optional[str] = ...,
+        gpu_indices: _Optional[_Iterable[int]] = ...,
+        gpu_count: _Optional[int] = ...,
+        gpu_memory_mb: _Optional[int] = ...,
+    ) -> None: ...
 
 class StopJobReq(_message.Message):
     __slots__ = ("uuid",)
@@ -213,7 +294,6 @@ class StopJobReq(_message.Message):
     uuid: str
 
     def __init__(self, uuid: _Optional[str] = ...) -> None: ...
-
 
 class StopJobRes(_message.Message):
     __slots__ = ("uuid", "status", "endTime", "exitCode")
@@ -226,9 +306,13 @@ class StopJobRes(_message.Message):
     endTime: str
     exitCode: int
 
-    def __init__(self, uuid: _Optional[str] = ..., status: _Optional[str] = ..., endTime: _Optional[str] = ...,
-                 exitCode: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        uuid: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        endTime: _Optional[str] = ...,
+        exitCode: _Optional[int] = ...,
+    ) -> None: ...
 
 class DeleteJobReq(_message.Message):
     __slots__ = ("uuid",)
@@ -236,7 +320,6 @@ class DeleteJobReq(_message.Message):
     uuid: str
 
     def __init__(self, uuid: _Optional[str] = ...) -> None: ...
-
 
 class DeleteJobRes(_message.Message):
     __slots__ = ("uuid", "success", "message")
@@ -247,14 +330,17 @@ class DeleteJobRes(_message.Message):
     success: bool
     message: str
 
-    def __init__(self, uuid: _Optional[str] = ..., success: bool = ..., message: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        uuid: _Optional[str] = ...,
+        success: bool = ...,
+        message: _Optional[str] = ...,
+    ) -> None: ...
 
 class DeleteAllJobsReq(_message.Message):
     __slots__ = ()
 
     def __init__(self) -> None: ...
-
 
 class DeleteAllJobsRes(_message.Message):
     __slots__ = ("success", "message", "deleted_count", "skipped_count")
@@ -267,9 +353,13 @@ class DeleteAllJobsRes(_message.Message):
     deleted_count: int
     skipped_count: int
 
-    def __init__(self, success: bool = ..., message: _Optional[str] = ..., deleted_count: _Optional[int] = ...,
-                 skipped_count: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        success: bool = ...,
+        message: _Optional[str] = ...,
+        deleted_count: _Optional[int] = ...,
+        skipped_count: _Optional[int] = ...,
+    ) -> None: ...
 
 class GetJobLogsReq(_message.Message):
     __slots__ = ("uuid",)
@@ -278,14 +368,12 @@ class GetJobLogsReq(_message.Message):
 
     def __init__(self, uuid: _Optional[str] = ...) -> None: ...
 
-
 class DataChunk(_message.Message):
     __slots__ = ("payload",)
     PAYLOAD_FIELD_NUMBER: _ClassVar[int]
     payload: bytes
 
     def __init__(self, payload: _Optional[bytes] = ...) -> None: ...
-
 
 class RuntimeInstallationChunk(_message.Message):
     __slots__ = ("progress", "log", "result")
@@ -296,10 +384,12 @@ class RuntimeInstallationChunk(_message.Message):
     log: RuntimeInstallationLog
     result: RuntimeInstallationResult
 
-    def __init__(self, progress: _Optional[_Union[RuntimeInstallationProgress, _Mapping]] = ...,
-                 log: _Optional[_Union[RuntimeInstallationLog, _Mapping]] = ...,
-                 result: _Optional[_Union[RuntimeInstallationResult, _Mapping]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        progress: _Optional[_Union[RuntimeInstallationProgress, _Mapping]] = ...,
+        log: _Optional[_Union[RuntimeInstallationLog, _Mapping]] = ...,
+        result: _Optional[_Union[RuntimeInstallationResult, _Mapping]] = ...,
+    ) -> None: ...
 
 class RuntimeInstallationProgress(_message.Message):
     __slots__ = ("message", "step", "total_steps")
@@ -310,9 +400,12 @@ class RuntimeInstallationProgress(_message.Message):
     step: int
     total_steps: int
 
-    def __init__(self, message: _Optional[str] = ..., step: _Optional[int] = ...,
-                 total_steps: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        message: _Optional[str] = ...,
+        step: _Optional[int] = ...,
+        total_steps: _Optional[int] = ...,
+    ) -> None: ...
 
 class RuntimeInstallationLog(_message.Message):
     __slots__ = ("data",)
@@ -320,7 +413,6 @@ class RuntimeInstallationLog(_message.Message):
     data: bytes
 
     def __init__(self, data: _Optional[bytes] = ...) -> None: ...
-
 
 class RuntimeInstallationResult(_message.Message):
     __slots__ = ("success", "message", "runtime_spec", "install_path")
@@ -333,9 +425,13 @@ class RuntimeInstallationResult(_message.Message):
     runtime_spec: str
     install_path: str
 
-    def __init__(self, success: bool = ..., message: _Optional[str] = ..., runtime_spec: _Optional[str] = ...,
-                 install_path: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        success: bool = ...,
+        message: _Optional[str] = ...,
+        runtime_spec: _Optional[str] = ...,
+        install_path: _Optional[str] = ...,
+    ) -> None: ...
 
 class CreateNetworkReq(_message.Message):
     __slots__ = ("name", "cidr")
@@ -344,8 +440,9 @@ class CreateNetworkReq(_message.Message):
     name: str
     cidr: str
 
-    def __init__(self, name: _Optional[str] = ..., cidr: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self, name: _Optional[str] = ..., cidr: _Optional[str] = ...
+    ) -> None: ...
 
 class CreateNetworkRes(_message.Message):
     __slots__ = ("name", "cidr", "bridge")
@@ -356,9 +453,12 @@ class CreateNetworkRes(_message.Message):
     cidr: str
     bridge: str
 
-    def __init__(self, name: _Optional[str] = ..., cidr: _Optional[str] = ...,
-                 bridge: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        cidr: _Optional[str] = ...,
+        bridge: _Optional[str] = ...,
+    ) -> None: ...
 
 class RemoveNetworkReq(_message.Message):
     __slots__ = ("name",)
@@ -366,7 +466,6 @@ class RemoveNetworkReq(_message.Message):
     name: str
 
     def __init__(self, name: _Optional[str] = ...) -> None: ...
-
 
 class RemoveNetworkRes(_message.Message):
     __slots__ = ("success", "message")
@@ -376,7 +475,6 @@ class RemoveNetworkRes(_message.Message):
     message: str
 
     def __init__(self, success: bool = ..., message: _Optional[str] = ...) -> None: ...
-
 
 class Network(_message.Message):
     __slots__ = ("name", "cidr", "bridge", "jobCount")
@@ -389,17 +487,22 @@ class Network(_message.Message):
     bridge: str
     jobCount: int
 
-    def __init__(self, name: _Optional[str] = ..., cidr: _Optional[str] = ..., bridge: _Optional[str] = ...,
-                 jobCount: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        cidr: _Optional[str] = ...,
+        bridge: _Optional[str] = ...,
+        jobCount: _Optional[int] = ...,
+    ) -> None: ...
 
 class Networks(_message.Message):
     __slots__ = ("networks",)
     NETWORKS_FIELD_NUMBER: _ClassVar[int]
     networks: _containers.RepeatedCompositeFieldContainer[Network]
 
-    def __init__(self, networks: _Optional[_Iterable[_Union[Network, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, networks: _Optional[_Iterable[_Union[Network, _Mapping]]] = ...
+    ) -> None: ...
 
 class CreateVolumeReq(_message.Message):
     __slots__ = ("name", "size", "type")
@@ -410,8 +513,12 @@ class CreateVolumeReq(_message.Message):
     size: str
     type: str
 
-    def __init__(self, name: _Optional[str] = ..., size: _Optional[str] = ..., type: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        size: _Optional[str] = ...,
+        type: _Optional[str] = ...,
+    ) -> None: ...
 
 class CreateVolumeRes(_message.Message):
     __slots__ = ("name", "size", "type", "path")
@@ -424,9 +531,13 @@ class CreateVolumeRes(_message.Message):
     type: str
     path: str
 
-    def __init__(self, name: _Optional[str] = ..., size: _Optional[str] = ..., type: _Optional[str] = ...,
-                 path: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        size: _Optional[str] = ...,
+        type: _Optional[str] = ...,
+        path: _Optional[str] = ...,
+    ) -> None: ...
 
 class RemoveVolumeReq(_message.Message):
     __slots__ = ("name",)
@@ -434,7 +545,6 @@ class RemoveVolumeReq(_message.Message):
     name: str
 
     def __init__(self, name: _Optional[str] = ...) -> None: ...
-
 
 class RemoveVolumeRes(_message.Message):
     __slots__ = ("success", "message")
@@ -444,7 +554,6 @@ class RemoveVolumeRes(_message.Message):
     message: str
 
     def __init__(self, success: bool = ..., message: _Optional[str] = ...) -> None: ...
-
 
 class Volume(_message.Message):
     __slots__ = ("name", "size", "type", "path", "createdTime", "jobCount")
@@ -461,22 +570,39 @@ class Volume(_message.Message):
     createdTime: str
     jobCount: int
 
-    def __init__(self, name: _Optional[str] = ..., size: _Optional[str] = ..., type: _Optional[str] = ...,
-                 path: _Optional[str] = ..., createdTime: _Optional[str] = ...,
-                 jobCount: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        size: _Optional[str] = ...,
+        type: _Optional[str] = ...,
+        path: _Optional[str] = ...,
+        createdTime: _Optional[str] = ...,
+        jobCount: _Optional[int] = ...,
+    ) -> None: ...
 
 class Volumes(_message.Message):
     __slots__ = ("volumes",)
     VOLUMES_FIELD_NUMBER: _ClassVar[int]
     volumes: _containers.RepeatedCompositeFieldContainer[Volume]
 
-    def __init__(self, volumes: _Optional[_Iterable[_Union[Volume, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, volumes: _Optional[_Iterable[_Union[Volume, _Mapping]]] = ...
+    ) -> None: ...
 
 class SystemStatusRes(_message.Message):
-    __slots__ = ("timestamp", "available", "host", "cpu", "memory", "disks", "networks", "io", "processes", "cloud",
-                 "server_version")
+    __slots__ = (
+        "timestamp",
+        "available",
+        "host",
+        "cpu",
+        "memory",
+        "disks",
+        "networks",
+        "io",
+        "processes",
+        "cloud",
+        "server_version",
+    )
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     AVAILABLE_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
@@ -500,19 +626,33 @@ class SystemStatusRes(_message.Message):
     cloud: CloudInfo
     server_version: ServerVersionInfo
 
-    def __init__(self, timestamp: _Optional[str] = ..., available: bool = ...,
-                 host: _Optional[_Union[HostInfo, _Mapping]] = ..., cpu: _Optional[_Union[CPUMetrics, _Mapping]] = ...,
-                 memory: _Optional[_Union[MemoryMetrics, _Mapping]] = ...,
-                 disks: _Optional[_Iterable[_Union[DiskMetrics, _Mapping]]] = ...,
-                 networks: _Optional[_Iterable[_Union[NetworkMetrics, _Mapping]]] = ...,
-                 io: _Optional[_Union[IOMetrics, _Mapping]] = ...,
-                 processes: _Optional[_Union[ProcessMetrics, _Mapping]] = ...,
-                 cloud: _Optional[_Union[CloudInfo, _Mapping]] = ...,
-                 server_version: _Optional[_Union[ServerVersionInfo, _Mapping]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        timestamp: _Optional[str] = ...,
+        available: bool = ...,
+        host: _Optional[_Union[HostInfo, _Mapping]] = ...,
+        cpu: _Optional[_Union[CPUMetrics, _Mapping]] = ...,
+        memory: _Optional[_Union[MemoryMetrics, _Mapping]] = ...,
+        disks: _Optional[_Iterable[_Union[DiskMetrics, _Mapping]]] = ...,
+        networks: _Optional[_Iterable[_Union[NetworkMetrics, _Mapping]]] = ...,
+        io: _Optional[_Union[IOMetrics, _Mapping]] = ...,
+        processes: _Optional[_Union[ProcessMetrics, _Mapping]] = ...,
+        cloud: _Optional[_Union[CloudInfo, _Mapping]] = ...,
+        server_version: _Optional[_Union[ServerVersionInfo, _Mapping]] = ...,
+    ) -> None: ...
 
 class SystemMetricsRes(_message.Message):
-    __slots__ = ("timestamp", "host", "cpu", "memory", "disks", "networks", "io", "processes", "cloud")
+    __slots__ = (
+        "timestamp",
+        "host",
+        "cpu",
+        "memory",
+        "disks",
+        "networks",
+        "io",
+        "processes",
+        "cloud",
+    )
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     HOST_FIELD_NUMBER: _ClassVar[int]
     CPU_FIELD_NUMBER: _ClassVar[int]
@@ -532,15 +672,18 @@ class SystemMetricsRes(_message.Message):
     processes: ProcessMetrics
     cloud: CloudInfo
 
-    def __init__(self, timestamp: _Optional[str] = ..., host: _Optional[_Union[HostInfo, _Mapping]] = ...,
-                 cpu: _Optional[_Union[CPUMetrics, _Mapping]] = ...,
-                 memory: _Optional[_Union[MemoryMetrics, _Mapping]] = ...,
-                 disks: _Optional[_Iterable[_Union[DiskMetrics, _Mapping]]] = ...,
-                 networks: _Optional[_Iterable[_Union[NetworkMetrics, _Mapping]]] = ...,
-                 io: _Optional[_Union[IOMetrics, _Mapping]] = ...,
-                 processes: _Optional[_Union[ProcessMetrics, _Mapping]] = ...,
-                 cloud: _Optional[_Union[CloudInfo, _Mapping]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        timestamp: _Optional[str] = ...,
+        host: _Optional[_Union[HostInfo, _Mapping]] = ...,
+        cpu: _Optional[_Union[CPUMetrics, _Mapping]] = ...,
+        memory: _Optional[_Union[MemoryMetrics, _Mapping]] = ...,
+        disks: _Optional[_Iterable[_Union[DiskMetrics, _Mapping]]] = ...,
+        networks: _Optional[_Iterable[_Union[NetworkMetrics, _Mapping]]] = ...,
+        io: _Optional[_Union[IOMetrics, _Mapping]] = ...,
+        processes: _Optional[_Union[ProcessMetrics, _Mapping]] = ...,
+        cloud: _Optional[_Union[CloudInfo, _Mapping]] = ...,
+    ) -> None: ...
 
 class StreamMetricsReq(_message.Message):
     __slots__ = ("intervalSeconds", "metricTypes")
@@ -549,12 +692,27 @@ class StreamMetricsReq(_message.Message):
     intervalSeconds: int
     metricTypes: _containers.RepeatedScalarFieldContainer[str]
 
-    def __init__(self, intervalSeconds: _Optional[int] = ..., metricTypes: _Optional[_Iterable[str]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        intervalSeconds: _Optional[int] = ...,
+        metricTypes: _Optional[_Iterable[str]] = ...,
+    ) -> None: ...
 
 class HostInfo(_message.Message):
-    __slots__ = ("hostname", "os", "platform", "platformFamily", "platformVersion", "kernelVersion", "kernelArch",
-                 "architecture", "cpuCount", "totalMemory", "bootTime", "uptime")
+    __slots__ = (
+        "hostname",
+        "os",
+        "platform",
+        "platformFamily",
+        "platformVersion",
+        "kernelVersion",
+        "kernelArch",
+        "architecture",
+        "cpuCount",
+        "totalMemory",
+        "bootTime",
+        "uptime",
+    )
     HOSTNAME_FIELD_NUMBER: _ClassVar[int]
     OS_FIELD_NUMBER: _ClassVar[int]
     PLATFORM_FIELD_NUMBER: _ClassVar[int]
@@ -580,16 +738,34 @@ class HostInfo(_message.Message):
     bootTime: str
     uptime: int
 
-    def __init__(self, hostname: _Optional[str] = ..., os: _Optional[str] = ..., platform: _Optional[str] = ...,
-                 platformFamily: _Optional[str] = ..., platformVersion: _Optional[str] = ...,
-                 kernelVersion: _Optional[str] = ..., kernelArch: _Optional[str] = ...,
-                 architecture: _Optional[str] = ..., cpuCount: _Optional[int] = ..., totalMemory: _Optional[int] = ...,
-                 bootTime: _Optional[str] = ..., uptime: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        hostname: _Optional[str] = ...,
+        os: _Optional[str] = ...,
+        platform: _Optional[str] = ...,
+        platformFamily: _Optional[str] = ...,
+        platformVersion: _Optional[str] = ...,
+        kernelVersion: _Optional[str] = ...,
+        kernelArch: _Optional[str] = ...,
+        architecture: _Optional[str] = ...,
+        cpuCount: _Optional[int] = ...,
+        totalMemory: _Optional[int] = ...,
+        bootTime: _Optional[str] = ...,
+        uptime: _Optional[int] = ...,
+    ) -> None: ...
 
 class CPUMetrics(_message.Message):
-    __slots__ = ("cores", "usagePercent", "userTime", "systemTime", "idleTime", "ioWaitTime", "stealTime",
-                 "loadAverage", "perCoreUsage")
+    __slots__ = (
+        "cores",
+        "usagePercent",
+        "userTime",
+        "systemTime",
+        "idleTime",
+        "ioWaitTime",
+        "stealTime",
+        "loadAverage",
+        "perCoreUsage",
+    )
     CORES_FIELD_NUMBER: _ClassVar[int]
     USAGEPERCENT_FIELD_NUMBER: _ClassVar[int]
     USERTIME_FIELD_NUMBER: _ClassVar[int]
@@ -609,16 +785,32 @@ class CPUMetrics(_message.Message):
     loadAverage: _containers.RepeatedScalarFieldContainer[float]
     perCoreUsage: _containers.RepeatedScalarFieldContainer[float]
 
-    def __init__(self, cores: _Optional[int] = ..., usagePercent: _Optional[float] = ...,
-                 userTime: _Optional[float] = ..., systemTime: _Optional[float] = ..., idleTime: _Optional[float] = ...,
-                 ioWaitTime: _Optional[float] = ..., stealTime: _Optional[float] = ...,
-                 loadAverage: _Optional[_Iterable[float]] = ...,
-                 perCoreUsage: _Optional[_Iterable[float]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        cores: _Optional[int] = ...,
+        usagePercent: _Optional[float] = ...,
+        userTime: _Optional[float] = ...,
+        systemTime: _Optional[float] = ...,
+        idleTime: _Optional[float] = ...,
+        ioWaitTime: _Optional[float] = ...,
+        stealTime: _Optional[float] = ...,
+        loadAverage: _Optional[_Iterable[float]] = ...,
+        perCoreUsage: _Optional[_Iterable[float]] = ...,
+    ) -> None: ...
 
 class MemoryMetrics(_message.Message):
-    __slots__ = ("totalBytes", "usedBytes", "freeBytes", "availableBytes", "usagePercent", "cachedBytes",
-                 "bufferedBytes", "swapTotal", "swapUsed", "swapFree")
+    __slots__ = (
+        "totalBytes",
+        "usedBytes",
+        "freeBytes",
+        "availableBytes",
+        "usagePercent",
+        "cachedBytes",
+        "bufferedBytes",
+        "swapTotal",
+        "swapUsed",
+        "swapFree",
+    )
     TOTALBYTES_FIELD_NUMBER: _ClassVar[int]
     USEDBYTES_FIELD_NUMBER: _ClassVar[int]
     FREEBYTES_FIELD_NUMBER: _ClassVar[int]
@@ -640,16 +832,34 @@ class MemoryMetrics(_message.Message):
     swapUsed: int
     swapFree: int
 
-    def __init__(self, totalBytes: _Optional[int] = ..., usedBytes: _Optional[int] = ...,
-                 freeBytes: _Optional[int] = ..., availableBytes: _Optional[int] = ...,
-                 usagePercent: _Optional[float] = ..., cachedBytes: _Optional[int] = ...,
-                 bufferedBytes: _Optional[int] = ..., swapTotal: _Optional[int] = ..., swapUsed: _Optional[int] = ...,
-                 swapFree: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        totalBytes: _Optional[int] = ...,
+        usedBytes: _Optional[int] = ...,
+        freeBytes: _Optional[int] = ...,
+        availableBytes: _Optional[int] = ...,
+        usagePercent: _Optional[float] = ...,
+        cachedBytes: _Optional[int] = ...,
+        bufferedBytes: _Optional[int] = ...,
+        swapTotal: _Optional[int] = ...,
+        swapUsed: _Optional[int] = ...,
+        swapFree: _Optional[int] = ...,
+    ) -> None: ...
 
 class DiskMetrics(_message.Message):
-    __slots__ = ("device", "mountPoint", "filesystem", "totalBytes", "usedBytes", "freeBytes", "usagePercent",
-                 "inodesTotal", "inodesUsed", "inodesFree", "inodesUsagePercent")
+    __slots__ = (
+        "device",
+        "mountPoint",
+        "filesystem",
+        "totalBytes",
+        "usedBytes",
+        "freeBytes",
+        "usagePercent",
+        "inodesTotal",
+        "inodesUsed",
+        "inodesFree",
+        "inodesUsagePercent",
+    )
     DEVICE_FIELD_NUMBER: _ClassVar[int]
     MOUNTPOINT_FIELD_NUMBER: _ClassVar[int]
     FILESYSTEM_FIELD_NUMBER: _ClassVar[int]
@@ -673,16 +883,35 @@ class DiskMetrics(_message.Message):
     inodesFree: int
     inodesUsagePercent: float
 
-    def __init__(self, device: _Optional[str] = ..., mountPoint: _Optional[str] = ..., filesystem: _Optional[str] = ...,
-                 totalBytes: _Optional[int] = ..., usedBytes: _Optional[int] = ..., freeBytes: _Optional[int] = ...,
-                 usagePercent: _Optional[float] = ..., inodesTotal: _Optional[int] = ...,
-                 inodesUsed: _Optional[int] = ..., inodesFree: _Optional[int] = ...,
-                 inodesUsagePercent: _Optional[float] = ...) -> None: ...
-
+    def __init__(
+        self,
+        device: _Optional[str] = ...,
+        mountPoint: _Optional[str] = ...,
+        filesystem: _Optional[str] = ...,
+        totalBytes: _Optional[int] = ...,
+        usedBytes: _Optional[int] = ...,
+        freeBytes: _Optional[int] = ...,
+        usagePercent: _Optional[float] = ...,
+        inodesTotal: _Optional[int] = ...,
+        inodesUsed: _Optional[int] = ...,
+        inodesFree: _Optional[int] = ...,
+        inodesUsagePercent: _Optional[float] = ...,
+    ) -> None: ...
 
 class NetworkMetrics(_message.Message):
-    __slots__ = ("interface", "bytesReceived", "bytesSent", "packetsReceived", "packetsSent", "errorsIn", "errorsOut",
-                 "dropsIn", "dropsOut", "receiveRate", "transmitRate")
+    __slots__ = (
+        "interface",
+        "bytesReceived",
+        "bytesSent",
+        "packetsReceived",
+        "packetsSent",
+        "errorsIn",
+        "errorsOut",
+        "dropsIn",
+        "dropsOut",
+        "receiveRate",
+        "transmitRate",
+    )
     INTERFACE_FIELD_NUMBER: _ClassVar[int]
     BYTESRECEIVED_FIELD_NUMBER: _ClassVar[int]
     BYTESSENT_FIELD_NUMBER: _ClassVar[int]
@@ -706,15 +935,31 @@ class NetworkMetrics(_message.Message):
     receiveRate: float
     transmitRate: float
 
-    def __init__(self, interface: _Optional[str] = ..., bytesReceived: _Optional[int] = ...,
-                 bytesSent: _Optional[int] = ..., packetsReceived: _Optional[int] = ...,
-                 packetsSent: _Optional[int] = ..., errorsIn: _Optional[int] = ..., errorsOut: _Optional[int] = ...,
-                 dropsIn: _Optional[int] = ..., dropsOut: _Optional[int] = ..., receiveRate: _Optional[float] = ...,
-                 transmitRate: _Optional[float] = ...) -> None: ...
-
+    def __init__(
+        self,
+        interface: _Optional[str] = ...,
+        bytesReceived: _Optional[int] = ...,
+        bytesSent: _Optional[int] = ...,
+        packetsReceived: _Optional[int] = ...,
+        packetsSent: _Optional[int] = ...,
+        errorsIn: _Optional[int] = ...,
+        errorsOut: _Optional[int] = ...,
+        dropsIn: _Optional[int] = ...,
+        dropsOut: _Optional[int] = ...,
+        receiveRate: _Optional[float] = ...,
+        transmitRate: _Optional[float] = ...,
+    ) -> None: ...
 
 class IOMetrics(_message.Message):
-    __slots__ = ("totalReads", "totalWrites", "readBytes", "writeBytes", "readRate", "writeRate", "diskIO")
+    __slots__ = (
+        "totalReads",
+        "totalWrites",
+        "readBytes",
+        "writeBytes",
+        "readRate",
+        "writeRate",
+        "diskIO",
+    )
     TOTALREADS_FIELD_NUMBER: _ClassVar[int]
     TOTALWRITES_FIELD_NUMBER: _ClassVar[int]
     READBYTES_FIELD_NUMBER: _ClassVar[int]
@@ -730,15 +975,29 @@ class IOMetrics(_message.Message):
     writeRate: float
     diskIO: _containers.RepeatedCompositeFieldContainer[DiskIOMetrics]
 
-    def __init__(self, totalReads: _Optional[int] = ..., totalWrites: _Optional[int] = ...,
-                 readBytes: _Optional[int] = ..., writeBytes: _Optional[int] = ..., readRate: _Optional[float] = ...,
-                 writeRate: _Optional[float] = ...,
-                 diskIO: _Optional[_Iterable[_Union[DiskIOMetrics, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        totalReads: _Optional[int] = ...,
+        totalWrites: _Optional[int] = ...,
+        readBytes: _Optional[int] = ...,
+        writeBytes: _Optional[int] = ...,
+        readRate: _Optional[float] = ...,
+        writeRate: _Optional[float] = ...,
+        diskIO: _Optional[_Iterable[_Union[DiskIOMetrics, _Mapping]]] = ...,
+    ) -> None: ...
 
 class DiskIOMetrics(_message.Message):
-    __slots__ = ("device", "readsCompleted", "writesCompleted", "readBytes", "writeBytes", "readTime", "writeTime",
-                 "ioTime", "utilization")
+    __slots__ = (
+        "device",
+        "readsCompleted",
+        "writesCompleted",
+        "readBytes",
+        "writeBytes",
+        "readTime",
+        "writeTime",
+        "ioTime",
+        "utilization",
+    )
     DEVICE_FIELD_NUMBER: _ClassVar[int]
     READSCOMPLETED_FIELD_NUMBER: _ClassVar[int]
     WRITESCOMPLETED_FIELD_NUMBER: _ClassVar[int]
@@ -758,15 +1017,30 @@ class DiskIOMetrics(_message.Message):
     ioTime: int
     utilization: float
 
-    def __init__(self, device: _Optional[str] = ..., readsCompleted: _Optional[int] = ...,
-                 writesCompleted: _Optional[int] = ..., readBytes: _Optional[int] = ...,
-                 writeBytes: _Optional[int] = ..., readTime: _Optional[int] = ..., writeTime: _Optional[int] = ...,
-                 ioTime: _Optional[int] = ..., utilization: _Optional[float] = ...) -> None: ...
-
+    def __init__(
+        self,
+        device: _Optional[str] = ...,
+        readsCompleted: _Optional[int] = ...,
+        writesCompleted: _Optional[int] = ...,
+        readBytes: _Optional[int] = ...,
+        writeBytes: _Optional[int] = ...,
+        readTime: _Optional[int] = ...,
+        writeTime: _Optional[int] = ...,
+        ioTime: _Optional[int] = ...,
+        utilization: _Optional[float] = ...,
+    ) -> None: ...
 
 class ProcessMetrics(_message.Message):
-    __slots__ = ("totalProcesses", "runningProcesses", "sleepingProcesses", "stoppedProcesses", "zombieProcesses",
-                 "totalThreads", "topByCPU", "topByMemory")
+    __slots__ = (
+        "totalProcesses",
+        "runningProcesses",
+        "sleepingProcesses",
+        "stoppedProcesses",
+        "zombieProcesses",
+        "totalThreads",
+        "topByCPU",
+        "topByMemory",
+    )
     TOTALPROCESSES_FIELD_NUMBER: _ClassVar[int]
     RUNNINGPROCESSES_FIELD_NUMBER: _ClassVar[int]
     SLEEPINGPROCESSES_FIELD_NUMBER: _ClassVar[int]
@@ -784,16 +1058,31 @@ class ProcessMetrics(_message.Message):
     topByCPU: _containers.RepeatedCompositeFieldContainer[ProcessInfo]
     topByMemory: _containers.RepeatedCompositeFieldContainer[ProcessInfo]
 
-    def __init__(self, totalProcesses: _Optional[int] = ..., runningProcesses: _Optional[int] = ...,
-                 sleepingProcesses: _Optional[int] = ..., stoppedProcesses: _Optional[int] = ...,
-                 zombieProcesses: _Optional[int] = ..., totalThreads: _Optional[int] = ...,
-                 topByCPU: _Optional[_Iterable[_Union[ProcessInfo, _Mapping]]] = ...,
-                 topByMemory: _Optional[_Iterable[_Union[ProcessInfo, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        totalProcesses: _Optional[int] = ...,
+        runningProcesses: _Optional[int] = ...,
+        sleepingProcesses: _Optional[int] = ...,
+        stoppedProcesses: _Optional[int] = ...,
+        zombieProcesses: _Optional[int] = ...,
+        totalThreads: _Optional[int] = ...,
+        topByCPU: _Optional[_Iterable[_Union[ProcessInfo, _Mapping]]] = ...,
+        topByMemory: _Optional[_Iterable[_Union[ProcessInfo, _Mapping]]] = ...,
+    ) -> None: ...
 
 class ProcessInfo(_message.Message):
-    __slots__ = ("pid", "ppid", "name", "command", "cpuPercent", "memoryPercent", "memoryBytes", "status", "startTime",
-                 "user")
+    __slots__ = (
+        "pid",
+        "ppid",
+        "name",
+        "command",
+        "cpuPercent",
+        "memoryPercent",
+        "memoryBytes",
+        "status",
+        "startTime",
+        "user",
+    )
     PID_FIELD_NUMBER: _ClassVar[int]
     PPID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -815,14 +1104,30 @@ class ProcessInfo(_message.Message):
     startTime: str
     user: str
 
-    def __init__(self, pid: _Optional[int] = ..., ppid: _Optional[int] = ..., name: _Optional[str] = ...,
-                 command: _Optional[str] = ..., cpuPercent: _Optional[float] = ...,
-                 memoryPercent: _Optional[float] = ..., memoryBytes: _Optional[int] = ..., status: _Optional[str] = ...,
-                 startTime: _Optional[str] = ..., user: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        pid: _Optional[int] = ...,
+        ppid: _Optional[int] = ...,
+        name: _Optional[str] = ...,
+        command: _Optional[str] = ...,
+        cpuPercent: _Optional[float] = ...,
+        memoryPercent: _Optional[float] = ...,
+        memoryBytes: _Optional[int] = ...,
+        status: _Optional[str] = ...,
+        startTime: _Optional[str] = ...,
+        user: _Optional[str] = ...,
+    ) -> None: ...
 
 class CloudInfo(_message.Message):
-    __slots__ = ("provider", "region", "zone", "instanceID", "instanceType", "hypervisorType", "metadata")
+    __slots__ = (
+        "provider",
+        "region",
+        "zone",
+        "instanceID",
+        "instanceType",
+        "hypervisorType",
+        "metadata",
+    )
 
     class MetadataEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -831,7 +1136,9 @@ class CloudInfo(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     PROVIDER_FIELD_NUMBER: _ClassVar[int]
     REGION_FIELD_NUMBER: _ClassVar[int]
@@ -848,14 +1155,29 @@ class CloudInfo(_message.Message):
     hypervisorType: str
     metadata: _containers.ScalarMap[str, str]
 
-    def __init__(self, provider: _Optional[str] = ..., region: _Optional[str] = ..., zone: _Optional[str] = ...,
-                 instanceID: _Optional[str] = ..., instanceType: _Optional[str] = ...,
-                 hypervisorType: _Optional[str] = ..., metadata: _Optional[_Mapping[str, str]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        provider: _Optional[str] = ...,
+        region: _Optional[str] = ...,
+        zone: _Optional[str] = ...,
+        instanceID: _Optional[str] = ...,
+        instanceType: _Optional[str] = ...,
+        hypervisorType: _Optional[str] = ...,
+        metadata: _Optional[_Mapping[str, str]] = ...,
+    ) -> None: ...
 
 class ServerVersionInfo(_message.Message):
-    __slots__ = ("version", "git_commit", "git_tag", "build_date", "component", "go_version", "platform",
-                 "proto_commit", "proto_tag")
+    __slots__ = (
+        "version",
+        "git_commit",
+        "git_tag",
+        "build_date",
+        "component",
+        "go_version",
+        "platform",
+        "proto_commit",
+        "proto_tag",
+    )
     VERSION_FIELD_NUMBER: _ClassVar[int]
     GIT_COMMIT_FIELD_NUMBER: _ClassVar[int]
     GIT_TAG_FIELD_NUMBER: _ClassVar[int]
@@ -875,22 +1197,39 @@ class ServerVersionInfo(_message.Message):
     proto_commit: str
     proto_tag: str
 
-    def __init__(self, version: _Optional[str] = ..., git_commit: _Optional[str] = ..., git_tag: _Optional[str] = ...,
-                 build_date: _Optional[str] = ..., component: _Optional[str] = ..., go_version: _Optional[str] = ...,
-                 platform: _Optional[str] = ..., proto_commit: _Optional[str] = ...,
-                 proto_tag: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        version: _Optional[str] = ...,
+        git_commit: _Optional[str] = ...,
+        git_tag: _Optional[str] = ...,
+        build_date: _Optional[str] = ...,
+        component: _Optional[str] = ...,
+        go_version: _Optional[str] = ...,
+        platform: _Optional[str] = ...,
+        proto_commit: _Optional[str] = ...,
+        proto_tag: _Optional[str] = ...,
+    ) -> None: ...
 
 class RuntimesRes(_message.Message):
     __slots__ = ("runtimes",)
     RUNTIMES_FIELD_NUMBER: _ClassVar[int]
     runtimes: _containers.RepeatedCompositeFieldContainer[RuntimeInfo]
 
-    def __init__(self, runtimes: _Optional[_Iterable[_Union[RuntimeInfo, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, runtimes: _Optional[_Iterable[_Union[RuntimeInfo, _Mapping]]] = ...
+    ) -> None: ...
 
 class RuntimeInfo(_message.Message):
-    __slots__ = ("name", "language", "version", "description", "sizeBytes", "packages", "available", "requirements")
+    __slots__ = (
+        "name",
+        "language",
+        "version",
+        "description",
+        "sizeBytes",
+        "packages",
+        "available",
+        "requirements",
+    )
     NAME_FIELD_NUMBER: _ClassVar[int]
     LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -908,11 +1247,17 @@ class RuntimeInfo(_message.Message):
     available: bool
     requirements: RuntimeRequirements
 
-    def __init__(self, name: _Optional[str] = ..., language: _Optional[str] = ..., version: _Optional[str] = ...,
-                 description: _Optional[str] = ..., sizeBytes: _Optional[int] = ...,
-                 packages: _Optional[_Iterable[str]] = ..., available: bool = ...,
-                 requirements: _Optional[_Union[RuntimeRequirements, _Mapping]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        language: _Optional[str] = ...,
+        version: _Optional[str] = ...,
+        description: _Optional[str] = ...,
+        sizeBytes: _Optional[int] = ...,
+        packages: _Optional[_Iterable[str]] = ...,
+        available: bool = ...,
+        requirements: _Optional[_Union[RuntimeRequirements, _Mapping]] = ...,
+    ) -> None: ...
 
 class RuntimeRequirements(_message.Message):
     __slots__ = ("architectures", "gpu")
@@ -921,8 +1266,9 @@ class RuntimeRequirements(_message.Message):
     architectures: _containers.RepeatedScalarFieldContainer[str]
     gpu: bool
 
-    def __init__(self, architectures: _Optional[_Iterable[str]] = ..., gpu: bool = ...) -> None: ...
-
+    def __init__(
+        self, architectures: _Optional[_Iterable[str]] = ..., gpu: bool = ...
+    ) -> None: ...
 
 class RuntimeInfoReq(_message.Message):
     __slots__ = ("runtime",)
@@ -931,7 +1277,6 @@ class RuntimeInfoReq(_message.Message):
 
     def __init__(self, runtime: _Optional[str] = ...) -> None: ...
 
-
 class RuntimeInfoRes(_message.Message):
     __slots__ = ("runtime", "found")
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
@@ -939,8 +1284,9 @@ class RuntimeInfoRes(_message.Message):
     runtime: RuntimeInfo
     found: bool
 
-    def __init__(self, runtime: _Optional[_Union[RuntimeInfo, _Mapping]] = ..., found: bool = ...) -> None: ...
-
+    def __init__(
+        self, runtime: _Optional[_Union[RuntimeInfo, _Mapping]] = ..., found: bool = ...
+    ) -> None: ...
 
 class RuntimeTestReq(_message.Message):
     __slots__ = ("runtime",)
@@ -948,7 +1294,6 @@ class RuntimeTestReq(_message.Message):
     runtime: str
 
     def __init__(self, runtime: _Optional[str] = ...) -> None: ...
-
 
 class RuntimeTestRes(_message.Message):
     __slots__ = ("success", "output", "error", "exitCode")
@@ -961,14 +1306,37 @@ class RuntimeTestRes(_message.Message):
     error: str
     exitCode: int
 
-    def __init__(self, success: bool = ..., output: _Optional[str] = ..., error: _Optional[str] = ...,
-                 exitCode: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        success: bool = ...,
+        output: _Optional[str] = ...,
+        error: _Optional[str] = ...,
+        exitCode: _Optional[int] = ...,
+    ) -> None: ...
 
 class RunJobRequest(_message.Message):
-    __slots__ = ("name", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "uploads", "schedule",
-                 "network", "volumes", "runtime", "workDir", "environment", "secret_environment", "workflowUuid",
-                 "jobUuid", "requirements", "gpu_count", "gpu_memory_mb")
+    __slots__ = (
+        "name",
+        "command",
+        "args",
+        "maxCpu",
+        "cpuCores",
+        "maxMemory",
+        "maxIobps",
+        "uploads",
+        "schedule",
+        "network",
+        "volumes",
+        "runtime",
+        "workDir",
+        "environment",
+        "secret_environment",
+        "workflowUuid",
+        "jobUuid",
+        "requirements",
+        "gpu_count",
+        "gpu_memory_mb",
+    )
 
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -977,7 +1345,9 @@ class RunJobRequest(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     class SecretEnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
@@ -986,7 +1356,9 @@ class RunJobRequest(_message.Message):
         key: str
         value: str
 
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[str] = ...) -> None: ...
+        def __init__(
+            self, key: _Optional[str] = ..., value: _Optional[str] = ...
+        ) -> None: ...
 
     NAME_FIELD_NUMBER: _ClassVar[int]
     COMMAND_FIELD_NUMBER: _ClassVar[int]
@@ -1029,21 +1401,45 @@ class RunJobRequest(_message.Message):
     gpu_count: int
     gpu_memory_mb: int
 
-    def __init__(self, name: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ...,
-                 maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ...,
-                 maxIobps: _Optional[int] = ..., uploads: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ...,
-                 schedule: _Optional[str] = ..., network: _Optional[str] = ...,
-                 volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ...,
-                 environment: _Optional[_Mapping[str, str]] = ...,
-                 secret_environment: _Optional[_Mapping[str, str]] = ..., workflowUuid: _Optional[str] = ...,
-                 jobUuid: _Optional[str] = ...,
-                 requirements: _Optional[_Iterable[_Union[JobRequirement, _Mapping]]] = ...,
-                 gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        command: _Optional[str] = ...,
+        args: _Optional[_Iterable[str]] = ...,
+        maxCpu: _Optional[int] = ...,
+        cpuCores: _Optional[str] = ...,
+        maxMemory: _Optional[int] = ...,
+        maxIobps: _Optional[int] = ...,
+        uploads: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ...,
+        schedule: _Optional[str] = ...,
+        network: _Optional[str] = ...,
+        volumes: _Optional[_Iterable[str]] = ...,
+        runtime: _Optional[str] = ...,
+        workDir: _Optional[str] = ...,
+        environment: _Optional[_Mapping[str, str]] = ...,
+        secret_environment: _Optional[_Mapping[str, str]] = ...,
+        workflowUuid: _Optional[str] = ...,
+        jobUuid: _Optional[str] = ...,
+        requirements: _Optional[_Iterable[_Union[JobRequirement, _Mapping]]] = ...,
+        gpu_count: _Optional[int] = ...,
+        gpu_memory_mb: _Optional[int] = ...,
+    ) -> None: ...
 
 class RunJobResponse(_message.Message):
-    __slots__ = ("jobUuid", "status", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "startTime",
-                 "endTime", "exitCode", "scheduledTime")
+    __slots__ = (
+        "jobUuid",
+        "status",
+        "command",
+        "args",
+        "maxCpu",
+        "cpuCores",
+        "maxMemory",
+        "maxIobps",
+        "startTime",
+        "endTime",
+        "exitCode",
+        "scheduledTime",
+    )
     JOBUUID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     COMMAND_FIELD_NUMBER: _ClassVar[int]
@@ -1069,12 +1465,21 @@ class RunJobResponse(_message.Message):
     exitCode: int
     scheduledTime: str
 
-    def __init__(self, jobUuid: _Optional[str] = ..., status: _Optional[str] = ..., command: _Optional[str] = ...,
-                 args: _Optional[_Iterable[str]] = ..., maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ...,
-                 maxMemory: _Optional[int] = ..., maxIobps: _Optional[int] = ..., startTime: _Optional[str] = ...,
-                 endTime: _Optional[str] = ..., exitCode: _Optional[int] = ...,
-                 scheduledTime: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        jobUuid: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        command: _Optional[str] = ...,
+        args: _Optional[_Iterable[str]] = ...,
+        maxCpu: _Optional[int] = ...,
+        cpuCores: _Optional[str] = ...,
+        maxMemory: _Optional[int] = ...,
+        maxIobps: _Optional[int] = ...,
+        startTime: _Optional[str] = ...,
+        endTime: _Optional[str] = ...,
+        exitCode: _Optional[int] = ...,
+        scheduledTime: _Optional[str] = ...,
+    ) -> None: ...
 
 class JobRequirement(_message.Message):
     __slots__ = ("jobUuid", "status", "expression")
@@ -1085,9 +1490,12 @@ class JobRequirement(_message.Message):
     status: str
     expression: str
 
-    def __init__(self, jobUuid: _Optional[str] = ..., status: _Optional[str] = ...,
-                 expression: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        jobUuid: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        expression: _Optional[str] = ...,
+    ) -> None: ...
 
 class RunWorkflowRequest(_message.Message):
     __slots__ = ("workflow", "totalJobs", "jobOrder", "yamlContent", "workflowFiles")
@@ -1102,10 +1510,14 @@ class RunWorkflowRequest(_message.Message):
     yamlContent: str
     workflowFiles: _containers.RepeatedCompositeFieldContainer[FileUpload]
 
-    def __init__(self, workflow: _Optional[str] = ..., totalJobs: _Optional[int] = ...,
-                 jobOrder: _Optional[_Iterable[str]] = ..., yamlContent: _Optional[str] = ...,
-                 workflowFiles: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        workflow: _Optional[str] = ...,
+        totalJobs: _Optional[int] = ...,
+        jobOrder: _Optional[_Iterable[str]] = ...,
+        yamlContent: _Optional[str] = ...,
+        workflowFiles: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ...,
+    ) -> None: ...
 
 class RunWorkflowResponse(_message.Message):
     __slots__ = ("workflowUuid", "status")
@@ -1114,8 +1526,9 @@ class RunWorkflowResponse(_message.Message):
     workflowUuid: str
     status: str
 
-    def __init__(self, workflowUuid: _Optional[str] = ..., status: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self, workflowUuid: _Optional[str] = ..., status: _Optional[str] = ...
+    ) -> None: ...
 
 class GetWorkflowStatusRequest(_message.Message):
     __slots__ = ("workflowUuid",)
@@ -1124,7 +1537,6 @@ class GetWorkflowStatusRequest(_message.Message):
 
     def __init__(self, workflowUuid: _Optional[str] = ...) -> None: ...
 
-
 class GetWorkflowStatusResponse(_message.Message):
     __slots__ = ("workflow", "jobs")
     WORKFLOW_FIELD_NUMBER: _ClassVar[int]
@@ -1132,9 +1544,11 @@ class GetWorkflowStatusResponse(_message.Message):
     workflow: WorkflowInfo
     jobs: _containers.RepeatedCompositeFieldContainer[WorkflowJob]
 
-    def __init__(self, workflow: _Optional[_Union[WorkflowInfo, _Mapping]] = ...,
-                 jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        workflow: _Optional[_Union[WorkflowInfo, _Mapping]] = ...,
+        jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...,
+    ) -> None: ...
 
 class ListWorkflowsRequest(_message.Message):
     __slots__ = ("includeCompleted",)
@@ -1143,14 +1557,14 @@ class ListWorkflowsRequest(_message.Message):
 
     def __init__(self, includeCompleted: bool = ...) -> None: ...
 
-
 class ListWorkflowsResponse(_message.Message):
     __slots__ = ("workflows",)
     WORKFLOWS_FIELD_NUMBER: _ClassVar[int]
     workflows: _containers.RepeatedCompositeFieldContainer[WorkflowInfo]
 
-    def __init__(self, workflows: _Optional[_Iterable[_Union[WorkflowInfo, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, workflows: _Optional[_Iterable[_Union[WorkflowInfo, _Mapping]]] = ...
+    ) -> None: ...
 
 class GetWorkflowJobsRequest(_message.Message):
     __slots__ = ("workflowUuid",)
@@ -1159,18 +1573,29 @@ class GetWorkflowJobsRequest(_message.Message):
 
     def __init__(self, workflowUuid: _Optional[str] = ...) -> None: ...
 
-
 class GetWorkflowJobsResponse(_message.Message):
     __slots__ = ("jobs",)
     JOBS_FIELD_NUMBER: _ClassVar[int]
     jobs: _containers.RepeatedCompositeFieldContainer[WorkflowJob]
 
-    def __init__(self, jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...) -> None: ...
-
+    def __init__(
+        self, jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...
+    ) -> None: ...
 
 class WorkflowInfo(_message.Message):
-    __slots__ = ("uuid", "workflow", "status", "totalJobs", "completedJobs", "failedJobs", "canceledJobs", "createdAt",
-                 "startedAt", "completedAt", "yamlContent")
+    __slots__ = (
+        "uuid",
+        "workflow",
+        "status",
+        "totalJobs",
+        "completedJobs",
+        "failedJobs",
+        "canceledJobs",
+        "createdAt",
+        "startedAt",
+        "completedAt",
+        "yamlContent",
+    )
     UUID_FIELD_NUMBER: _ClassVar[int]
     WORKFLOW_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
@@ -1194,16 +1619,31 @@ class WorkflowInfo(_message.Message):
     completedAt: Timestamp
     yamlContent: str
 
-    def __init__(self, uuid: _Optional[str] = ..., workflow: _Optional[str] = ..., status: _Optional[str] = ...,
-                 totalJobs: _Optional[int] = ..., completedJobs: _Optional[int] = ..., failedJobs: _Optional[int] = ...,
-                 canceledJobs: _Optional[int] = ..., createdAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
-                 startedAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
-                 completedAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
-                 yamlContent: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        uuid: _Optional[str] = ...,
+        workflow: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        totalJobs: _Optional[int] = ...,
+        completedJobs: _Optional[int] = ...,
+        failedJobs: _Optional[int] = ...,
+        canceledJobs: _Optional[int] = ...,
+        createdAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
+        startedAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
+        completedAt: _Optional[_Union[Timestamp, _Mapping]] = ...,
+        yamlContent: _Optional[str] = ...,
+    ) -> None: ...
 
 class WorkflowJob(_message.Message):
-    __slots__ = ("jobUuid", "jobName", "status", "dependencies", "startTime", "endTime", "exitCode")
+    __slots__ = (
+        "jobUuid",
+        "jobName",
+        "status",
+        "dependencies",
+        "startTime",
+        "endTime",
+        "exitCode",
+    )
     JOBUUID_FIELD_NUMBER: _ClassVar[int]
     JOBNAME_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
@@ -1219,10 +1659,16 @@ class WorkflowJob(_message.Message):
     endTime: Timestamp
     exitCode: int
 
-    def __init__(self, jobUuid: _Optional[str] = ..., jobName: _Optional[str] = ..., status: _Optional[str] = ...,
-                 dependencies: _Optional[_Iterable[str]] = ..., startTime: _Optional[_Union[Timestamp, _Mapping]] = ...,
-                 endTime: _Optional[_Union[Timestamp, _Mapping]] = ..., exitCode: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        jobUuid: _Optional[str] = ...,
+        jobName: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        dependencies: _Optional[_Iterable[str]] = ...,
+        startTime: _Optional[_Union[Timestamp, _Mapping]] = ...,
+        endTime: _Optional[_Union[Timestamp, _Mapping]] = ...,
+        exitCode: _Optional[int] = ...,
+    ) -> None: ...
 
 class Timestamp(_message.Message):
     __slots__ = ("seconds", "nanos")
@@ -1231,8 +1677,9 @@ class Timestamp(_message.Message):
     seconds: int
     nanos: int
 
-    def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...
+    ) -> None: ...
 
 class InstallRuntimeRequest(_message.Message):
     __slots__ = ("runtimeSpec", "repository", "branch", "path", "forceReinstall")
@@ -1247,12 +1694,24 @@ class InstallRuntimeRequest(_message.Message):
     path: str
     forceReinstall: bool
 
-    def __init__(self, runtimeSpec: _Optional[str] = ..., repository: _Optional[str] = ...,
-                 branch: _Optional[str] = ..., path: _Optional[str] = ..., forceReinstall: bool = ...) -> None: ...
-
+    def __init__(
+        self,
+        runtimeSpec: _Optional[str] = ...,
+        repository: _Optional[str] = ...,
+        branch: _Optional[str] = ...,
+        path: _Optional[str] = ...,
+        forceReinstall: bool = ...,
+    ) -> None: ...
 
 class InstallRuntimeResponse(_message.Message):
-    __slots__ = ("buildJobUuid", "runtimeSpec", "status", "message", "repository", "resolvedPath")
+    __slots__ = (
+        "buildJobUuid",
+        "runtimeSpec",
+        "status",
+        "message",
+        "repository",
+        "resolvedPath",
+    )
     BUILDJOBUUID_FIELD_NUMBER: _ClassVar[int]
     RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
@@ -1266,10 +1725,15 @@ class InstallRuntimeResponse(_message.Message):
     repository: str
     resolvedPath: str
 
-    def __init__(self, buildJobUuid: _Optional[str] = ..., runtimeSpec: _Optional[str] = ...,
-                 status: _Optional[str] = ..., message: _Optional[str] = ..., repository: _Optional[str] = ...,
-                 resolvedPath: _Optional[str] = ...) -> None: ...
-
+    def __init__(
+        self,
+        buildJobUuid: _Optional[str] = ...,
+        runtimeSpec: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        message: _Optional[str] = ...,
+        repository: _Optional[str] = ...,
+        resolvedPath: _Optional[str] = ...,
+    ) -> None: ...
 
 class InstallRuntimeFromLocalRequest(_message.Message):
     __slots__ = ("runtimeSpec", "files", "forceReinstall")
@@ -1280,10 +1744,12 @@ class InstallRuntimeFromLocalRequest(_message.Message):
     files: _containers.RepeatedCompositeFieldContainer[RuntimeFile]
     forceReinstall: bool
 
-    def __init__(self, runtimeSpec: _Optional[str] = ...,
-                 files: _Optional[_Iterable[_Union[RuntimeFile, _Mapping]]] = ...,
-                 forceReinstall: bool = ...) -> None: ...
-
+    def __init__(
+        self,
+        runtimeSpec: _Optional[str] = ...,
+        files: _Optional[_Iterable[_Union[RuntimeFile, _Mapping]]] = ...,
+        forceReinstall: bool = ...,
+    ) -> None: ...
 
 class RuntimeFile(_message.Message):
     __slots__ = ("path", "content", "executable")
@@ -1294,8 +1760,12 @@ class RuntimeFile(_message.Message):
     content: bytes
     executable: bool
 
-    def __init__(self, path: _Optional[str] = ..., content: _Optional[bytes] = ..., executable: bool = ...) -> None: ...
-
+    def __init__(
+        self,
+        path: _Optional[str] = ...,
+        content: _Optional[bytes] = ...,
+        executable: bool = ...,
+    ) -> None: ...
 
 class ValidateRuntimeSpecRequest(_message.Message):
     __slots__ = ("runtimeSpec",)
@@ -1303,7 +1773,6 @@ class ValidateRuntimeSpecRequest(_message.Message):
     runtimeSpec: str
 
     def __init__(self, runtimeSpec: _Optional[str] = ...) -> None: ...
-
 
 class ValidateRuntimeSpecResponse(_message.Message):
     __slots__ = ("valid", "message", "normalizedSpec", "specInfo")
@@ -1316,9 +1785,13 @@ class ValidateRuntimeSpecResponse(_message.Message):
     normalizedSpec: str
     specInfo: RuntimeSpecInfo
 
-    def __init__(self, valid: bool = ..., message: _Optional[str] = ..., normalizedSpec: _Optional[str] = ...,
-                 specInfo: _Optional[_Union[RuntimeSpecInfo, _Mapping]] = ...) -> None: ...
-
+    def __init__(
+        self,
+        valid: bool = ...,
+        message: _Optional[str] = ...,
+        normalizedSpec: _Optional[str] = ...,
+        specInfo: _Optional[_Union[RuntimeSpecInfo, _Mapping]] = ...,
+    ) -> None: ...
 
 class RuntimeRemoveReq(_message.Message):
     __slots__ = ("runtime",)
@@ -1326,7 +1799,6 @@ class RuntimeRemoveReq(_message.Message):
     runtime: str
 
     def __init__(self, runtime: _Optional[str] = ...) -> None: ...
-
 
 class RuntimeRemoveRes(_message.Message):
     __slots__ = ("success", "message", "freedSpaceBytes")
@@ -1337,9 +1809,12 @@ class RuntimeRemoveRes(_message.Message):
     message: str
     freedSpaceBytes: int
 
-    def __init__(self, success: bool = ..., message: _Optional[str] = ...,
-                 freedSpaceBytes: _Optional[int] = ...) -> None: ...
-
+    def __init__(
+        self,
+        success: bool = ...,
+        message: _Optional[str] = ...,
+        freedSpaceBytes: _Optional[int] = ...,
+    ) -> None: ...
 
 class RuntimeSpecInfo(_message.Message):
     __slots__ = ("language", "version", "variants", "architecture")
@@ -1352,5 +1827,10 @@ class RuntimeSpecInfo(_message.Message):
     variants: _containers.RepeatedScalarFieldContainer[str]
     architecture: str
 
-    def __init__(self, language: _Optional[str] = ..., version: _Optional[str] = ...,
-                 variants: _Optional[_Iterable[str]] = ..., architecture: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        language: _Optional[str] = ...,
+        version: _Optional[str] = ...,
+        variants: _Optional[_Iterable[str]] = ...,
+        architecture: _Optional[str] = ...,
+    ) -> None: ...
