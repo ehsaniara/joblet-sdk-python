@@ -292,8 +292,6 @@ Found a bug? Want to add a feature? Awesome! Here's how to get involved:
 5. **Check everything works**: `make pre-commit` (catches issues before review)
 6. **Submit a pull request** and tell us what you've built!
 
-We're friendly and happy to help if you get stuck. This is a welcoming project! 🎉
-
 ## What is Joblet?
 
 [Joblet](https://github.com/ehsaniara/joblet) is a powerful distributed job orchestration and container runtime system for running isolated workloads. It simplifies deploying and managing applications across multiple machines with built-in job scheduling, resource management, and GPU support.
