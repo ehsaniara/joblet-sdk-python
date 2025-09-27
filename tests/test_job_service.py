@@ -224,6 +224,39 @@ class TestJobService:
 
         mock_stub.StopJob.assert_called_once()
 
+    def test_cancel_job_success(self, job_service):
+        """Test canceling a scheduled job successfully"""
+        mock_stub = Mock()
+        job_service.stub = mock_stub
+
+        mock_grpc_response = Mock()
+        mock_grpc_response.uuid = "test-scheduled-job-123"
+        mock_grpc_response.status = "CANCELED"
+
+        mock_stub.CancelJob.return_value = mock_grpc_response
+
+        result = job_service.cancel_job("test-scheduled-job-123")
+
+        assert result["uuid"] == "test-scheduled-job-123"
+        assert result["status"] == "CANCELED"
+
+        mock_stub.CancelJob.assert_called_once()
+
+    def test_cancel_job_not_found(self, job_service):
+        """Test canceling a job that doesn't exist"""
+        mock_stub = Mock()
+        job_service.stub = mock_stub
+
+        # Simulate gRPC error for job not found
+        grpc_error = grpc.RpcError()
+        grpc_error.details = lambda: "Job not found"
+        mock_stub.CancelJob.side_effect = grpc_error
+
+        with pytest.raises(JobNotFoundError) as exc_info:
+            job_service.cancel_job("non-existent-job")
+
+        assert "Failed to cancel job" in str(exc_info.value)
+
     def test_delete_job_success(self, job_service):
         """Test deleting a job successfully"""
         mock_stub = Mock()
@@ -306,6 +339,10 @@ class TestJobService:
         mock_job1.runtime = "python:3.11"
         mock_job1.environment = {}
         mock_job1.secret_environment = {}
+        mock_job1.gpu_indices = []
+        mock_job1.gpu_count = 0
+        mock_job1.gpu_memory_mb = 0
+        mock_job1.nodeId = "node-1"
 
         mock_job2 = Mock()
         mock_job2.uuid = "job-2"
@@ -324,6 +361,10 @@ class TestJobService:
         mock_job2.runtime = "python:3.11"
         mock_job2.environment = {"ENV": "test"}
         mock_job2.secret_environment = {}
+        mock_job2.gpu_indices = []
+        mock_job2.gpu_count = 0
+        mock_job2.gpu_memory_mb = 0
+        mock_job2.nodeId = "node-2"
 
         mock_grpc_response = Mock()
         mock_grpc_response.jobs = [mock_job1, mock_job2]

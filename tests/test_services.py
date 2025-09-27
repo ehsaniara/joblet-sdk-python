@@ -7,11 +7,7 @@ from unittest.mock import Mock
 import grpc
 import pytest
 
-from joblet.exceptions import (
-    NetworkError,
-    RuntimeNotFoundError,
-    VolumeError,
-)
+from joblet.exceptions import NetworkError, RuntimeNotFoundError, VolumeError
 from joblet.services import (
     MonitoringService,
     NetworkService,
@@ -248,6 +244,9 @@ class TestMonitoringService:
         mock_host.totalMemory = sample_system_status["host"]["total_memory"]
         mock_host.bootTime = ""
         mock_host.uptime = 0
+        mock_host.nodeId = "test-node-123"
+        mock_host.serverIPs = ["192.168.1.100", "10.0.0.1"]
+        mock_host.macAddresses = ["00:1B:63:84:45:E6", "02:42:ac:11:00:02"]
 
         mock_grpc_response.HasField = lambda field: field in ["host", "cpu", "memory"]
         mock_grpc_response.host = mock_host

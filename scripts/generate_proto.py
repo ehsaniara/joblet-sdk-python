@@ -7,8 +7,6 @@ generates Python bindings compatible with the current gRPC version.
 """
 
 import argparse
-import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -207,7 +205,9 @@ import subprocess
 PROTO_REPOSITORY = "https://github.com/ehsaniara/joblet-proto"
 PROTO_COMMIT_HASH = "{commit_hash}"
 PROTO_TAG = "{version}"
-GENERATION_TIMESTAMP = "{datetime.now(timezone.utc).strftime('%a %b %d %I:%M:%S %p UTC %Y')}"
+GENERATION_TIMESTAMP = (
+    "{datetime.now(timezone.utc).strftime('%a %b %d %I:%M:%S %p UTC %Y')}"
+)
 
 # Protocol buffer compiler version
 try:
@@ -224,7 +224,7 @@ GRPCIO_TOOLS_VERSION = "{get_grpc_version()}"
         with open(joblet_dir / "_proto_generation_info.py", "w") as f:
             f.write(generation_info)
 
-        print(f"✅ Proto files generated successfully!")
+        print("✅ Proto files generated successfully!")
         print(f"   Version: {version}")
         print(f"   Commit: {commit_hash}")
         print(f"   gRPC Tools: {get_grpc_version()}")

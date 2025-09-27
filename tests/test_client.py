@@ -4,7 +4,6 @@ Unit tests for JobletClient
 
 from unittest.mock import Mock, patch
 
-import grpc
 import pytest
 
 from joblet import JobletClient
@@ -26,6 +25,7 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
+                insecure=False,
             )
 
             assert client.host == "test-host"
@@ -42,6 +42,9 @@ class TestJobletClient:
                 ca_cert_path="/nonexistent/ca-cert.pem",
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
     def test_init_with_missing_client_cert(self, temp_cert_files):
@@ -51,6 +54,9 @@ class TestJobletClient:
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path="/nonexistent/client-cert.pem",
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
     def test_init_with_missing_client_key(self, temp_cert_files):
@@ -60,6 +66,9 @@ class TestJobletClient:
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path="/nonexistent/client-key.pem",
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
     def test_init_with_empty_ca_cert(self, temp_cert_files):
@@ -69,11 +78,14 @@ class TestJobletClient:
         with open(empty_ca_path, "w") as f:
             f.write("")
 
-        with pytest.raises(ValueError, match="CA certificate file is empty"):
+        with pytest.raises(ValueError, match="Empty CA cert"):
             JobletClient(
                 ca_cert_path=empty_ca_path,
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
     def test_init_with_invalid_ca_cert_format(self, temp_cert_files):
@@ -83,11 +95,14 @@ class TestJobletClient:
         with open(invalid_ca_path, "w") as f:
             f.write("invalid certificate content")
 
-        with pytest.raises(ValueError, match="Invalid CA certificate format"):
+        with pytest.raises(ValueError, match="Bad CA cert"):
             JobletClient(
                 ca_cert_path=invalid_ca_path,
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
     def test_init_with_custom_options(self, temp_cert_files):
@@ -101,16 +116,23 @@ class TestJobletClient:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
-            client = JobletClient(
+            JobletClient(
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
                 options=options,
             )
 
             # Verify options were passed to gRPC channel
             call_args = mock_secure_channel.call_args
-            assert call_args[1]["options"] == list(options.items())
+            # Check that custom options are included in the final options list
+            passed_options = call_args[1]["options"]
+            custom_options = list(options.items())
+            for custom_option in custom_options:
+                assert custom_option in passed_options
 
     def test_context_manager(self, temp_cert_files):
         """Test client as context manager"""
@@ -122,6 +144,9 @@ class TestJobletClient:
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             ) as client:
                 assert client._channel is not None
 
@@ -138,6 +163,9 @@ class TestJobletClient:
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
             client.close()
@@ -158,6 +186,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 # First access should create the service
@@ -185,6 +216,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 networks_service = client.networks
@@ -205,6 +239,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 volumes_service = client.volumes
@@ -225,6 +262,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 monitoring_service = client.monitoring
@@ -245,6 +285,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 runtimes_service = client.runtimes
@@ -261,6 +304,9 @@ class TestJobletClient:
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             )
 
             client.close()
@@ -287,6 +333,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -310,6 +359,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -332,6 +384,9 @@ class TestJobletClient:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -360,11 +415,12 @@ class TestJobletClient:
         with patch("joblet.client.grpc.secure_channel") as mock_secure_channel:
             mock_secure_channel.side_effect = Exception("gRPC connection failed")
 
-            with pytest.raises(
-                ConnectionError, match="Failed to connect to Joblet server"
-            ):
+            with pytest.raises(ConnectionError, match="Can't connect to"):
                 JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )

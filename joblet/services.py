@@ -154,6 +154,7 @@ class JobService:
                 "gpu_indices": list(response.gpu_indices),
                 "gpu_count": response.gpu_count,
                 "gpu_memory_mb": response.gpu_memory_mb,
+                "node_id": response.nodeId,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")
@@ -179,6 +180,34 @@ class JobService:
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to stop job {job_uuid}: {e.details()}")
+
+    def cancel_job(self, job_uuid: str) -> Dict[str, Any]:
+        """Cancel a scheduled job
+
+        This is specifically for jobs in SCHEDULED status. It will:
+        - Cancel the job (preventing it from executing)
+        - Change status to CANCELED (not STOPPED)
+        - Preserve the job in history for audit
+
+        Args:
+            job_uuid: Job UUID
+
+        Returns:
+            Cancel response dictionary with uuid, status
+
+        Raises:
+            JobNotFoundError: If job not found or not scheduled
+        """
+        request = joblet_pb2.CancelJobReq(uuid=job_uuid)
+
+        try:
+            response = self.stub.CancelJob(request)
+            return {
+                "uuid": response.uuid,
+                "status": response.status,
+            }
+        except grpc.RpcError as e:
+            raise JobNotFoundError(f"Failed to cancel job {job_uuid}: {e.details()}")
 
     def delete_job(self, job_uuid: str) -> Dict[str, Any]:
         """Delete a job
@@ -269,6 +298,10 @@ class JobService:
                         "runtime": job.runtime,
                         "environment": dict(job.environment),
                         "secret_environment": dict(job.secret_environment),
+                        "gpu_indices": list(job.gpu_indices),
+                        "gpu_count": job.gpu_count,
+                        "gpu_memory_mb": job.gpu_memory_mb,
+                        "node_id": job.nodeId,
                     }
                 )
             return jobs
@@ -699,6 +732,9 @@ class MonitoringService:
             "total_memory": host.totalMemory,
             "boot_time": host.bootTime,
             "uptime": host.uptime,
+            "node_id": host.nodeId,
+            "server_ips": list(host.serverIPs),
+            "mac_addresses": list(host.macAddresses),
         }
 
     @staticmethod
