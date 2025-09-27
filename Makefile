@@ -18,13 +18,20 @@ help: ## Show this help message
 
 setup: ## Complete development environment setup
 	@echo "🚀 Setting up development environment..."
-	python setup_dev.py
+	$(MAKE) dev-deps
+	$(MAKE) setup-hooks
+	@echo "🎉 Development setup complete!"
+	@echo "💡 Run 'make help' to see available commands"
 
 install: ## Install package in development mode
 	pip install -e .
 
 dev-deps: ## Install development dependencies
 	pip install -e .[dev]
+
+setup-hooks: ## Install pre-commit hooks
+	pre-commit install
+	@echo "✅ Pre-commit hooks installed. Code will be auto-formatted on commit."
 
 proto-gen: ## Regenerate protocol buffer files
 	@echo "🔄 Regenerating proto files..."
@@ -53,13 +60,13 @@ lint: ## Run code linting
 
 format: ## Format code with black and isort
 	@echo "🎨 Formatting code..."
-	black joblet examples tests scripts
-	isort joblet examples tests scripts
+	black joblet/ examples/ scripts/ --extend-exclude "joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py"
+	isort joblet/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip _proto_generation_info.py
 
 format-check: ## Check code formatting without applying changes
 	@echo "🔍 Checking code format..."
-	black --check joblet examples tests scripts
-	isort --check-only joblet examples tests scripts
+	black --check joblet/ examples/ scripts/ --extend-exclude "joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py"
+	isort --check-only joblet/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip _proto_generation_info.py
 
 type-check: ## Run type checking with mypy
 	@echo "🔍 Running type checks..."

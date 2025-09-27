@@ -262,7 +262,7 @@ class TestJobletClientWithConfig:
     @patch("joblet.client.grpc.secure_channel")
     @patch("pathlib.Path.exists")
     def test_client_init_with_config(
-        self, mock_path_exists, mock_secure_channel, mock_config_file
+            self, mock_path_exists, mock_secure_channel, mock_config_file
     ):
         """Test JobletClient initialization with config file"""
         from joblet import JobletClient
@@ -282,7 +282,7 @@ class TestJobletClientWithConfig:
 
     @patch("joblet.client.grpc.secure_channel")
     def test_client_init_with_explicit_params_override(
-        self, mock_secure_channel, temp_cert_files
+            self, mock_secure_channel, temp_cert_files
     ):
         """Test that explicit parameters override config values"""
         from joblet import JobletClient

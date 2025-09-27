@@ -2,69 +2,14 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
+    tags: ['v*']
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
-  create-release:
+  release:
     runs-on: ubuntu-latest
-    outputs:
-      release_version: ${{ steps.get_version.outputs.version }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch full history for changelog
-
-      - name: Get version from tag
-        id: get_version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Generate changelog from git commits since last tag
-          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          
-          if [ -n "$LAST_TAG" ]; then
-            echo "Changes since $LAST_TAG:" > CHANGELOG.md
-            git log --pretty=format:"- %s (%h)" $LAST_TAG..HEAD >> CHANGELOG.md
-          else
-            echo "Initial release" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "This is the first release of the Joblet Python SDK!" >> CHANGELOG.md
-          fi
-          
-          echo "Generated changelog:"
-          cat CHANGELOG.md
-
-      - name: Create GitHub Release
-        id: create_release
-        run: |
-          if [[ "${{ steps.get_version.outputs.version }}" == *"-"* ]]; then
-            PRERELEASE_FLAG="--prerelease"
-          else
-            PRERELEASE_FLAG=""
-          fi
-
-          gh release create "${{ steps.get_version.outputs.version }}" \
-            --title "Joblet Python SDK ${{ steps.get_version.outputs.version }}" \
-            --notes-file CHANGELOG.md \
-            $PRERELEASE_FLAG
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-and-publish:
-    needs: create-release
-    runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -73,153 +18,22 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
-
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build twine
 
-      - name: Install project dependencies
-        run: |
-          pip install -e ".[dev]"
-
-      - name: Update version in setup.py
-        run: |
-          VERSION=${{ needs.create-release.outputs.release_version }}
-          VERSION_NUM=${VERSION#v}  # Remove 'v' prefix
-          
-          # Update version in setup.py
-          sed -i "s/version=\".*\"/version=\"$VERSION_NUM\"/" setup.py
-          
-          echo "Updated version to: $VERSION_NUM"
-          grep "version=" setup.py
-
-      - name: Generate latest proto files
-        run: |
-          python scripts/generate_proto.py --version v1.0.1
-
       - name: Build package
-        run: |
-          python -m build
+        run: python -m build
 
-      - name: Check package
-        run: |
-          twine check dist/*
-
-      - name: Upload release assets
-        run: |
-          # Upload all built packages to the release
-          gh release upload "${{ needs.create-release.outputs.release_version }}" dist/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
 
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          if [ -n "$TWINE_PASSWORD" ]; then
-            echo "Publishing to PyPI..."
-            twine upload dist/*
-          else
-            echo "Skipping PyPI publish - PYPI_API_TOKEN not set"
-          fi
-        if: success()
-
-      - name: Publish to GitHub Packages
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
-        run: |
-          # Note: GitHub Packages doesn't support Python packages yet
-          # This is a placeholder for when they do
-          echo "GitHub Packages upload would go here"
-
-  docker-build:
-    needs: [ create-release, build-and-publish ]
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-
-      - name: Create Dockerfile
-        run: |
-          cat > Dockerfile << 'EOF'
-          FROM python:3.11-slim
-
-          # Install system dependencies
-          RUN apt-get update && apt-get install -y \
-              protobuf-compiler \
-              git \
-              && rm -rf /var/lib/apt/lists/*
-
-          # Set up working directory
-          WORKDIR /app
-
-          # Copy the entire project
-          COPY . /app/
-
-          # Install the SDK from source
-          RUN pip install -e .
-
-          # Generate proto files
-          RUN python scripts/generate_proto.py --version v1.0.1
-
-          # Default command
-          CMD ["python", "-c", "from joblet import JobletClient; print('Joblet SDK installed successfully with GPU support!')"]
-          EOF
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-
-  notify:
-    needs: [ create-release, build-and-publish, docker-build ]
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Notify success
-        if: needs.build-and-publish.result == 'success'
-        run: |
-          echo "🎉 Release ${{ needs.create-release.outputs.release_version }} published successfully!"
-          echo "📦 PyPI: https://pypi.org/project/joblet-sdk/"
-          echo "🐳 Docker: ghcr.io/${{ github.repository }}:${{ needs.create-release.outputs.release_version }}"
-          echo "📋 Release: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.release_version }}"
-
-      - name: Notify failure
-        if: needs.build-and-publish.result == 'failure'
-        run: |
-          echo "❌ Release ${{ needs.create-release.outputs.release_version }} failed!"
-          echo "Check the logs for details."
+        run: twine upload dist/*

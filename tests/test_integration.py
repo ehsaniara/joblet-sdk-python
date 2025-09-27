@@ -26,7 +26,7 @@ class TestJobletClientIntegration:
 
             # Mock all service stubs
             with patch(
-                "joblet.services.joblet_pb2_grpc.JobServiceStub"
+                    "joblet.services.joblet_pb2_grpc.JobServiceStub"
             ) as mock_job_stub, patch(
                 "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
             ) as mock_monitoring_stub:
@@ -62,11 +62,12 @@ class TestJobletClientIntegration:
 
                 # Test the full flow
                 with JobletClient(
-                    ca_cert_path=temp_cert_files["ca_cert_path"],
-                    client_cert_path=temp_cert_files["client_cert_path"],
-                    client_key_path=temp_cert_files["client_key_path"],
-                    host="test-server",
-                    port=50051,
+                        ca_cert_path=temp_cert_files["ca_cert_path"],
+                        client_cert_path=temp_cert_files["client_cert_path"],
+                        client_key_path=temp_cert_files["client_key_path"],
+                        host="test-server",
+                        port=50051,
+                        insecure=False,
                 ) as client:
                     # Test health check
                     assert client.health_check() is True
@@ -92,7 +93,7 @@ class TestJobletClientIntegration:
 
             # Mock all service stubs
             with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
-                "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
+                    "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
             ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), patch(
                 "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
             ), patch(
@@ -102,6 +103,9 @@ class TestJobletClientIntegration:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 # Test that all service properties can be accessed
@@ -137,6 +141,7 @@ class TestJobletClientIntegration:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="nonexistent-host-12345.invalid",
                 port=99999,
+                insecure=False,
             )
             # If initialization succeeds, health_check should return False for invalid host
             assert client.health_check() is False
@@ -155,13 +160,16 @@ class TestJobletClientIntegration:
             mock_secure_channel.return_value = mock_channel
 
             with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
-                "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
+                    "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
             ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
 
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 # Test concurrent access to services
@@ -214,7 +222,7 @@ class TestServiceIntegration:
             mock_secure_channel.return_value = mock_channel
 
             with patch(
-                "joblet.services.joblet_pb2_grpc.JobServiceStub"
+                    "joblet.services.joblet_pb2_grpc.JobServiceStub"
             ) as mock_job_stub:
                 # Setup job service responses
                 mock_job_instance = Mock()
@@ -278,6 +286,9 @@ class TestServiceIntegration:
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],
                     client_key_path=temp_cert_files["client_key_path"],
+                    host="test-host",
+                    port=50051,
+                    insecure=False,
                 )
 
                 try:
@@ -320,6 +331,7 @@ class TestStressIntegration:
                         client_key_path=temp_cert_files["client_key_path"],
                         host=f"test-host-{i}",
                         port=50051 + i,
+                        insecure=False,
                     )
                     clients.append(client)
 

@@ -1,343 +1,117 @@
 # Joblet Python SDK
 
-The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a powerful distributed job orchestration system with GPU support.
-
-With this SDK, you can easily run jobs, manage complex workflows, and interact with Joblet servers directly from your Python applications. No need to worry about gRPC complexities or protocol details - we've got you covered!
-
-## ✨ What's New in v1.0.2
-
-- **🚀 GPU Support**: Full GPU acceleration support for ML/AI workloads
-- **🔧 Enhanced API**: New GPU parameters in `run_job()` method
-- **📊 GPU Monitoring**: Track GPU allocation and usage in job status
-- **🏃 Runtime Isolation**: Improved container runtime and workload isolation
-- **🧪 Comprehensive Testing**: Full test coverage for GPU features
-- **📚 Rich Examples**: GPU workflow examples and documentation
-
-## Quick Start
-
-**Never used Joblet before?** No worries! Run our interactive guide:
-```bash
-python quick_start.py
-```
-
-**Already know what you're doing?** Jump straight into development:
-```bash
-python setup_dev.py
-```
+The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a distributed job orchestration system with GPU support.
 
 ## Installation
 
-### For most users (recommended)
-The easiest way is to install from PyPI:
 ```bash
 pip install joblet-sdk
 ```
 
-Or add to your `requirements.txt`:
-```txt
-joblet-sdk>=1.0.0
-```
-
-### For latest development features
-Install directly from GitHub:
-```bash
-pip install git+https://github.com/ehsaniara/joblet-sdk-python.git
-```
-
-### For contributors
-Clone the repo and let our setup script do the heavy lifting:
-```bash
-git clone https://github.com/ehsaniara/joblet-sdk-python.git
-cd joblet-sdk-python
-python setup_dev.py  # This handles everything for you!
-```
-
-## Basic Usage
-
-Here's how to run your first job - it's really that simple:
+## Quick Start
 
 ```python
 from joblet import JobletClient
 
-# Connect using TLS certificates from ~/.rnx/rnx-config.yml
-with JobletClient(insecure=False) as client:
+# Connect to your Joblet server
+with JobletClient(
+    host="your-joblet-server.com",
+    port=50051,
+    ca_cert_path="ca.pem",
+    client_cert_path="client.pem",
+    client_key_path="client.key"
+) as client:
+    # Run a simple job
     job = client.jobs.run_job(
         command="echo",
         args=["Hello, Joblet!"],
         name="my-first-job"
     )
-    print(f"🎉 Job started! ID: {job['job_uuid']}")
+    print(f"Job started: {job['job_uuid']}")
 ```
 
-### Setting up Configuration
+## Configuration
 
-You'll need to tell the SDK where your Joblet server is and provide TLS certificates. Create a config file at `~/.rnx/rnx-config.yml`:
+Create `~/.rnx/rnx-config.yml`:
 
 ```yaml
 version: "3.0"
-
 nodes:
   default:
-    address: "your-joblet-server:50051"  # Replace with your server address
+    address: "your-joblet-server:50051"
     cert: |
       -----BEGIN CERTIFICATE-----
-      # Your client certificate here (provided by your Joblet admin)
+      # Your client certificate
       -----END CERTIFICATE-----
     key: |
       -----BEGIN PRIVATE KEY-----
-      # Your client private key here (provided by your Joblet admin)
+      # Your client private key
       -----END PRIVATE KEY-----
     ca: |
       -----BEGIN CERTIFICATE-----
-      # Your CA certificate here (provided by your Joblet admin)
+      # Your CA certificate
       -----END CERTIFICATE-----
 ```
 
-> **Note:** Your Joblet administrator will provide you with the necessary certificates. Joblet uses self-signed certificates created with OpenSSL for security.
-
-### Or Configure Directly in Code
-
-Don't like config files? No problem! You can set everything up directly:
+## GPU Support
 
 ```python
-from joblet import JobletClient
-
-client = JobletClient(
-    host="your-joblet-server.com",
-    port=50051,
-    ca_cert_path="ca.pem",      # Optional: for SSL
-    client_cert_path="client.pem",  # Optional: for client auth
-    client_key_path="client.key"    # Optional: for client auth
-)
-```
-
-## What Can You Do?
-
-Once you've got a client connected, you can access all the cool Joblet features:
-
-- **`client.jobs`** - The bread and butter! Run single jobs or complex workflows
-- **`client.networks`** - Set up isolated networks for your jobs
-- **`client.volumes`** - Create persistent storage that survives job restarts
-- **`client.monitoring`** - Keep an eye on system health and performance
-- **`client.runtimes`** - Manage different execution environments
-
-## GPU Support 🚀
-
-Joblet now supports GPU-accelerated workloads! Perfect for machine learning, AI training, and compute-intensive tasks.
-
-### Basic GPU Job
-```python
-from joblet import JobletClient
-
-client = JobletClient(host="your-server", port=6060, insecure=True)
-
-# Run a GPU-enabled job
-response = client.jobs.run_job(
+# Run GPU-accelerated job
+job = client.jobs.run_job(
     command="nvidia-smi",
-    name="gpu-info",
-    gpu_count=1,        # Request 1 GPU
-    gpu_memory_mb=4096, # Require 4GB GPU memory
+    name="gpu-job",
+    gpu_count=1,
+    gpu_memory_mb=4096,
     runtime="python-3.11-ml"
 )
 ```
 
-### Multi-GPU Training
-```python
-# Distribute training across multiple GPUs
-response = client.jobs.run_job(
-    command="python",
-    args=["train_model.py", "--distributed"],
-    name="multi-gpu-training",
-    gpu_count=2,        # Use 2 GPUs
-    gpu_memory_mb=8192, # 8GB per GPU
-    runtime="python-3.11-ml",
-    environment={"CUDA_VISIBLE_DEVICES": "0,1"}
-)
+## Features
 
-# Check which GPUs were allocated
-status = client.jobs.get_job_status(response['job_uuid'])
-print(f"Allocated GPUs: {status['gpu_indices']}")  # e.g., [0, 1]
-```
+- **Job Management** - Run single jobs or complex workflows
+- **GPU Support** - Native GPU acceleration for ML/AI workloads
+- **Resource Management** - CPU, memory, and GPU limits
+- **Workflows** - Chain jobs with dependencies
+- **Monitoring** - Real-time job status and logs
+- **Security** - mTLS encryption and authentication
 
-### GPU Workflows
-Use GPUs in complex multi-step workflows:
-```python
-workflow_yaml = """
-name: gpu-ml-pipeline
-jobs:
-  train:
-    command: python
-    args: ["train.py"]
-    gpu_count: 1
-    gpu_memory_mb: 6144
-    runtime: python-3.11-ml
+## API Reference
 
-  evaluate:
-    command: python
-    args: ["evaluate.py"]
-    gpu_count: 1
-    gpu_memory_mb: 4096
-    depends_on: [train]
-"""
+### Jobs
+- `client.jobs.run_job()` - Execute a job
+- `client.jobs.cancel_job()` - Cancel a scheduled job
+- `client.jobs.stop_job()` - Stop a running job
+- `client.jobs.get_job_status()` - Get job status
+- `client.jobs.get_job_logs()` - Retrieve job logs
+- `client.jobs.run_workflow()` - Execute a workflow
 
-client.jobs.run_workflow("ml-pipeline.yaml", yaml_content=workflow_yaml)
-```
-
-**Want to see more GPU examples?** Check out `examples/gpu_example.py` for comprehensive demos!
-
-## Try It Out!
-
-Want to see it in action? We've got examples ready to go:
-
-**Start with the interactive demo** (it'll guide you through everything):
-```bash
-python examples/demo_with_guidance.py
-```
-
-**Or jump straight to the basics**:
-```bash
-python examples/basic_job.py
-```
-
-Both examples will show you helpful error messages if something goes wrong - no cryptic failures here!
+### Resources
+- `client.networks` - Network management
+- `client.volumes` - Storage management
+- `client.monitoring` - System monitoring
+- `client.runtimes` - Runtime environments
 
 ## Development
 
-### Getting Started with Development
-
-Want to hack on the SDK? We've made it super easy:
-
 ```bash
-# The lazy way (our favorite!)
-python setup_dev.py
-
-# Or if you like doing things manually:
+# Clone and setup
+git clone https://github.com/ehsaniara/joblet-sdk-python.git
+cd joblet-sdk-python
 pip install -e .[dev]
-python scripts/generate_proto.py  # Get the latest proto files
+
+# Run tests
+pytest tests/
+
+# Format code
+black joblet/ examples/
 ```
 
-### Handy Development Commands
+## Examples
 
-We've got a Makefile full of useful shortcuts:
-```bash
-make help          # See what's available
-make setup         # Set everything up
-make test          # Run the test suite
-make format        # Make your code pretty
-make lint          # Check for issues
-make example       # Try out the demo
-```
-
-### Protocol Buffer Magic
-
-Don't worry about gRPC version headaches - we handle that automatically:
-```bash
-# Refresh proto files for your gRPC version
-python scripts/generate_proto.py
-
-# See what versions are available
-python scripts/generate_proto.py --list-tags
-
-# Pin to a specific version
-python scripts/generate_proto.py --version v1.0.1
-```
-
-## Testing
-
-Make sure everything works before you ship:
-
-```bash
-make test          # The basics
-make test-cov      # With coverage reports
-make quick-test    # Fast feedback loop
-```
-
-## When Things Go Wrong
-
-Don't panic! Here are the most common issues and how to fix them:
-
-### "Can't connect to server"
-- Is your Joblet server actually running?
-- Double-check the host and port in your config
-- Firewall blocking the connection?
-
-### "SSL/TLS certificate errors"
-- Joblet servers require TLS with self-signed certificates (created with OpenSSL)
-- Make sure your certificates are properly formatted in the config file
-- Ensure there are no extra spaces or line breaks in the certificate blocks
-- The SDK uses `insecure=False` by default to work with self-signed certificates
-
-### "gRPC version conflicts"
-- Run `python scripts/generate_proto.py --force` to regenerate everything
-- This fixes most weird import errors too
-
-### "Import errors" or "Module not found"
-- Run `python setup_dev.py` to reset your development environment
-- Make sure you're using Python 3.8 or newer
-- Still broken? Try a clean reinstall: `pip uninstall joblet-sdk && pip install -e .`
-
-### Still Stuck?
-- Try our interactive guide: `python quick_start.py`
-- Check the examples in the `examples/` folder
-- Run `python examples/demo_with_guidance.py` for detailed troubleshooting
-
-## Contributing
-
-Found a bug? Want to add a feature? Awesome! Here's how to get involved:
-
-1. **Fork** this repository (there's a button for that on GitHub)
-2. **Create a branch** for your changes: `git checkout -b my-cool-feature`
-3. **Set up your environment**: `python setup_dev.py` (this will handle everything)
-4. **Make your changes** and add tests (future you will thank you)
-5. **Check everything works**: `make pre-commit` (catches issues before review)
-6. **Submit a pull request** and tell us what you've built!
-
-## What is Joblet?
-
-[Joblet](https://github.com/ehsaniara/joblet) is a powerful distributed job orchestration and container runtime system for running isolated workloads. It simplifies deploying and managing applications across multiple machines with built-in job scheduling, resource management, and GPU support.
-
-### Key Features
-
-- **🚀 GPU Acceleration**: Native support for GPU workloads with automatic resource allocation
-- **🔗 Smart Workflows**: Chain jobs with complex dependencies and conditional execution
-- **⚡ High Performance**: Built with Go for speed and efficiency
-- **🔒 Security First**: mTLS encryption and authentication out of the box
-- **📊 Real-time Monitoring**: Live job status, logs, and system metrics
-- **🌐 Multi-Node**: Seamlessly distribute work across your infrastructure
-- **🏃 Runtime Isolation**: Secure container isolation for workloads
-- **📦 Resource Management**: CPU, memory, and GPU resource limits and quotas
-
-### Use Cases
-
-- **Machine Learning**: Train models across multiple GPUs with automatic resource scheduling
-- **Data Processing**: Run ETL pipelines with complex dependencies and error handling
-- **Batch Jobs**: Replace cron with a more reliable, observable job scheduler
-- **CI/CD**: Build and deploy applications with parallel execution
-- **Scientific Computing**: High-performance computing workloads with GPU support
-- **Microservices**: Container orchestration for distributed applications
-- **Edge Computing**: Lightweight runtime for resource-constrained environments
-
-### Architecture
-
-Joblet provides a complete container orchestration solution:
-- **Server**: The core orchestration engine that manages jobs and resources
-- **Runtime**: Native container runtime that isolates workloads securely
-- **Agents**: Worker nodes that execute jobs across your infrastructure
-- **SDK**: Client libraries (like this Python SDK) for easy integration
-
-Key advantages of Joblet:
-- Simple deployment and management
-- Low resource overhead
-- Built-in job scheduling and workflows
-- Native GPU support with automatic allocation
-- Direct integration with your applications via SDK
-
-This Python SDK provides a simple, pythonic interface to all Joblet features. No need to learn gRPC or mess with protocol buffers - just import and go!
-
-## The Joblet Family
-
-- **[Joblet Server](https://github.com/ehsaniara/joblet)** - The main orchestration engine (start here!)
-- **[Joblet Protocol](https://github.com/ehsaniara/joblet-proto)** - The underlying API definitions (for the curious)
+See the `examples/` directory for more detailed usage examples:
+- `basic_job.py` - Simple job execution
+- `gpu_example.py` - GPU-accelerated workloads
+- `workflow_example.py` - Complex workflows
 
 ## License
 

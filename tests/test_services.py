@@ -292,8 +292,8 @@ class TestMonitoringService:
         assert result["host"]["hostname"] == sample_system_status["host"]["hostname"]
         assert result["cpu"]["cores"] == sample_system_status["cpu"]["cores"]
         assert (
-            result["memory"]["total_bytes"]
-            == sample_system_status["memory"]["total_bytes"]
+                result["memory"]["total_bytes"]
+                == sample_system_status["memory"]["total_bytes"]
         )
 
     def test_stream_system_metrics(self, monitoring_service):

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        exclude: '(joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py)$'
+        args: ['--extend-exclude', 'joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py']
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        exclude: '(joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py)$'
+        args: ['--skip', 'joblet_pb2.py', '--skip', 'joblet_pb2_grpc.py', '--skip', 'joblet_pb2.pyi', '--skip', '_proto_generation_info.py']
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        exclude: '(joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py)$'
+        args: ['--select=E9,F63,F7,F82', '--show-source', '--statistics']

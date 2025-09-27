@@ -224,6 +224,39 @@ class TestJobService:
 
         mock_stub.StopJob.assert_called_once()
 
+    def test_cancel_job_success(self, job_service):
+        """Test canceling a scheduled job successfully"""
+        mock_stub = Mock()
+        job_service.stub = mock_stub
+
+        mock_grpc_response = Mock()
+        mock_grpc_response.uuid = "test-scheduled-job-123"
+        mock_grpc_response.status = "CANCELED"
+
+        mock_stub.CancelJob.return_value = mock_grpc_response
+
+        result = job_service.cancel_job("test-scheduled-job-123")
+
+        assert result["uuid"] == "test-scheduled-job-123"
+        assert result["status"] == "CANCELED"
+
+        mock_stub.CancelJob.assert_called_once()
+
+    def test_cancel_job_not_found(self, job_service):
+        """Test canceling a job that doesn't exist"""
+        mock_stub = Mock()
+        job_service.stub = mock_stub
+
+        # Simulate gRPC error for job not found
+        grpc_error = grpc.RpcError()
+        grpc_error.details = lambda: "Job not found"
+        mock_stub.CancelJob.side_effect = grpc_error
+
+        with pytest.raises(JobNotFoundError) as exc_info:
+            job_service.cancel_job("non-existent-job")
+
+        assert "Failed to cancel job" in str(exc_info.value)
+
     def test_delete_job_success(self, job_service):
         """Test deleting a job successfully"""
         mock_stub = Mock()

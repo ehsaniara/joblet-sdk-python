@@ -6,8 +6,6 @@ This example demonstrates the Joblet SDK with better error handling,
 configuration guidance, and development-friendly features.
 """
 
-import os
-import sys
 import time
 from pathlib import Path
 

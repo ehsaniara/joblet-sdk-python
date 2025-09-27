@@ -1,17 +1,20 @@
 # Joblet Python SDK Examples
 
-Welcome to the Joblet Python SDK examples! This directory contains practical examples to help you get started with running jobs on your Joblet cluster using Python.
+Welcome to the Joblet Python SDK examples! This directory contains practical examples to help you get started with
+running jobs on your Joblet cluster using Python.
 
 ## Quick Setup
 
 ### Option 1: Install from PyPI (Recommended for projects)
 
 Add to your `requirements.txt`:
+
 ```
 joblet-sdk>=0.1.0
 ```
 
 Or install directly:
+
 ```bash
 pip install joblet-sdk
 ```
@@ -19,11 +22,13 @@ pip install joblet-sdk
 ### Option 2: Install from GitHub (Latest development version)
 
 Add to your `requirements.txt`:
+
 ```
 joblet-sdk @ git+https://github.com/ehsaniara/joblet-sdk-python.git@main
 ```
 
 Or install directly:
+
 ```bash
 pip install git+https://github.com/ehsaniara/joblet-sdk-python.git
 ```
@@ -69,7 +74,8 @@ nodes:
       -----END CERTIFICATE-----
 ```
 
-> **Note:** Replace `your-joblet-server` with your actual Joblet server address. The certificates are provided by your Joblet administrator.
+> **Note:** Replace `your-joblet-server` with your actual Joblet server address. The certificates are provided by your
+> Joblet administrator.
 
 ### 3. Test Your Setup
 
@@ -79,6 +85,7 @@ python basic_job.py
 ```
 
 If everything is configured correctly, you should see output like:
+
 ```
 Connecting to your-joblet-server:50051
 Server is available!
@@ -91,35 +98,44 @@ Output: Hello, World!
 ## Examples Overview
 
 ### 🚀 `basic_job.py`
+
 A simple "Hello World" example that demonstrates:
+
 - Connecting to the Joblet server
 - Running a basic echo command
 - Monitoring job status
 - Retrieving job output
 
 **Run it:**
+
 ```bash
 python basic_job.py
 ```
 
 ### 📊 `streaming_counter.py`
+
 Shows real-time log streaming from a long-running job:
+
 - Creates a counter that increments every 100ms for 60 seconds
 - Streams output in real-time as the job runs
 - Demonstrates handling of long-running jobs
 
 **Run it:**
+
 ```bash
 python streaming_counter.py
 ```
 
 ### 🤖 `ml_runtime_example.py`
+
 Demonstrates using specialized runtimes:
+
 - Runs a job with the `python-3.11-ml` runtime
 - Tests available ML libraries (NumPy, Pandas, Scikit-learn)
 - Shows how to specify custom runtimes for your jobs
 
 **Run it:**
+
 ```bash
 python ml_runtime_example.py
 ```
@@ -127,15 +143,18 @@ python ml_runtime_example.py
 ## Common Issues & Solutions
 
 ### "Server not available"
+
 - **Check your config**: Verify the server address in `~/.rnx/rnx-config.yml`
 - **Network connectivity**: Make sure you can reach the Joblet server
 - **Certificates**: Ensure your certificates are valid and properly formatted
 
 ### "Connection error" or SSL issues
+
 - **Certificate format**: Make sure certificates don't have extra spaces or wrong line endings
 - **Server compatibility**: The server requires TLS - the `insecure=True` flag won't work with most Joblet deployments
 
 ### "Runtime not found"
+
 - **Check available runtimes**: Use `rnx runtime list` to see what's available on your server
 - **Runtime name**: Make sure you're using the exact runtime name from the server
 
@@ -242,7 +261,6 @@ while True:
 print(f"Final status: {status['status']}")
 print(f"Exit code: {status['exit_code']}")
 ```
-
 
 ## Contributing
 

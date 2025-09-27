@@ -180,6 +180,34 @@ class JobService:
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to stop job {job_uuid}: {e.details()}")
 
+    def cancel_job(self, job_uuid: str) -> Dict[str, Any]:
+        """Cancel a scheduled job
+
+        This is specifically for jobs in SCHEDULED status. It will:
+        - Cancel the job (preventing it from executing)
+        - Change status to CANCELED (not STOPPED)
+        - Preserve the job in history for audit
+
+        Args:
+            job_uuid: Job UUID
+
+        Returns:
+            Cancel response dictionary with uuid, status
+
+        Raises:
+            JobNotFoundError: If job not found or not scheduled
+        """
+        request = joblet_pb2.CancelJobReq(uuid=job_uuid)
+
+        try:
+            response = self.stub.CancelJob(request)
+            return {
+                "uuid": response.uuid,
+                "status": response.status,
+            }
+        except grpc.RpcError as e:
+            raise JobNotFoundError(f"Failed to cancel job {job_uuid}: {e.details()}")
+
     def delete_job(self, job_uuid: str) -> Dict[str, Any]:
         """Delete a job
 
