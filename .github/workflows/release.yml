@@ -72,6 +72,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build twine
+        pip install -e .  # Install the package to verify version works
 
     - name: Update version in __init__.py
       run: |
@@ -81,8 +82,8 @@ jobs:
         # Update version in __init__.py
         sed -i "s/__version__ = \".*\"/__version__ = \"$TAG_VERSION\"/" joblet/__init__.py
 
-        # Verify the change
-        PACKAGE_VERSION=$(python -c "import joblet; print(joblet.__version__)")
+        # Verify the change by checking file directly instead of importing
+        PACKAGE_VERSION=$(grep "__version__" joblet/__init__.py | cut -d'"' -f2)
         echo "Updated package version: $PACKAGE_VERSION"
 
         if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then

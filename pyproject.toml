@@ -103,6 +103,11 @@ exclude = [
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 addopts = "-v --tb=short"
+markers = [
+    "integration: marks tests as integration tests (may be slower)",
+    "network: marks tests that require network access",
+    "slow: marks tests as slow running",
+]
 
 [tool.coverage.run]
 source = ["joblet"]
