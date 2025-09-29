@@ -5,7 +5,7 @@ This directory contains example scripts demonstrating how to use the Joblet SDK.
 ## Prerequisites
 
 1. Joblet server running on `localhost:8080`
-2. Python 3.9+ with joblet-sdk installed
+2. Python 3.9+ with joblet-sdk-python installed
 
 ## Examples
 

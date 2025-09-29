@@ -5,7 +5,7 @@ The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a di
 ## Installation
 
 ```bash
-pip install joblet-sdk
+pip install joblet-sdk-python
 ```
 
 ## Quick Start
