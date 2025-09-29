@@ -123,7 +123,7 @@ jobs:
     if: needs.validate-tag.outputs.is-prerelease == 'false'
     environment:
       name: pypi
-      url: https://pypi.org/p/joblet-sdk
+      url: https://pypi.org/p/joblet-sdk-python
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
 
@@ -145,7 +145,7 @@ jobs:
     if: needs.validate-tag.outputs.is-prerelease == 'true'
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/joblet-sdk
+      url: https://test.pypi.org/p/joblet-sdk-python
     permissions:
       id-token: write
 
