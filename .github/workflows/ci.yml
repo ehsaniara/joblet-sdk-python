@@ -26,6 +26,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
+      - name: Regenerate protobuf files if needed
+        run: |
+          # Check if protobuf files need regeneration due to version mismatch
+          python -c "
+          try:
+              import joblet.joblet_pb2
+              print('✅ Protobuf files are compatible')
+          except Exception as e:
+              print(f'⚠️ Protobuf compatibility issue: {e}')
+              if 'protobuf' in str(e).lower() or 'runtime_version' in str(e).lower():
+                  print('Regenerating protobuf files with compatible version...')
+                  exit(2)  # Signal to regenerate
+              else:
+                  raise e
+          " || REGEN_STATUS=$?
+
+          if [ "${REGEN_STATUS:-0}" -eq 2 ]; then
+            echo "Regenerating protobuf files..."
+            python scripts/generate_proto.py || echo "⚠️ Proto regeneration failed, continuing with existing files"
+          fi
+
       - name: Check code formatting
         run: |
           echo "Checking code formatting..."
