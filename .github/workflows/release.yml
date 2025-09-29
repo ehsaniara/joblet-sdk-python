@@ -82,6 +82,9 @@ jobs:
         # Update version in __init__.py
         sed -i "s/__version__ = \".*\"/__version__ = \"$TAG_VERSION\"/" joblet/__init__.py
 
+        # Update version in pyproject.toml
+        sed -i "s/version = \".*\"/version = \"$TAG_VERSION\"/" pyproject.toml
+
         # Verify the change by checking file directly instead of importing
         PACKAGE_VERSION=$(grep "__version__" joblet/__init__.py | cut -d'"' -f2)
         echo "Updated package version: $PACKAGE_VERSION"
