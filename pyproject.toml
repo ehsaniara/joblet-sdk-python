@@ -67,10 +67,12 @@ target-version = ['py39']
 extend-exclude = '''
 /(
   # Exclude generated proto files
-  .*/joblet_pb2\.py
-  | .*/joblet_pb2_grpc\.py
-  | .*/joblet_pb2\.pyi
-  | .*/_proto_generation_info\.py
+  joblet_pb2\.py
+  | joblet_pb2_grpc\.py
+  | joblet_pb2\.pyi
+  | local_joblet_pb2\.pyi
+  | _proto_generation_info\.py
+  | proto/
 )/
 '''
 
@@ -78,7 +80,8 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-skip = ["joblet_pb2.py", "joblet_pb2_grpc.py", "joblet_pb2.pyi", "_proto_generation_info.py"]
+skip = ["joblet_pb2.py", "joblet_pb2_grpc.py", "joblet_pb2.pyi", "local_joblet_pb2.pyi", "_proto_generation_info.py"]
+extend_skip = ["proto/"]
 
 [tool.mypy]
 python_version = "3.9"

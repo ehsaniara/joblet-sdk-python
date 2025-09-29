@@ -52,16 +52,16 @@ jobs:
           echo "Checking code formatting..."
 
           # Check if formatting is needed
-          if ! black --check joblet/ examples/ scripts/ --extend-exclude "joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py"; then
+          if ! black --check joblet/ tests/ examples/ scripts/ --extend-exclude "proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py"; then
             echo "❌ Code formatting issues found."
-            echo "💡 To fix locally, run: black joblet/ examples/ scripts/ --extend-exclude \"joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|_proto_generation_info\.py\""
+            echo "💡 To fix locally, run: black joblet/ tests/ examples/ scripts/ --extend-exclude \"proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py\""
             exit 1
           fi
 
           # Check if import sorting is needed
-          if ! isort --check-only joblet/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip _proto_generation_info.py; then
+          if ! isort --check-only joblet/ tests/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip local_joblet_pb2.pyi --skip _proto_generation_info.py --extend-skip proto/; then
             echo "❌ Import sorting issues found."
-            echo "💡 To fix locally, run: isort joblet/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip _proto_generation_info.py"
+            echo "💡 To fix locally, run: isort joblet/ tests/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip local_joblet_pb2.pyi --skip _proto_generation_info.py --extend-skip proto/"
             exit 1
           fi
 
