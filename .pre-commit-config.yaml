@@ -1,32 +1,43 @@
 repos:
+  # Use pre-commit-hooks for basic checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  # Python formatting and linting
   - repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:
       - id: black
-        exclude: '(proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py)$'
-        args: ['--extend-exclude', 'proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py']
+        exclude: '(proto/|.*_pb2\.py|.*_pb2_grpc\.py|.*_pb2\.pyi|_proto_generation_info\.py)$'
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
-        exclude: '(proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py)$'
-        args: ['--skip', 'joblet_pb2.py', '--skip', 'joblet_pb2_grpc.py', '--skip', 'joblet_pb2.pyi', '--skip', 'local_joblet_pb2.pyi', '--skip', '_proto_generation_info.py', '--extend-skip', 'proto/']
+        exclude: '(proto/|.*_pb2\.py|.*_pb2_grpc\.py|.*_pb2\.pyi|_proto_generation_info\.py)$'
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.0.0
     hooks:
       - id: flake8
-        exclude: '(proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py)$'
-        args: ['--max-line-length=88', '--extend-ignore=E203,W503', '--exclude=proto/,joblet_pb2.py,joblet_pb2_grpc.py,joblet_pb2.pyi,local_joblet_pb2.pyi,_proto_generation_info.py', '--show-source', '--statistics']
+        args: ['--max-line-length=88', '--extend-ignore=E203,W503']
+        exclude: '(proto/|.*_pb2\.py|.*_pb2_grpc\.py|.*_pb2\.pyi|_proto_generation_info\.py)$'
 
-  - repo: local
+  # Type checking (optional - can be slow)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
     hooks:
       - id: mypy
-        name: mypy
-        entry: mypy
-        language: python
-        types: [python]
-        exclude: '(proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py)$'
         args: ['--ignore-missing-imports']
-        additional_dependencies: [types-PyYAML]
+        exclude: '(proto/|.*_pb2\.py|.*_pb2_grpc\.py|.*_pb2\.pyi|_proto_generation_info\.py)$'
+        additional_dependencies: [types-pyyaml, types-protobuf]
+
+# Configuration for all hooks
+default_language_version:
+  python: python3.12

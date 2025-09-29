@@ -7,11 +7,11 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.12"]  # Test min and max supported versions
 
     steps:
       - uses: actions/checkout@v4
@@ -25,89 +25,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+          pip install pre-commit
 
-      - name: Regenerate protobuf files if needed
+      - name: Run pre-commit checks
         run: |
-          # Check if protobuf files need regeneration due to version mismatch
-          python -c "
-          try:
-              import joblet.joblet_pb2
-              print('✅ Protobuf files are compatible')
-          except Exception as e:
-              print(f'⚠️ Protobuf compatibility issue: {e}')
-              if 'protobuf' in str(e).lower() or 'runtime_version' in str(e).lower():
-                  print('Regenerating protobuf files with compatible version...')
-                  exit(2)  # Signal to regenerate
-              else:
-                  raise e
-          " || REGEN_STATUS=$?
+          # This runs all formatting and linting checks defined in .pre-commit-config.yaml
+          pre-commit run --all-files
 
-          if [ "${REGEN_STATUS:-0}" -eq 2 ]; then
-            echo "Regenerating protobuf files..."
-            python scripts/generate_proto.py || echo "⚠️ Proto regeneration failed, continuing with existing files"
-          fi
-
-      - name: Check code formatting
-        run: |
-          echo "Checking code formatting..."
-
-          # Check if formatting is needed
-          if ! black --check joblet/ tests/ examples/ scripts/ --extend-exclude "proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py"; then
-            echo "❌ Code formatting issues found."
-            echo "💡 To fix locally, run: black joblet/ tests/ examples/ scripts/ --extend-exclude \"proto/|joblet_pb2\.py|joblet_pb2_grpc\.py|joblet_pb2\.pyi|local_joblet_pb2\.pyi|_proto_generation_info\.py\""
-            exit 1
-          fi
-
-          # Check if import sorting is needed
-          if ! isort --check-only joblet/ tests/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip local_joblet_pb2.pyi --skip _proto_generation_info.py --extend-skip proto/; then
-            echo "❌ Import sorting issues found."
-            echo "💡 To fix locally, run: isort joblet/ tests/ examples/ scripts/ --skip joblet_pb2.py --skip joblet_pb2_grpc.py --skip joblet_pb2.pyi --skip local_joblet_pb2.pyi --skip _proto_generation_info.py --extend-skip proto/"
-            exit 1
-          fi
-
-          echo "✅ Code formatting looks good!"
-
-      - name: Lint with flake8
-        run: |
-          # Run basic linting for critical errors
-          flake8 joblet/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Run broader linting with reasonable line length
-          flake8 joblet/ --max-line-length=88 --extend-ignore=E203,W503 --exclude="joblet_pb2.py,joblet_pb2_grpc.py" --count --show-source --statistics
-
-      - name: Type check with mypy
-        run: |
-          # Basic type checking on key files
-          mypy joblet/__init__.py joblet/client.py joblet/services.py joblet/exceptions.py --ignore-missing-imports || echo "⚠️ Type checking completed with warnings"
-
-      - name: Test with pytest
+      - name: Run tests
         run: pytest tests/ -v --tb=short
 
-  security:
+  # Optional: Keep security scanning in a separate job that doesn't block PRs
+  security-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't fail the build on security warnings
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      - name: Run security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
+      - name: Upload security results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
 
-    - name: Run security checks
-      run: |
-        # Security linting
-        bandit -r joblet/ -ll
-        # Dependency vulnerability check
-        safety check --ignore 70612 || echo "⚠️ Safety check completed with warnings"
-
+  # Build only on main branch pushes
   build:
-    needs: [test, security]
-    runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -117,13 +70,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install build
-
       - name: Build package
-        run: python -m build
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
