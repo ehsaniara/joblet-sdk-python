@@ -49,7 +49,7 @@ def demo_basic_job(client):
         )
 
         job_id = job["job_uuid"]
-        print(f"✅ Job started successfully!")
+        print("✅ Job started successfully!")
         print(f"   Job ID: {job_id}")
 
         # Monitor job status with a timeout
@@ -111,7 +111,7 @@ def main():
     print_banner()
 
     # Check configuration
-    config_exists = check_configuration()
+    check_configuration()
 
     print("\n🔌 Connecting to Joblet server...")
 

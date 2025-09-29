@@ -97,7 +97,7 @@ def stop_vs_cancel_example():
         status = client.jobs.get_job_status(running_job["job_uuid"])
         if status["status"] == "RUNNING":
             client.jobs.stop_job(running_job["job_uuid"])
-            print(f"   ✅ Running job stopped")
+            print("   ✅ Running job stopped")
 
         print("\n" + "=" * 50)
 
@@ -118,7 +118,7 @@ def stop_vs_cancel_example():
         status = client.jobs.get_job_status(scheduled_job["job_uuid"])
         if status["status"] == "SCHEDULED":
             client.jobs.cancel_job(scheduled_job["job_uuid"])
-            print(f"   ✅ Scheduled job canceled")
+            print("   ✅ Scheduled job canceled")
 
         print("\n" + "=" * 50)
         print("\n📚 Summary:")

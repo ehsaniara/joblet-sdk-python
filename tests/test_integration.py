@@ -7,7 +7,6 @@ They are marked as integration tests and can be run separately from unit tests.
 
 from unittest.mock import Mock, patch
 
-import grpc
 import pytest
 
 from joblet import JobletClient
@@ -25,11 +24,14 @@ class TestJobletClientIntegration:
             mock_secure_channel.return_value = mock_channel
 
             # Mock all service stubs
-            with patch(
+            with (
+                patch(
                     "joblet.services.joblet_pb2_grpc.JobServiceStub"
-            ) as mock_job_stub, patch(
-                "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
-            ) as mock_monitoring_stub:
+                ) as mock_job_stub,
+                patch(
+                    "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
+                ) as mock_monitoring_stub,
+            ):
                 # Setup monitoring service for health check
                 mock_monitoring_instance = Mock()
                 mock_monitoring_instance.GetSystemStatus.return_value = Mock(
@@ -62,12 +64,12 @@ class TestJobletClientIntegration:
 
                 # Test the full flow
                 with JobletClient(
-                        ca_cert_path=temp_cert_files["ca_cert_path"],
-                        client_cert_path=temp_cert_files["client_cert_path"],
-                        client_key_path=temp_cert_files["client_key_path"],
-                        host="test-server",
-                        port=50051,
-                        insecure=False,
+                    ca_cert_path=temp_cert_files["ca_cert_path"],
+                    client_cert_path=temp_cert_files["client_cert_path"],
+                    client_key_path=temp_cert_files["client_key_path"],
+                    host="test-server",
+                    port=50051,
+                    insecure=False,
                 ) as client:
                     # Test health check
                     assert client.health_check() is True
@@ -92,12 +94,12 @@ class TestJobletClientIntegration:
             mock_secure_channel.return_value = mock_channel
 
             # Mock all service stubs
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
-                    "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
-            ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"), patch(
-                "joblet.services.joblet_pb2_grpc.MonitoringServiceStub"
-            ), patch(
-                "joblet.services.joblet_pb2_grpc.RuntimeServiceStub"
+            with (
+                patch("joblet.services.joblet_pb2_grpc.JobServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.MonitoringServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.RuntimeServiceStub"),
             ):
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
@@ -143,7 +145,8 @@ class TestJobletClientIntegration:
                 port=99999,
                 insecure=False,
             )
-            # If initialization succeeds, health_check should return False for invalid host
+            # If initialization succeeds, health_check should return False
+            # for invalid host
             assert client.health_check() is False
             client.close()
         except (ConnectionError, Exception):
@@ -159,9 +162,11 @@ class TestJobletClientIntegration:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
-            with patch("joblet.services.joblet_pb2_grpc.JobServiceStub"), patch(
-                    "joblet.services.joblet_pb2_grpc.NetworkServiceStub"
-            ), patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"):
+            with (
+                patch("joblet.services.joblet_pb2_grpc.JobServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.NetworkServiceStub"),
+                patch("joblet.services.joblet_pb2_grpc.VolumeServiceStub"),
+            ):
 
                 client = JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
@@ -222,7 +227,7 @@ class TestServiceIntegration:
             mock_secure_channel.return_value = mock_channel
 
             with patch(
-                    "joblet.services.joblet_pb2_grpc.JobServiceStub"
+                "joblet.services.joblet_pb2_grpc.JobServiceStub"
             ) as mock_job_stub:
                 # Setup job service responses
                 mock_job_instance = Mock()

@@ -4,7 +4,6 @@ Unit tests for JobletClient
 
 from unittest.mock import Mock, patch
 
-import grpc
 import pytest
 
 from joblet import JobletClient
@@ -117,7 +116,7 @@ class TestJobletClient:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
 
-            client = JobletClient(
+            JobletClient(
                 ca_cert_path=temp_cert_files["ca_cert_path"],
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
@@ -142,12 +141,12 @@ class TestJobletClient:
             mock_secure_channel.return_value = mock_channel
 
             with JobletClient(
-                    ca_cert_path=temp_cert_files["ca_cert_path"],
-                    client_cert_path=temp_cert_files["client_cert_path"],
-                    client_key_path=temp_cert_files["client_key_path"],
-                    host="test-host",
-                    port=50051,
-                    insecure=False,
+                ca_cert_path=temp_cert_files["ca_cert_path"],
+                client_cert_path=temp_cert_files["client_cert_path"],
+                client_key_path=temp_cert_files["client_key_path"],
+                host="test-host",
+                port=50051,
+                insecure=False,
             ) as client:
                 assert client._channel is not None
 
@@ -313,7 +312,7 @@ class TestJobletClient:
             client.close()
 
             with pytest.raises(
-                    ConnectionError, match="Client is not connected to server"
+                ConnectionError, match="Client is not connected to server"
             ):
                 _ = client.jobs
 
@@ -416,9 +415,7 @@ class TestJobletClient:
         with patch("joblet.client.grpc.secure_channel") as mock_secure_channel:
             mock_secure_channel.side_effect = Exception("gRPC connection failed")
 
-            with pytest.raises(
-                    ConnectionError, match="Can't connect to"
-            ):
+            with pytest.raises(ConnectionError, match="Can't connect to"):
                 JobletClient(
                     ca_cert_path=temp_cert_files["ca_cert_path"],
                     client_cert_path=temp_cert_files["client_cert_path"],

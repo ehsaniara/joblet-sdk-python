@@ -33,7 +33,7 @@ def main():
 
         # Show logs
         logs = b"".join(client.jobs.get_job_logs(job["job_uuid"]))
-        print(f"Output: \n")
+        print("Output:")
         print(f"{logs.decode()}")
 
 

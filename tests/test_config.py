@@ -22,15 +22,39 @@ class TestConfigLoader:
             "nodes": {
                 "default": {
                     "address": "192.168.1.100:50051",
-                    "cert": "-----BEGIN CERTIFICATE-----\ntest_cert\n-----END CERTIFICATE-----",
-                    "key": "-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE KEY-----",
-                    "ca": "-----BEGIN CERTIFICATE-----\ntest_ca\n-----END CERTIFICATE-----",
+                    "cert": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "test_cert\n"
+                        "-----END CERTIFICATE-----"
+                    ),
+                    "key": (
+                        "-----BEGIN PRIVATE KEY-----\n"
+                        "test_key\n"
+                        "-----END PRIVATE KEY-----"
+                    ),
+                    "ca": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "test_ca\n"
+                        "-----END CERTIFICATE-----"
+                    ),
                 },
                 "production": {
                     "address": "prod.example.com:50051",
-                    "cert": "-----BEGIN CERTIFICATE-----\nprod_cert\n-----END CERTIFICATE-----",
-                    "key": "-----BEGIN PRIVATE KEY-----\nprod_key\n-----END PRIVATE KEY-----",
-                    "ca": "-----BEGIN CERTIFICATE-----\nprod_ca\n-----END CERTIFICATE-----",
+                    "cert": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "prod_cert\n"
+                        "-----END CERTIFICATE-----"
+                    ),
+                    "key": (
+                        "-----BEGIN PRIVATE KEY-----\n"
+                        "prod_key\n"
+                        "-----END PRIVATE KEY-----"
+                    ),
+                    "ca": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "prod_ca\n"
+                        "-----END CERTIFICATE-----"
+                    ),
                 },
             },
         }
@@ -47,7 +71,7 @@ class TestConfigLoader:
         # Cleanup
         try:
             os.unlink(config_path)
-        except:
+        except OSError:
             pass
 
     def test_init_with_custom_path(self, temp_config_file):
@@ -186,7 +210,7 @@ class TestConfigLoader:
 
         # Create some temp files
         with patch("pathlib.Path.exists", return_value=True):
-            conn_info = loader.extract_connection_info("default")
+            loader.extract_connection_info("default")
 
             # Record temp files
             temp_files = loader._temp_files.copy()
@@ -197,7 +221,8 @@ class TestConfigLoader:
 
             # Check files are deleted
             for temp_file in temp_files:
-                if temp_file != str(Path.home() / ".rnx" / "ca.crt"):  # Skip CA cert
+                # Skip CA cert
+                if temp_file != str(Path.home() / ".rnx" / "ca.crt"):
                     assert not os.path.exists(temp_file)
 
             # Temp files list should be empty
@@ -242,8 +267,16 @@ class TestJobletClientWithConfig:
             "nodes": {
                 "default": {
                     "address": "test-server:50051",
-                    "cert": "-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----",
-                    "key": "-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----",
+                    "cert": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "test\n"
+                        "-----END CERTIFICATE-----"
+                    ),
+                    "key": (
+                        "-----BEGIN PRIVATE KEY-----\n"
+                        "test\n"
+                        "-----END PRIVATE KEY-----"
+                    ),
                 }
             },
         }
@@ -256,13 +289,13 @@ class TestJobletClientWithConfig:
 
         try:
             os.unlink(config_path)
-        except:
+        except OSError:
             pass
 
     @patch("joblet.client.grpc.secure_channel")
     @patch("pathlib.Path.exists")
     def test_client_init_with_config(
-            self, mock_path_exists, mock_secure_channel, mock_config_file
+        self, mock_path_exists, mock_secure_channel, mock_config_file
     ):
         """Test JobletClient initialization with config file"""
         from joblet import JobletClient
@@ -282,7 +315,7 @@ class TestJobletClientWithConfig:
 
     @patch("joblet.client.grpc.secure_channel")
     def test_client_init_with_explicit_params_override(
-            self, mock_secure_channel, temp_cert_files
+        self, mock_secure_channel, temp_cert_files
     ):
         """Test that explicit parameters override config values"""
         from joblet import JobletClient
@@ -305,12 +338,13 @@ class TestJobletClientWithConfig:
         client.close()
 
     def test_client_init_missing_params_and_config(self, temp_cert_files):
-        """Test client initialization fails when params and config are missing"""
+        """Test client initialization fails when params and
+        config are missing"""
         from joblet import JobletClient
 
         # Try to initialize without enough parameters
         with pytest.raises(ValueError) as exc_info:
-            client = JobletClient(
+            JobletClient(
                 host="test-host",
                 # Missing certificates and no config
                 config_path="/non/existent/config.yml",

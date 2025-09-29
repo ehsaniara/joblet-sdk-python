@@ -101,7 +101,7 @@ print("\\nML runtime demonstration completed!")
 
         # Show logs
         logs = b"".join(client.jobs.get_job_logs(job["job_uuid"]))
-        print(f"\nOutput:\n")
+        print("\nOutput:")
         print(f"{logs.decode()}")
 
         # Get final job status
