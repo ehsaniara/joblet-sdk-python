@@ -339,6 +339,10 @@ class TestJobService:
         mock_job1.runtime = "python:3.11"
         mock_job1.environment = {}
         mock_job1.secret_environment = {}
+        mock_job1.gpu_indices = []
+        mock_job1.gpu_count = 0
+        mock_job1.gpu_memory_mb = 0
+        mock_job1.nodeId = "node-1"
 
         mock_job2 = Mock()
         mock_job2.uuid = "job-2"
@@ -357,6 +361,10 @@ class TestJobService:
         mock_job2.runtime = "python:3.11"
         mock_job2.environment = {"ENV": "test"}
         mock_job2.secret_environment = {}
+        mock_job2.gpu_indices = []
+        mock_job2.gpu_count = 0
+        mock_job2.gpu_memory_mb = 0
+        mock_job2.nodeId = "node-2"
 
         mock_grpc_response = Mock()
         mock_grpc_response.jobs = [mock_job1, mock_job2]

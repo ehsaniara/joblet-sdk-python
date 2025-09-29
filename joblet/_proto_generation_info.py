@@ -9,9 +9,9 @@ import subprocess
 
 # Source repository information
 PROTO_REPOSITORY = "https://github.com/ehsaniara/joblet-proto"
-PROTO_COMMIT_HASH = "df8311dd0775169994afe38aa23abff587763e58"
-PROTO_TAG = "v1.0.4"
-GENERATION_TIMESTAMP = "Sat Sep 27 05:39:53 AM UTC 2025"
+PROTO_COMMIT_HASH = "Go module v1.0.6 cache (includes nodeId, serverIPs, macAddresses)"
+PROTO_TAG = "v1.0.6"
+GENERATION_TIMESTAMP = "Mon Sep 29 04:11:16 AM UTC 2025"
 
 # Protocol buffer compiler version
 try:

@@ -154,6 +154,7 @@ class JobService:
                 "gpu_indices": list(response.gpu_indices),
                 "gpu_count": response.gpu_count,
                 "gpu_memory_mb": response.gpu_memory_mb,
+                "node_id": response.nodeId,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")
@@ -297,6 +298,10 @@ class JobService:
                         "runtime": job.runtime,
                         "environment": dict(job.environment),
                         "secret_environment": dict(job.secret_environment),
+                        "gpu_indices": list(job.gpu_indices),
+                        "gpu_count": job.gpu_count,
+                        "gpu_memory_mb": job.gpu_memory_mb,
+                        "node_id": job.nodeId,
                     }
                 )
             return jobs
@@ -727,6 +732,9 @@ class MonitoringService:
             "total_memory": host.totalMemory,
             "boot_time": host.bootTime,
             "uptime": host.uptime,
+            "node_id": host.nodeId,
+            "server_ips": list(host.serverIPs),
+            "mac_addresses": list(host.macAddresses),
         }
 
     @staticmethod

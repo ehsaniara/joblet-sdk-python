@@ -137,6 +137,9 @@ def sample_system_status():
             "platform_version": "20.04",
             "cpu_count": 4,
             "total_memory": 8589934592,  # 8GB
+            "node_id": "test-node-123",
+            "server_ips": ["192.168.1.100", "10.0.0.1"],
+            "mac_addresses": ["00:1B:63:84:45:E6", "02:42:ac:11:00:02"],
         },
         "cpu": {
             "cores": 4,
