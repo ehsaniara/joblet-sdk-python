@@ -168,7 +168,12 @@ class ConfigLoader:
         return ca_cert_path, cert_temp.name, key_temp.name
 
     def cleanup(self):
-        """Clean up temporary certificate files."""
+        """Clean up temporary certificate files created during configuration loading.
+
+        This method removes temporary files created when certificates were embedded
+        in the configuration file. It's automatically called when the client is closed
+        or when the object is deleted.
+        """
         for temp_file in self._temp_files:
             try:
                 os.unlink(temp_file)

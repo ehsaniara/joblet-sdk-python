@@ -250,13 +250,24 @@ class JobService:
             raise JobNotFoundError(f"Failed to delete all jobs: {e.details()}")
 
     def get_job_logs(self, job_uuid: str) -> Iterator[bytes]:
-        """Stream job logs
+        """Stream job logs in real-time
+
+        Streams log output from a job as it's generated. This method returns
+        an iterator that yields log chunks as they become available, making it
+        suitable for monitoring long-running jobs.
 
         Args:
-            job_uuid: Job UUID
+            job_uuid: Job UUID or short UUID prefix
 
         Yields:
-            Log chunks as bytes
+            bytes: Log chunks as they arrive from the job
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist
+
+        Example:
+            >>> for chunk in client.jobs.get_job_logs(job_uuid):
+            ...     print(chunk.decode('utf-8'), end='')
         """
         request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
 
@@ -269,10 +280,27 @@ class JobService:
             )
 
     def list_jobs(self) -> List[Dict[str, Any]]:
-        """List all jobs
+        """List all jobs on the server
+
+        Retrieves a list of all jobs including their status, resource usage,
+        and metadata. Jobs are returned in creation order.
 
         Returns:
-            List of job dictionaries
+            List[Dict[str, Any]]: List of job dictionaries containing:
+                - uuid: Job unique identifier
+                - name: Job name
+                - status: Current status (pending, running, completed, failed, etc.)
+                - command: Executed command
+                - start_time: When the job started
+                - exit_code: Exit code (if completed)
+
+        Raises:
+            JobNotFoundError: If unable to retrieve job list
+
+        Example:
+            >>> jobs = client.jobs.list_jobs()
+            >>> for job in jobs:
+            ...     print(f"{job['name']}: {job['status']}")
         """
         request = joblet_pb2.EmptyRequest()
 
@@ -627,10 +655,30 @@ class MonitoringService:
         self.stub = joblet_pb2_grpc.MonitoringServiceStub(channel)
 
     def get_system_status(self) -> Dict[str, Any]:
-        """Get system status
+        """Get comprehensive system status and resource availability
+
+        Retrieves current system health information including CPU, memory,
+        disk, network, and GPU metrics. Useful for monitoring server
+        capacity before submitting resource-intensive jobs.
 
         Returns:
-            System status dictionary
+            Dict[str, Any]: System status containing:
+                - available: Boolean indicating server availability
+                - cpu: CPU metrics (usage, cores, load average)
+                - memory: Memory usage and availability
+                - disks: Disk usage per mount point
+                - networks: Network interface statistics
+                - host: Server information (hostname, OS, uptime)
+                - gpu: GPU information (if available)
+
+        Raises:
+            RuntimeError: If unable to retrieve system status
+
+        Example:
+            >>> status = client.monitoring.get_system_status()
+            >>> print(f"Available: {status['available']}")
+            >>> print(f"CPU: {status['cpu']['usage_percent']:.1f}%")
+            >>> print(f"Memory: {status['memory']['usage_percent']:.1f}%")
         """
         request = joblet_pb2.EmptyRequest()
 
@@ -643,14 +691,32 @@ class MonitoringService:
     def stream_system_metrics(
         self, interval_seconds: int = 5, metric_types: Optional[List[str]] = None
     ) -> Iterator[Dict[str, Any]]:
-        """Stream system metrics
+        """Stream real-time system metrics at regular intervals
+
+        Continuously streams system performance metrics, useful for
+        monitoring server health over time or building dashboards.
 
         Args:
-            interval_seconds: Update interval in seconds
-            metric_types: Optional filter by metric types
+            interval_seconds: Update interval in seconds (default: 5)
+            metric_types: Optional list to filter specific metric types
 
         Yields:
-            System metrics dictionaries
+            Dict[str, Any]: Metrics snapshot containing CPU, memory, disk,
+                network, and process information at each interval
+
+        Raises:
+            RuntimeError: If unable to stream metrics
+
+        Example:
+            >>> metrics_stream = client.monitoring.stream_system_metrics(
+            ...     interval_seconds=10
+            ... )
+            >>> for metrics in metrics_stream:
+            ...     cpu = metrics['cpu']['usage_percent']
+            ...     mem = metrics['memory']['usage_percent']
+            ...     print(f"CPU: {cpu:.1f}%, Memory: {mem:.1f}%")
+            ...     if cpu > 90:
+            ...         break  # Stop monitoring if CPU too high
         """
         request = joblet_pb2.StreamMetricsReq(
             intervalSeconds=interval_seconds, metricTypes=metric_types or []
