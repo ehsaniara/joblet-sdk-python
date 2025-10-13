@@ -4,16 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "joblet-sdk-python"
-version = "0.1.0"
+version = "2.0.0"
 description = "Python SDK for Joblet - A distributed task execution system"
 readme = "README.md"
-license = {text = "MIT"}
-authors = [{name = "Joblet Contributors"}]
+license = "MIT"
+authors = [{name = "Jay Ehsaniara"}]
 requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -22,8 +21,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "grpcio>=1.60.0",
-    "grpcio-tools>=1.60.0",
+    "grpcio>=1.75.1",
+    "grpcio-tools>=1.75.1",
     "protobuf>=4.25.0",
     "pyyaml>=6.0",
 ]

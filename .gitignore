@@ -48,12 +48,17 @@ ENV/
 *~
 .DS_Store
 
-# Generated protobuf files
+# Generated protobuf files (in root joblet/)
 joblet/*_pb2.py
 joblet/*_pb2_grpc.py
 joblet/*.pyi
 joblet/_proto_generation_info.py
-joblet/proto/
+# Keep proto files in joblet/proto/ - they're part of the package
+!joblet/proto/
+!joblet/proto/__init__.py
+!joblet/proto/*_pb2.py
+!joblet/proto/*_pb2_grpc.py
+!joblet/proto/*.pyi
 
 # Local development
 .envrc

@@ -43,6 +43,37 @@ Demonstrates real-time log streaming:
 python examples/03_streaming_logs.py
 ```
 
+### 04_historical_logs_metrics.py
+Shows how to query historical logs and metrics using PersistService:
+- Querying historical logs with filtering (stdout/stderr)
+- Querying historical metrics for completed jobs
+- Time-range queries for logs and metrics
+- Pagination support
+- Comprehensive job analysis using historical data
+
+```bash
+python examples/04_historical_logs_metrics.py
+```
+
+**Note**: This example queries the joblet-persist service (port 50052) which stores historical job data. Ensure joblet-persist is running.
+
+### 05_smart_log_streaming.py
+Demonstrates intelligent log streaming that works like `rnx job log`:
+- Automatic historical + live log handling
+- Seamless access to logs from any job (running or completed)
+- Reconnecting to running jobs with full history
+- Live-only streaming option
+- Graceful fallback when persist service unavailable
+
+```bash
+python examples/05_smart_log_streaming.py
+```
+
+**Key Feature**: `client.jobs.get_job_logs()` automatically:
+1. Fetches historical logs from persist service (if available)
+2. Then streams live logs from job service
+3. Works transparently for both completed and running jobs
+
 ## Quick Start
 
 1. Start your Joblet server:

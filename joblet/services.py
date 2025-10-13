@@ -1,7 +1,7 @@
 """Service classes for Joblet SDK"""
 
 from datetime import datetime
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import grpc
 
@@ -14,13 +14,27 @@ from .exceptions import (
     VolumeError,
     WorkflowNotFoundError,
 )
+from .proto import persist_pb2, persist_pb2_grpc
 
 
 class JobService:
     """Service for managing jobs and workflows"""
 
-    def __init__(self, channel: grpc.Channel):
+    def __init__(
+        self, channel: grpc.Channel, persist_service_getter: Optional[Callable] = None
+    ):
         self.stub = joblet_pb2_grpc.JobServiceStub(channel)
+        self._persist_service_getter = persist_service_getter
+
+    @property
+    def _persist_service(self):
+        """Lazy access to persist service to avoid circular dependency"""
+        if self._persist_service_getter:
+            try:
+                return self._persist_service_getter()
+            except Exception:
+                return None
+        return None
 
     def run_job(
         self,
@@ -249,12 +263,85 @@ class JobService:
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to delete all jobs: {e.details()}")
 
-    def get_job_logs(self, job_uuid: str) -> Iterator[bytes]:
-        """Stream job logs in real-time
+    def get_job_logs(
+        self, job_uuid: str, include_historical: bool = True
+    ) -> Iterator[bytes]:
+        """Stream job logs with automatic historical + live log handling
 
-        Streams log output from a job as it's generated. This method returns
-        an iterator that yields log chunks as they become available, making it
-        suitable for monitoring long-running jobs.
+        This method intelligently handles both historical and live logs:
+        1. First fetches any historical logs from persist service (if available)
+        2. Then streams live logs from the job service
+
+        This provides seamless log access for both completed and running jobs,
+        similar to how 'rnx job log' works.
+
+        Args:
+            job_uuid: Job UUID or short UUID prefix
+            include_historical: If True, fetch historical logs first (default: True)
+
+        Yields:
+            bytes: Log chunks from both historical and live sources
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist
+
+        Example:
+            >>> # Get all logs (historical + live) for any job
+            >>> for chunk in client.jobs.get_job_logs(job_uuid):
+            ...     print(chunk.decode('utf-8'), end='')
+            ...
+            >>> # Get only live logs (skip historical)
+            >>> for chunk in client.jobs.get_job_logs(
+            ...     job_uuid, include_historical=False
+            ... ):
+            ...     print(chunk.decode('utf-8'), end='')
+        """
+        # Step 1: Try to fetch historical logs from persist service first
+        if include_historical and self._persist_service:
+            try:
+                for log_line in self._persist_service.query_logs(job_id=job_uuid):
+                    # Yield historical log content
+                    yield log_line["content"]
+            except grpc.RpcError as e:
+                # Gracefully handle persist service errors
+                # - Not implemented: persist service doesn't have this feature yet
+                # - Unavailable: persist service is not running
+                # - Not found: no historical logs exist for this job
+                # All these are OK - we'll just stream live logs
+                if e.code() not in [
+                    grpc.StatusCode.UNIMPLEMENTED,
+                    grpc.StatusCode.UNAVAILABLE,
+                    grpc.StatusCode.NOT_FOUND,
+                ]:
+                    # For unexpected errors, log but continue
+                    import sys
+
+                    print(
+                        f"⚠️  Warning: couldn't fetch historical logs: "
+                        f"{e.details()}",
+                        file=sys.stderr,
+                    )
+            except Exception:
+                # Any other error (e.g., persist not configured)
+                # Continue silently
+                pass
+
+        # Step 2: Stream live logs from joblet-core
+        request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
+
+        try:
+            for chunk in self.stub.GetJobLogs(request):
+                yield chunk.payload
+        except grpc.RpcError as e:
+            raise JobNotFoundError(
+                f"Failed to get logs for job {job_uuid}: {e.details()}"
+            )
+
+    def stream_live_logs(self, job_uuid: str) -> Iterator[bytes]:
+        """Stream live logs only (skip historical logs)
+
+        This method only streams logs from the live job service, skipping
+        any historical logs. Useful when you only want to see new output.
 
         Args:
             job_uuid: Job UUID or short UUID prefix
@@ -266,18 +353,10 @@ class JobService:
             JobNotFoundError: If the job doesn't exist
 
         Example:
-            >>> for chunk in client.jobs.get_job_logs(job_uuid):
+            >>> for chunk in client.jobs.stream_live_logs(job_uuid):
             ...     print(chunk.decode('utf-8'), end='')
         """
-        request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
-
-        try:
-            for chunk in self.stub.GetJobLogs(request):
-                yield chunk.payload
-        except grpc.RpcError as e:
-            raise JobNotFoundError(
-                f"Failed to get logs for job {job_uuid}: {e.details()}"
-            )
+        return self.get_job_logs(job_uuid, include_historical=False)
 
     def list_jobs(self) -> List[Dict[str, Any]]:
         """List all jobs on the server
@@ -1247,10 +1326,139 @@ class RuntimeService:
             raise RuntimeNotFoundError(f"Failed to remove runtime: {e.details()}")
 
 
+class PersistService:
+    """Service for querying historical logs and metrics (Port 50052)"""
+
+    def __init__(self, channel: grpc.Channel):
+        self.stub = persist_pb2_grpc.PersistServiceStub(channel)
+
+    def query_logs(
+        self,
+        job_id: str,
+        stream: Optional[str] = None,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: int = 0,
+        offset: int = 0,
+    ) -> Iterator[Dict[str, Any]]:
+        """Query historical logs for a job
+
+        Args:
+            job_id: Job UUID
+            stream: Stream filter ("stdout", "stderr", or None for both)
+            start_time: Start time in Unix nanoseconds
+            end_time: End time in Unix nanoseconds
+            limit: Maximum lines to return (0 = all)
+            offset: Skip lines
+
+        Yields:
+            Log line dictionaries with job_id, stream, timestamp, sequence, content
+        """
+        # Convert stream string to enum
+        stream_type = persist_pb2.STREAM_TYPE_UNSPECIFIED
+        if stream == "stdout":
+            stream_type = persist_pb2.STREAM_TYPE_STDOUT
+        elif stream == "stderr":
+            stream_type = persist_pb2.STREAM_TYPE_STDERR
+
+        request = persist_pb2.QueryLogsRequest(
+            job_id=job_id,
+            stream=stream_type,
+            start_time=start_time or 0,
+            end_time=end_time or 0,
+            limit=limit,
+            offset=offset,
+        )
+
+        try:
+            for log_line in self.stub.QueryLogs(request):
+                # Convert stream enum to string
+                stream_str = "unknown"
+                if log_line.stream == persist_pb2.STREAM_TYPE_STDOUT:
+                    stream_str = "stdout"
+                elif log_line.stream == persist_pb2.STREAM_TYPE_STDERR:
+                    stream_str = "stderr"
+
+                yield {
+                    "job_id": log_line.job_id,
+                    "stream": stream_str,
+                    "timestamp": log_line.timestamp,
+                    "sequence": log_line.sequence,
+                    "content": log_line.content,
+                }
+        except grpc.RpcError as e:
+            raise JobNotFoundError(f"Failed to query logs: {e.details()}")
+
+    def query_metrics(
+        self,
+        job_id: str,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: int = 0,
+        offset: int = 0,
+    ) -> Iterator[Dict[str, Any]]:
+        """Query historical metrics for a job
+
+        Args:
+            job_id: Job UUID
+            start_time: Start time in Unix nanoseconds
+            end_time: End time in Unix nanoseconds
+            limit: Maximum samples to return (0 = all)
+            offset: Skip samples
+
+        Yields:
+            Metric dictionaries with job_id, timestamp, sequence, and data
+        """
+        request = persist_pb2.QueryMetricsRequest(
+            job_id=job_id,
+            start_time=start_time or 0,
+            end_time=end_time or 0,
+            limit=limit,
+            offset=offset,
+        )
+
+        try:
+            for metric in self.stub.QueryMetrics(request):
+                metric_dict = {
+                    "job_id": metric.job_id,
+                    "timestamp": metric.timestamp,
+                    "sequence": metric.sequence,
+                    "data": {},
+                }
+
+                if metric.HasField("data"):
+                    metric_dict["data"] = {
+                        "cpu_usage": metric.data.cpu_usage,
+                        "memory_usage": metric.data.memory_usage,
+                        "gpu_usage": metric.data.gpu_usage,
+                    }
+
+                    if metric.data.HasField("disk_io"):
+                        metric_dict["data"]["disk_io"] = {
+                            "read_bytes": metric.data.disk_io.read_bytes,
+                            "write_bytes": metric.data.disk_io.write_bytes,
+                            "read_ops": metric.data.disk_io.read_ops,
+                            "write_ops": metric.data.disk_io.write_ops,
+                        }
+
+                    if metric.data.HasField("network_io"):
+                        metric_dict["data"]["network_io"] = {
+                            "rx_bytes": metric.data.network_io.rx_bytes,
+                            "tx_bytes": metric.data.network_io.tx_bytes,
+                            "rx_packets": metric.data.network_io.rx_packets,
+                            "tx_packets": metric.data.network_io.tx_packets,
+                        }
+
+                yield metric_dict
+        except grpc.RpcError as e:
+            raise JobNotFoundError(f"Failed to query metrics: {e.details()}")
+
+
 __all__ = [
     "JobService",
     "NetworkService",
     "VolumeService",
     "MonitoringService",
     "RuntimeService",
+    "PersistService",
 ]

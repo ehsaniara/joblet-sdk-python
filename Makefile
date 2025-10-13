@@ -1,13 +1,15 @@
-.PHONY: help install dev test lint proto clean
+.PHONY: help install dev test lint proto clean test-package build
 
 # Default target
 help:
 	@echo "Available commands:"
-	@echo "  dev     - Set up development environment"
-	@echo "  test    - Run tests with coverage"
-	@echo "  lint    - Run all code quality checks"
-	@echo "  proto   - Regenerate protobuf files"
-	@echo "  clean   - Remove build artifacts"
+	@echo "  dev          - Set up development environment"
+	@echo "  test         - Run tests with coverage"
+	@echo "  lint         - Run all code quality checks"
+	@echo "  test-package - Test package installation (CI-like, recommended before release)"
+	@echo "  build        - Build distribution packages"
+	@echo "  proto        - Regenerate protobuf files"
+	@echo "  clean        - Remove build artifacts"
 
 # Development setup
 dev:
@@ -27,6 +29,15 @@ proto:
 	python scripts/generate_proto.py
 	@echo "Running lint to format generated files..."
 	pre-commit run --files joblet/*_pb2* || true
+
+# Test package installation (replicates CI environment)
+test-package:
+	@echo "Testing package installation (CI-like)..."
+	bash scripts/test-package.sh
+
+# Build distribution packages
+build:
+	python3 -m build
 
 # Cleanup
 clean:

@@ -66,14 +66,83 @@ job = client.jobs.run_job(
 )
 ```
 
-## Features
+## What You Can Do
 
-- **Job Management** - Run single jobs or complex workflows
-- **GPU Support** - Native GPU acceleration for ML/AI workloads
-- **Resource Management** - CPU, memory, and GPU limits
-- **Workflows** - Chain jobs with dependencies
-- **Monitoring** - Real-time job status and logs
-- **Security** - mTLS encryption and authentication
+### Run Jobs Anywhere
+
+```python
+# Run compute-intensive tasks on remote servers
+job = client.jobs.run_job(
+    command="python",
+    args=["train_model.py"],
+    max_cpu=800,  # 8 cores
+    max_memory=16384,  # 16GB
+    gpu_count=2
+)
+```
+
+### Stream Logs in Real-Time
+
+```python
+# Get complete logs from any job (running or completed)
+for chunk in client.jobs.get_job_logs(job['job_uuid']):
+    print(chunk.decode('utf-8'), end='', flush=True)
+```
+
+### Query Historical Data
+
+```python
+# Analyze past job performance
+for metric in client.persist.query_metrics(job_id=job_uuid):
+    print(f"CPU: {metric['data']['cpu_usage']:.2f}%")
+    print(f"Memory: {metric['data']['memory_usage'] / 1e9:.2f} GB")
+```
+
+### Build Workflows
+
+```python
+# Chain multiple jobs with dependencies
+workflow = client.jobs.run_workflow(
+    workflow="data-pipeline.yml",
+    yaml_content="""
+    jobs:
+      preprocess:
+        command: python preprocess.py
+      train:
+        command: python train.py
+        depends_on: [preprocess]
+      evaluate:
+        command: python evaluate.py
+        depends_on: [train]
+    """
+)
+```
+
+### Manage Resources
+
+```python
+# Create isolated networks and persistent storage
+network = client.networks.create_network("ml-net", "10.0.1.0/24")
+volume = client.volumes.create_volume("data", "100GB")
+
+# Use in jobs
+job = client.jobs.run_job(
+    command="python",
+    args=["process_data.py"],
+    network="ml-net",
+    volumes=["data:/data"]
+)
+```
+
+### Monitor System Health
+
+```python
+# Get real-time system metrics
+for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
+    cpu = metrics['cpu']['usage_percent']
+    memory = metrics['memory']['usage_percent']
+    print(f"System: CPU {cpu:.1f}%, Memory {memory:.1f}%")
+```
 
 ## API Reference
 
@@ -82,8 +151,14 @@ job = client.jobs.run_job(
 - `client.jobs.cancel_job()` - Cancel a scheduled job
 - `client.jobs.stop_job()` - Stop a running job
 - `client.jobs.get_job_status()` - Get job status
-- `client.jobs.get_job_logs()` - Retrieve job logs
+- `client.jobs.get_job_logs()` - **Smart log streaming** (historical + live)
+- `client.jobs.stream_live_logs()` - Live-only log streaming
 - `client.jobs.run_workflow()` - Execute a workflow
+
+### Historical Data
+
+- `client.persist.query_logs()` - Query historical logs with filtering
+- `client.persist.query_metrics()` - Query historical metrics data
 
 ### Resources
 - `client.networks` - Network management
@@ -91,19 +166,70 @@ job = client.jobs.run_job(
 - `client.monitoring` - System monitoring
 - `client.runtimes` - Runtime environments
 
+For complete API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+
 ## Development
+
+### Setup
 
 ```bash
 # Clone and setup
 git clone https://github.com/ehsaniara/joblet-sdk-python.git
 cd joblet-sdk-python
+
+# Install development dependencies (editable mode)
+make dev
+
+# Or manually:
 pip install -e .[dev]
+pre-commit install
+```
 
-# Run tests
-pytest tests/
+### Testing
 
-# Format code
-black joblet/ examples/
+```bash
+# Run tests with coverage
+make test
+
+# Run linting (exactly what CI runs)
+make lint
+
+# IMPORTANT: Test package installation before release (CI-like)
+make test-package
+```
+
+### Why `make test-package` is Important
+
+**Problem**: Editable installs (`pip install -e .`) can mask packaging issues. Your local tests may pass but CI/production installs may fail.
+
+**Solution**: Before committing or releasing, run:
+```bash
+make test-package
+```
+
+This command:
+1. Uninstalls the editable version
+2. Builds a clean package
+3. Installs it like CI and end-users will
+4. Runs all tests against the installed package
+5. Catches issues like missing `__init__.py`, incorrect package structure, etc.
+
+After testing, restore editable install:
+```bash
+pip install -e .[dev]
+```
+
+### Other Commands
+
+```bash
+# Build distribution packages
+make build
+
+# Regenerate protobuf files
+make proto
+
+# Clean build artifacts
+make clean
 ```
 
 ## Examples
