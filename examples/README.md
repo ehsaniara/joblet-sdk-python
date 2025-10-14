@@ -115,13 +115,13 @@ with JobletClient(
 
 ## Quick Start
 
-1. Start your Joblet server:
+1. Ensure Joblet service is running (Linux systemd service):
 ```bash
-# Start joblet-core
-joblet serve --port 50051
+# Check Joblet service status (includes both core and persist on ports 50051/50052)
+sudo systemctl status joblet
 
-# Start joblet-persist (optional, for historical data)
-joblet-persist serve --port 50052
+# View service logs if needed
+sudo journalctl -u joblet -f
 ```
 
 2. Run an example:
@@ -132,6 +132,11 @@ pip install -e ..
 # Run basic example
 python 01_basic_usage.py
 ```
+
+**Note**: Joblet is a Linux-native service that runs as a systemd service with embedded persistence.
+See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md)
+for server setup and [Quick Start](https://github.com/ehsaniara/joblet/blob/main/docs/QUICKSTART.md)
+for getting started.
 
 ## Common Patterns
 

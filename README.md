@@ -56,12 +56,14 @@ nodes:
 ```
 
 **Configuration Fields:**
-- `address` - **Required**: Main Joblet service endpoint (joblet-core)
-- `persistAddress` - **Required**: Persist service endpoint for historical data
+- `address` - **Required**: Main Joblet service endpoint (default port 50051)
+- `persistAddress` - **Required**: Persist service endpoint for historical data (default port 50052)
 - `nodeId` - Optional: Unique identifier for the node
-- `cert` - Client certificate for mTLS authentication
-- `key` - Client private key for mTLS authentication
-- `ca` - CA certificate for server verification
+- `cert` - **Required**: Client certificate for mTLS authentication
+- `key` - **Required**: Client private key for mTLS authentication
+- `ca` - **Required**: CA certificate for server verification
+
+**Note**: Joblet runs as a Linux systemd service with embedded persistence. Both services are part of the same `joblet` systemd unit. See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) for server setup.
 
 ## GPU Support
 
@@ -245,9 +247,14 @@ make clean
 ## Examples
 
 See the `examples/` directory for more detailed usage examples:
-- `basic_job.py` - Simple job execution
-- `gpu_example.py` - GPU-accelerated workloads
-- `workflow_example.py` - Complex workflows
+- `01_basic_usage.py` - Simple job execution and management
+- `02_advanced_features.py` - Resource limits, environment variables, GPU support
+- `03_streaming_logs.py` - Real-time log streaming
+- `04_historical_logs_metrics.py` - Query historical logs and metrics
+- `05_smart_log_streaming.py` - Intelligent log streaming (historical + live)
+- `06_long_running_job_demo.py` - Long-running job with complete log retrieval
+
+For detailed documentation, see [examples/README.md](examples/README.md)
 
 ## License
 
