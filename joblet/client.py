@@ -37,23 +37,28 @@ class JobletClient:
         options: Optional[Dict[str, Any]] = None,
         config_path: Optional[str] = None,
         node_name: str = "default",
-        insecure: bool = True,
     ):
-        """Connect to Joblet server.
+        """Connect to Joblet server with mTLS.
+
+        Joblet always requires mTLS authentication. Certificates can be provided
+        explicitly or loaded from config file (~/.rnx/rnx-config.yml).
 
         Args:
             host: Server hostname (optional if using config)
             port: Server port (optional if using config)
-            ca_cert_path: CA cert path (optional if insecure=True)
-            client_cert_path: Client cert path (optional if insecure=True)
-            client_key_path: Client key path (optional if insecure=True)
+            ca_cert_path: CA certificate path (required, or from config)
+            client_cert_path: Client certificate path (required, or from config)
+            client_key_path: Client private key path (required, or from config)
             options: Extra gRPC options
             config_path: Config file path (default: ~/.rnx/rnx-config.yml)
             node_name: Config node to use (default: "default")
-            insecure: Skip SSL validation
-                (default: True, since Joblet uses self-signed certs)
         """
         self._config_loader: Optional[ConfigLoader] = None
+
+        # Initialize persist connection info with defaults
+        persist_host = None
+        persist_port = None
+        node_id = None
 
         # Try to load from config file if not all parameters are provided
         if not all([host, port, ca_cert_path, client_cert_path, client_key_path]):
@@ -71,11 +76,13 @@ class JobletClient:
                     client_key_path = client_key_path or config_info.get(
                         "client_key_path"
                     )
+                    # Extract persist connection info
+                    persist_host = config_info.get("persist_host")
+                    persist_port = config_info.get("persist_port")
+                    node_id = config_info.get("node_id")
 
-        # Validate that we have all required parameters (unless using insecure mode)
-        if not insecure and not all(
-            [host, port, ca_cert_path, client_cert_path, client_key_path]
-        ):
+        # Validate that we have all required parameters
+        if not all([host, port, ca_cert_path, client_cert_path, client_key_path]):
             missing = []
             if not host:
                 missing.append("host")
@@ -88,16 +95,11 @@ class JobletClient:
             if not client_key_path:
                 missing.append("client_key_path")
             raise ValueError(
-                f"Missing: {', '.join(missing)}. "
-                f"Provide all params or check config file."
+                f"Missing required parameters: {', '.join(missing)}. "
+                f"Provide all params or ensure config file "
+                f"(~/.rnx/rnx-config.yml) contains all required fields "
+                f"(address, persistAddress, cert, key, ca)."
             )
-        elif insecure and not all([host, port]):
-            missing = []
-            if not host:
-                missing.append("host")
-            if not port:
-                missing.append("port")
-            raise ValueError(f"Missing for insecure connection: {', '.join(missing)}")
 
         # Store connection parameters
         self.host = host
@@ -105,7 +107,6 @@ class JobletClient:
         self.ca_cert_path = ca_cert_path
         self.client_cert_path = client_cert_path
         self.client_key_path = client_key_path
-        self.insecure = insecure
         self._channel: Optional[grpc.Channel] = None
         self._options = options or {}
 
@@ -117,14 +118,15 @@ class JobletClient:
         self._runtime_service: Optional[RuntimeService] = None
         self._persist_service: Optional[PersistService] = None
         self._persist_channel: Optional[grpc.Channel] = None
-        self._persist_host = host
-        self._persist_port = None  # Will be set from config or default to 50052
+        self._persist_host = persist_host or host
+        self._persist_port = persist_port  # Will default to 50052 if not set
+        self._node_id = node_id
 
         # Connect now
         self._connect()
 
     def _connect(self) -> None:
-        """Connect to server with mTLS or insecure connection."""
+        """Connect to server with mTLS authentication."""
         target = f"{self.host}:{self.port}"
 
         try:
@@ -141,55 +143,52 @@ class JobletClient:
             # Merge with user options
             all_options = default_options + list(self._options.items())
 
-            if self.insecure:
-                # Use insecure connection - no SSL validation at all
-                self._channel = grpc.insecure_channel(target, options=all_options)
-            else:
-                # Use secure connection with custom certificates
-                # Load certs
-                assert self.ca_cert_path is not None
-                assert self.client_cert_path is not None
-                assert self.client_key_path is not None
+            # Load certificates
+            assert self.ca_cert_path is not None
+            assert self.client_cert_path is not None
+            assert self.client_key_path is not None
 
-                try:
-                    with open(self.ca_cert_path, "rb") as f:
-                        ca_cert = f.read()
-                    with open(self.client_cert_path, "rb") as f:
-                        client_cert = f.read()
-                    with open(self.client_key_path, "rb") as f:
-                        client_key = f.read()
-                except FileNotFoundError as e:
-                    raise FileNotFoundError(f"Can't find: {e.filename}")
-                except Exception as e:
-                    raise ValueError(f"Can't read certs: {e}")
+            try:
+                with open(self.ca_cert_path, "rb") as f:
+                    ca_cert = f.read()
+                with open(self.client_cert_path, "rb") as f:
+                    client_cert = f.read()
+                with open(self.client_key_path, "rb") as f:
+                    client_key = f.read()
+            except FileNotFoundError as e:
+                raise FileNotFoundError(f"Certificate file not found: {e.filename}")
+            except Exception as e:
+                raise ValueError(f"Failed to read certificates: {e}")
 
-                # Check certs
-                if not ca_cert:
-                    raise ValueError(f"Empty CA cert: {self.ca_cert_path}")
-                if not client_cert:
-                    raise ValueError(f"Empty client cert: {self.client_cert_path}")
-                if not client_key:
-                    raise ValueError(f"Empty key: {self.client_key_path}")
+            # Validate certificates are not empty
+            if not ca_cert:
+                raise ValueError(f"Empty CA certificate: {self.ca_cert_path}")
+            if not client_cert:
+                raise ValueError(f"Empty client certificate: {self.client_cert_path}")
+            if not client_key:
+                raise ValueError(f"Empty client key: {self.client_key_path}")
 
-                # Check format
-                if b"BEGIN CERTIFICATE" not in ca_cert:
-                    raise ValueError(f"Bad CA cert: {self.ca_cert_path}")
-                if b"BEGIN CERTIFICATE" not in client_cert:
-                    raise ValueError(f"Bad client cert: {self.client_cert_path}")
-                if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
-                    raise ValueError(f"Bad key: {self.client_key_path}")
-
-                # Setup mTLS with custom root certificate
-                # Trust only our CA, not system CAs
-                credentials = grpc.ssl_channel_credentials(
-                    root_certificates=ca_cert,  # Use ONLY our CA cert
-                    private_key=client_key,
-                    certificate_chain=client_cert,
+            # Validate certificate format
+            if b"BEGIN CERTIFICATE" not in ca_cert:
+                raise ValueError(f"Invalid CA certificate format: {self.ca_cert_path}")
+            if b"BEGIN CERTIFICATE" not in client_cert:
+                raise ValueError(
+                    f"Invalid client certificate format: {self.client_cert_path}"
                 )
+            if b"BEGIN" not in client_key or b"PRIVATE KEY" not in client_key:
+                raise ValueError(f"Invalid client key format: {self.client_key_path}")
 
-                self._channel = grpc.secure_channel(
-                    target, credentials, options=all_options
-                )
+            # Setup mTLS with custom root certificate
+            # Trust only our CA, not system CAs
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=ca_cert,  # Use ONLY our CA cert
+                private_key=client_key,
+                certificate_chain=client_cert,
+            )
+
+            self._channel = grpc.secure_channel(
+                target, credentials, options=all_options
+            )
 
         except (FileNotFoundError, ValueError) as e:
             raise e
@@ -433,34 +432,44 @@ class JobletClient:
                 ]
                 all_options = default_options + list(self._options.items())
 
-                if self.insecure:
-                    self._persist_channel = grpc.insecure_channel(
-                        persist_target, options=all_options
-                    )
-                else:
-                    # Use same certs as main connection
-                    assert self.ca_cert_path is not None
-                    assert self.client_cert_path is not None
-                    assert self.client_key_path is not None
+                # Use same certs as main connection
+                assert self.ca_cert_path is not None
+                assert self.client_cert_path is not None
+                assert self.client_key_path is not None
 
-                    with open(self.ca_cert_path, "rb") as f:
-                        ca_cert = f.read()
-                    with open(self.client_cert_path, "rb") as f:
-                        client_cert = f.read()
-                    with open(self.client_key_path, "rb") as f:
-                        client_key = f.read()
+                with open(self.ca_cert_path, "rb") as f:
+                    ca_cert = f.read()
+                with open(self.client_cert_path, "rb") as f:
+                    client_cert = f.read()
+                with open(self.client_key_path, "rb") as f:
+                    client_key = f.read()
 
-                    credentials = grpc.ssl_channel_credentials(
-                        root_certificates=ca_cert,
-                        private_key=client_key,
-                        certificate_chain=client_cert,
-                    )
-                    self._persist_channel = grpc.secure_channel(
-                        persist_target, credentials, options=all_options
-                    )
+                credentials = grpc.ssl_channel_credentials(
+                    root_certificates=ca_cert,
+                    private_key=client_key,
+                    certificate_chain=client_cert,
+                )
+                self._persist_channel = grpc.secure_channel(
+                    persist_target, credentials, options=all_options
+                )
 
             self._persist_service = PersistService(self._persist_channel)
         return self._persist_service
+
+    @property
+    def node_id(self) -> Optional[str]:
+        """
+        Get the node ID from configuration.
+
+        Returns:
+            Optional[str]: The node ID if configured, None otherwise.
+
+        Example:
+            >>> with JobletClient() as client:
+            ...     if client.node_id:
+            ...         print(f"Connected to node: {client.node_id}")
+        """
+        return self._node_id
 
     def health_check(self) -> bool:
         """

@@ -82,11 +82,23 @@ class ConfigLoader:
             node_name: Name of the node/profile to use.
 
         Returns:
-            Dict with host, port, and certificate paths, or None if not found.
+            Dict with host, port, persist_host, persist_port, node_id,
+            and certificate paths, or None if not found.
+
+        Raises:
+            ValueError: If required fields (address, persistAddress) are missing.
         """
         node_config = self.get_node_config(node_name)
         if not node_config:
             return None
+
+        # Validate required fields
+        if "address" not in node_config:
+            raise ValueError(f"Missing required field 'address' in node '{node_name}'")
+        if "persistAddress" not in node_config:
+            raise ValueError(
+                f"Missing required field 'persistAddress' in node '{node_name}'"
+            )
 
         # Parse address (host:port)
         address = node_config.get("address", "")
@@ -100,6 +112,20 @@ class ConfigLoader:
             host = address
             port = 50051
 
+        # Parse persistAddress (host:port) - defaults to same host with port 50052
+        persist_host = host
+        persist_port = 50052
+        persist_address = node_config.get("persistAddress", "")
+        if persist_address and ":" in persist_address:
+            persist_host, persist_port_str = persist_address.rsplit(":", 1)
+            try:
+                persist_port = int(persist_port_str)
+            except ValueError:
+                persist_port = 50052
+
+        # Get nodeId if present
+        node_id = node_config.get("nodeId", "")
+
         # Create temporary files for certificates if they're embedded
         cert_paths = self._create_cert_files(node_config)
         if not cert_paths:
@@ -110,6 +136,9 @@ class ConfigLoader:
         return {
             "host": host,
             "port": port,
+            "persist_host": persist_host,
+            "persist_port": persist_port,
+            "node_id": node_id,
             "ca_cert_path": ca_cert_path,
             "client_cert_path": client_cert_path,
             "client_key_path": client_key_path,

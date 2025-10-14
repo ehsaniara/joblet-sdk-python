@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503
+exclude =
+    ./joblet/proto,
+    ./*_pb2.py,
+    ./*_pb2_grpc.py,
+    ./*.pyi,
+    ./joblet/_proto_generation_info.py,
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    build,
+    dist,
+    *.egg-info
+per-file-ignores =
+    joblet/proto/*:E501,E111,E225,E303,E114,E128,F401,F541
+    joblet/*_pb2.py:E501,E111,E225,E303,E114,E128,F401,F541
+    joblet/*_pb2_grpc.py:E501,E111,E225,E303,E114,E128,F401,F541
+    joblet/*.pyi:E501,E111,E225,E303,E114,E128,F401,F541

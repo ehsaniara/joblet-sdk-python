@@ -25,7 +25,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
             assert client.host == "test-host"
@@ -44,7 +43,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
     def test_init_with_missing_client_cert(self, temp_cert_files):
@@ -56,7 +54,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
     def test_init_with_missing_client_key(self, temp_cert_files):
@@ -68,7 +65,6 @@ class TestJobletClient:
                 client_key_path="/nonexistent/client-key.pem",
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
     def test_init_with_empty_ca_cert(self, temp_cert_files):
@@ -85,7 +81,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
     def test_init_with_invalid_ca_cert_format(self, temp_cert_files):
@@ -95,14 +90,13 @@ class TestJobletClient:
         with open(invalid_ca_path, "w") as f:
             f.write("invalid certificate content")
 
-        with pytest.raises(ValueError, match="Bad CA cert"):
+        with pytest.raises(ValueError, match="Invalid CA certificate format"):
             JobletClient(
                 ca_cert_path=invalid_ca_path,
                 client_cert_path=temp_cert_files["client_cert_path"],
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
     def test_init_with_custom_options(self, temp_cert_files):
@@ -122,7 +116,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
                 options=options,
             )
 
@@ -146,7 +139,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             ) as client:
                 assert client._channel is not None
 
@@ -165,7 +157,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
             client.close()
@@ -188,7 +179,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 # First access should create the service
@@ -222,7 +212,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 networks_service = client.networks
@@ -245,7 +234,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 volumes_service = client.volumes
@@ -268,7 +256,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 monitoring_service = client.monitoring
@@ -291,7 +278,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 runtimes_service = client.runtimes
@@ -310,7 +296,6 @@ class TestJobletClient:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="test-host",
                 port=50051,
-                insecure=False,
             )
 
             client.close()
@@ -339,7 +324,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -365,7 +349,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -390,7 +373,6 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 result = client.health_check()
@@ -426,5 +408,4 @@ class TestJobletClient:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )

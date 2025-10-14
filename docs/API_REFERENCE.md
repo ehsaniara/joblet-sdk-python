@@ -27,7 +27,6 @@ JobletClient(
     ca_cert_path: Optional[str] = None,
     client_cert_path: Optional[str] = None,
     client_key_path: Optional[str] = None,
-    insecure: bool = True,
     config_path: Optional[str] = None,
     node_name: str = "default"
 )
@@ -36,16 +35,18 @@ JobletClient(
 **Parameters:**
 - `host`: Server hostname (optional if using config file)
 - `port`: Server port (default: 50051)
-- `ca_cert_path`: Path to CA certificate
-- `client_cert_path`: Path to client certificate
-- `client_key_path`: Path to client private key
-- `insecure`: Skip SSL validation (default: True for self-signed certs)
+- `ca_cert_path`: Path to CA certificate (required, or from config)
+- `client_cert_path`: Path to client certificate (required, or from config)
+- `client_key_path`: Path to client private key (required, or from config)
 - `config_path`: Path to config file (default: ~/.rnx/rnx-config.yml)
 - `node_name`: Node name in config file (default: "default")
 
+**Note:** Joblet always requires mTLS authentication. Certificates can be provided
+explicitly or loaded from the config file.
+
 **Example:**
 ```python
-# Using config file
+# Using config file (recommended)
 with JobletClient() as client:
     pass
 
@@ -53,10 +54,9 @@ with JobletClient() as client:
 with JobletClient(
     host="joblet.example.com",
     port=50051,
-    insecure=False,
     ca_cert_path="/path/to/ca.pem",
     client_cert_path="/path/to/client.pem",
-    client_key_path="/path/to/client.key"
+    client_key_path="/path/to/client-key.pem"
 ) as client:
     pass
 ```
@@ -104,6 +104,75 @@ Access the Monitoring Service for system health and metrics.
 def runtimes(self) -> RuntimeService
 ```
 Access the Runtime Service for managing execution environments.
+
+#### node_id
+```python
+@property
+def node_id(self) -> Optional[str]
+```
+Get the node ID from configuration. Returns None if not configured.
+
+**Example:**
+```python
+with JobletClient() as client:
+    if client.node_id:
+        print(f"Connected to node: {client.node_id}")
+```
+
+### Configuration File Format
+
+The SDK can load connection information from `~/.rnx/rnx-config.yml`:
+
+```yaml
+version: "3.0"
+nodes:
+  default:
+    address: "joblet-server:50051"  # Required
+    persistAddress: "joblet-server:50052"  # Required
+    nodeId: "node-001"  # Optional: unique node identifier
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      [Your client certificate]
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      [Your client private key]
+      -----END PRIVATE KEY-----
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      [Your CA certificate]
+      -----END CERTIFICATE-----
+
+  production:
+    address: "prod-joblet:50051"  # Required
+    persistAddress: "prod-joblet:50052"  # Required
+    nodeId: "prod-node-001"  # Optional
+    cert: |
+      [Production certificate]
+    key: |
+      [Production key]
+    ca: |
+      [Production CA]
+```
+
+**Configuration Fields:**
+- `address` - **Required**: Main Joblet service endpoint (joblet-core, default port 50051)
+- `persistAddress` - **Required**: Persist service endpoint for historical data (default port 50052)
+- `nodeId` - Optional: Unique identifier for the node
+- `cert` - Client certificate for mTLS authentication
+- `key` - Client private key for mTLS authentication
+- `ca` - CA certificate for server verification (can also be placed as `~/.rnx/ca.crt`)
+
+**Using Multiple Nodes:**
+```python
+# Connect to default node
+with JobletClient() as client:
+    pass
+
+# Connect to production node
+with JobletClient(node_name="production") as client:
+    pass
+```
 
 ### Methods
 

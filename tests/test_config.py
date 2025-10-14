@@ -22,6 +22,8 @@ class TestConfigLoader:
             "nodes": {
                 "default": {
                     "address": "192.168.1.100:50051",
+                    "persistAddress": "192.168.1.100:50052",
+                    "nodeId": "test-node-default",
                     "cert": (
                         "-----BEGIN CERTIFICATE-----\n"
                         "test_cert\n"
@@ -143,6 +145,9 @@ class TestConfigLoader:
         assert conn_info is not None
         assert conn_info["host"] == "192.168.1.100"
         assert conn_info["port"] == 50051
+        assert conn_info["persist_host"] == "192.168.1.100"
+        assert conn_info["persist_port"] == 50052
+        assert conn_info["node_id"] == "test-node-default"
 
     def test_extract_connection_info_without_port(self, sample_config):
         """Test extracting connection info without port in address"""
@@ -161,6 +166,10 @@ class TestConfigLoader:
             assert conn_info is not None
             assert conn_info["host"] == "192.168.1.100"
             assert conn_info["port"] == 50051  # Should use default port
+            # persistAddress should still be parsed
+            assert conn_info["persist_host"] == "192.168.1.100"
+            assert conn_info["persist_port"] == 50052
+            assert conn_info["node_id"] == "test-node-default"
         finally:
             os.unlink(config_path)
 
@@ -255,6 +264,46 @@ class TestConfigLoader:
         finally:
             os.unlink(config_path)
 
+    def test_missing_address_field(self, sample_config):
+        """Test that missing address field raises ValueError"""
+        # Remove address field
+        del sample_config["nodes"]["default"]["address"]
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            yaml.dump(sample_config, f)
+            config_path = f.name
+
+        try:
+            loader = ConfigLoader(config_path=config_path)
+            loader.load()
+
+            # Should raise ValueError for missing address
+            with pytest.raises(ValueError, match="Missing required field 'address'"):
+                loader.extract_connection_info("default")
+        finally:
+            os.unlink(config_path)
+
+    def test_missing_persist_address_field(self, sample_config):
+        """Test that missing persistAddress field raises ValueError"""
+        # Remove persistAddress field
+        del sample_config["nodes"]["default"]["persistAddress"]
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            yaml.dump(sample_config, f)
+            config_path = f.name
+
+        try:
+            loader = ConfigLoader(config_path=config_path)
+            loader.load()
+
+            # Should raise ValueError for missing persistAddress
+            with pytest.raises(
+                ValueError, match="Missing required field 'persistAddress'"
+            ):
+                loader.extract_connection_info("default")
+        finally:
+            os.unlink(config_path)
+
 
 class TestJobletClientWithConfig:
     """Test JobletClient with config file support"""
@@ -267,6 +316,8 @@ class TestJobletClientWithConfig:
             "nodes": {
                 "default": {
                     "address": "test-server:50051",
+                    "persistAddress": "test-server:50052",
+                    "nodeId": "test-node",
                     "cert": (
                         "-----BEGIN CERTIFICATE-----\n"
                         "test\n"
@@ -276,6 +327,11 @@ class TestJobletClientWithConfig:
                         "-----BEGIN PRIVATE KEY-----\n"
                         "test\n"
                         "-----END PRIVATE KEY-----"
+                    ),
+                    "ca": (
+                        "-----BEGIN CERTIFICATE-----\n"
+                        "test_ca\n"
+                        "-----END CERTIFICATE-----"
                     ),
                 }
             },
@@ -293,25 +349,34 @@ class TestJobletClientWithConfig:
             pass
 
     @patch("joblet.client.grpc.secure_channel")
-    @patch("pathlib.Path.exists")
-    def test_client_init_with_config(
-        self, mock_path_exists, mock_secure_channel, mock_config_file
-    ):
+    def test_client_init_with_config(self, mock_secure_channel, mock_config_file):
         """Test JobletClient initialization with config file"""
+        from pathlib import Path
+
         from joblet import JobletClient
 
-        mock_path_exists.return_value = True
-        mock_channel = Mock()
-        mock_secure_channel.return_value = mock_channel
+        # Create a selective mock that returns False only for ca.crt/ca.pem in ~/.rnx/
+        original_exists = Path.exists
 
-        # Initialize client with config
-        client = JobletClient(config_path=mock_config_file)
+        def mock_exists_selective(self):
+            # Return False for ca.crt/ca.pem checks
+            if self.name in ["ca.crt", "ca.pem"] and ".rnx" in str(self):
+                return False
+            # For all other paths, use the real exists() method
+            return original_exists(self)
 
-        assert client.host == "test-server"
-        assert client.port == 50051
+        with patch("pathlib.Path.exists", new=mock_exists_selective):
+            mock_channel = Mock()
+            mock_secure_channel.return_value = mock_channel
 
-        # Cleanup
-        client.close()
+            # Initialize client with config
+            client = JobletClient(config_path=mock_config_file)
+
+            assert client.host == "test-server"
+            assert client.port == 50051
+
+            # Cleanup
+            client.close()
 
     @patch("joblet.client.grpc.secure_channel")
     def test_client_init_with_explicit_params_override(
@@ -346,8 +411,8 @@ class TestJobletClientWithConfig:
         with pytest.raises(ValueError) as exc_info:
             JobletClient(
                 host="test-host",
-                # Missing certificates and no config
+                # Missing port, certificates and no config
                 config_path="/non/existent/config.yml",
             )
 
-        assert "Missing for insecure connection: port" in str(exc_info.value)
+        assert "Missing required parameters" in str(exc_info.value)

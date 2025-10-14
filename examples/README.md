@@ -4,8 +4,9 @@ This directory contains example scripts demonstrating how to use the Joblet SDK.
 
 ## Prerequisites
 
-1. Joblet server running on `localhost:8080`
+1. Joblet server running (default: `localhost:50051`)
 2. Python 3.9+ with joblet-sdk-python installed
+3. Configuration file at `~/.rnx/rnx-config.yml` (see Configuration section below)
 
 ## Examples
 
@@ -74,12 +75,53 @@ python examples/05_smart_log_streaming.py
 2. Then streams live logs from job service
 3. Works transparently for both completed and running jobs
 
+## Configuration
+
+Create `~/.rnx/rnx-config.yml`:
+
+```yaml
+version: "3.0"
+nodes:
+  default:
+    address: "localhost:50051"  # Required
+    persistAddress: "localhost:50052"  # Required
+    nodeId: "local-dev"  # Optional: node identifier
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      [Your client certificate]
+      -----END CERTIFICATE-----
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      [Your client private key]
+      -----END PRIVATE KEY-----
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      [Your CA certificate]
+      -----END CERTIFICATE-----
+```
+
+Or connect with explicit parameters:
+```python
+with JobletClient(
+    host="localhost",
+    port=50051,
+    ca_cert_path="/path/to/ca.pem",
+    client_cert_path="/path/to/client.pem",
+    client_key_path="/path/to/client-key.pem"
+) as client:
+    # Your code here
+    pass
+```
+
 ## Quick Start
 
 1. Start your Joblet server:
 ```bash
-# Assuming you have joblet server installed
-joblet serve --port 8080
+# Start joblet-core
+joblet serve --port 50051
+
+# Start joblet-persist (optional, for historical data)
+joblet-persist serve --port 50052
 ```
 
 2. Run an example:

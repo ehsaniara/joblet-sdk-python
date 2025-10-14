@@ -69,7 +69,6 @@ class TestJobletClientIntegration:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-server",
                     port=50051,
-                    insecure=False,
                 ) as client:
                     # Test health check
                     assert client.health_check() is True
@@ -107,7 +106,6 @@ class TestJobletClientIntegration:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 # Test that all service properties can be accessed
@@ -143,7 +141,6 @@ class TestJobletClientIntegration:
                 client_key_path=temp_cert_files["client_key_path"],
                 host="nonexistent-host-12345.invalid",
                 port=99999,
-                insecure=False,
             )
             # If initialization succeeds, health_check should return False
             # for invalid host
@@ -174,7 +171,6 @@ class TestJobletClientIntegration:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 # Test concurrent access to services
@@ -293,7 +289,6 @@ class TestServiceIntegration:
                     client_key_path=temp_cert_files["client_key_path"],
                     host="test-host",
                     port=50051,
-                    insecure=False,
                 )
 
                 try:
@@ -336,7 +331,6 @@ class TestStressIntegration:
                         client_key_path=temp_cert_files["client_key_path"],
                         host=f"test-host-{i}",
                         port=50051 + i,
-                        insecure=False,
                     )
                     clients.append(client)
 

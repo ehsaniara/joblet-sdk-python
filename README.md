@@ -38,7 +38,9 @@ Create `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "your-joblet-server:50051"
+    address: "your-joblet-server:50051"  # Required
+    persistAddress: "your-joblet-server:50052"  # Required
+    nodeId: "node-001"  # Optional: unique identifier for this node
     cert: |
       -----BEGIN CERTIFICATE-----
       # Your client certificate
@@ -52,6 +54,14 @@ nodes:
       # Your CA certificate
       -----END CERTIFICATE-----
 ```
+
+**Configuration Fields:**
+- `address` - **Required**: Main Joblet service endpoint (joblet-core)
+- `persistAddress` - **Required**: Persist service endpoint for historical data
+- `nodeId` - Optional: Unique identifier for the node
+- `cert` - Client certificate for mTLS authentication
+- `key` - Client private key for mTLS authentication
+- `ca` - CA certificate for server verification
 
 ## GPU Support
 
