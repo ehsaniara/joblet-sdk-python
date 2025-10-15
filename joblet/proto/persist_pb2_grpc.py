@@ -26,9 +26,14 @@ if _version_not_supported:
 
 
 class PersistServiceStub(object):
-    """PersistService handles historical log and metrics queries from disk storage
-    This service is provided by joblet-persist (port 50052)
-    For live operations, use JobService on port 50051
+    """PersistService is an INTERNAL service for joblet-core ←→ joblet-persist IPC communication.
+
+    ⚠️  DO NOT USE DIRECTLY - This service is for internal communication only via Unix socket.
+
+    Public API: Use JobService.QueryLogs() and JobService.QueryMetrics()
+    These methods proxy to this internal service automatically.
+
+    This service is provided by joblet-persist subprocess and communicates via Unix socket IPC.
     """
 
     def __init__(self, channel):
@@ -47,12 +52,22 @@ class PersistServiceStub(object):
                 request_serializer=proto_dot_persist__pb2.QueryMetricsRequest.SerializeToString,
                 response_deserializer=proto_dot_persist__pb2.Metric.FromString,
                 _registered_method=True)
+        self.DeleteJob = channel.unary_unary(
+                '/joblet.persist.PersistService/DeleteJob',
+                request_serializer=proto_dot_persist__pb2.DeleteJobRequest.SerializeToString,
+                response_deserializer=proto_dot_persist__pb2.DeleteJobResponse.FromString,
+                _registered_method=True)
 
 
 class PersistServiceServicer(object):
-    """PersistService handles historical log and metrics queries from disk storage
-    This service is provided by joblet-persist (port 50052)
-    For live operations, use JobService on port 50051
+    """PersistService is an INTERNAL service for joblet-core ←→ joblet-persist IPC communication.
+
+    ⚠️  DO NOT USE DIRECTLY - This service is for internal communication only via Unix socket.
+
+    Public API: Use JobService.QueryLogs() and JobService.QueryMetrics()
+    These methods proxy to this internal service automatically.
+
+    This service is provided by joblet-persist subprocess and communicates via Unix socket IPC.
     """
 
     def QueryLogs(self, request, context):
@@ -64,6 +79,13 @@ class PersistServiceServicer(object):
 
     def QueryMetrics(self, request, context):
         """Query metrics for a job from disk storage
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteJob(self, request, context):
+        """Delete all persisted data for a job (admin only)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -82,6 +104,11 @@ def add_PersistServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_persist__pb2.QueryMetricsRequest.FromString,
                     response_serializer=proto_dot_persist__pb2.Metric.SerializeToString,
             ),
+            'DeleteJob': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteJob,
+                    request_deserializer=proto_dot_persist__pb2.DeleteJobRequest.FromString,
+                    response_serializer=proto_dot_persist__pb2.DeleteJobResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'joblet.persist.PersistService', rpc_method_handlers)
@@ -91,9 +118,14 @@ def add_PersistServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class PersistService(object):
-    """PersistService handles historical log and metrics queries from disk storage
-    This service is provided by joblet-persist (port 50052)
-    For live operations, use JobService on port 50051
+    """PersistService is an INTERNAL service for joblet-core ←→ joblet-persist IPC communication.
+
+    ⚠️  DO NOT USE DIRECTLY - This service is for internal communication only via Unix socket.
+
+    Public API: Use JobService.QueryLogs() and JobService.QueryMetrics()
+    These methods proxy to this internal service automatically.
+
+    This service is provided by joblet-persist subprocess and communicates via Unix socket IPC.
     """
 
     @staticmethod
@@ -140,6 +172,33 @@ class PersistService(object):
             '/joblet.persist.PersistService/QueryMetrics',
             proto_dot_persist__pb2.QueryMetricsRequest.SerializeToString,
             proto_dot_persist__pb2.Metric.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteJob(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/joblet.persist.PersistService/DeleteJob',
+            proto_dot_persist__pb2.DeleteJobRequest.SerializeToString,
+            proto_dot_persist__pb2.DeleteJobResponse.FromString,
             options,
             channel_credentials,
             insecure,

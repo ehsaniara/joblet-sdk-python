@@ -24,16 +24,16 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13proto/persist.proto\x12\x0ejoblet.persist\"\x93\x01\n\x10QueryLogsRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06stream\x18\x02 \x01(\x0e\x32\x1a.joblet.persist.StreamType\x12\x12\n\nstart_time\x18\x03 \x01(\x03\x12\x10\n\x08\x65nd_time\x18\x04 \x01(\x03\x12\r\n\x05limit\x18\x05 \x01(\x05\x12\x0e\n\x06offset\x18\x06 \x01(\x05\"j\n\x13QueryMetricsRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x12\n\nstart_time\x18\x02 \x01(\x03\x12\x10\n\x08\x65nd_time\x18\x03 \x01(\x03\x12\r\n\x05limit\x18\x04 \x01(\x05\x12\x0e\n\x06offset\x18\x05 \x01(\x05\"{\n\x07LogLine\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06stream\x18\x02 \x01(\x0e\x32\x1a.joblet.persist.StreamType\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\x12\x10\n\x08sequence\x18\x04 \x01(\x04\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\x0c\"g\n\x06Metric\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x10\n\x08sequence\x18\x03 \x01(\x04\x12(\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x1a.joblet.persist.MetricData\"\xa0\x01\n\nMetricData\x12\x11\n\tcpu_usage\x18\x01 \x01(\x01\x12\x14\n\x0cmemory_usage\x18\x02 \x01(\x03\x12\x11\n\tgpu_usage\x18\x03 \x01(\x01\x12\'\n\x07\x64isk_io\x18\x04 \x01(\x0b\x32\x16.joblet.persist.DiskIO\x12-\n\nnetwork_io\x18\x05 \x01(\x0b\x32\x19.joblet.persist.NetworkIO\"V\n\x06\x44iskIO\x12\x12\n\nread_bytes\x18\x01 \x01(\x03\x12\x13\n\x0bwrite_bytes\x18\x02 \x01(\x03\x12\x10\n\x08read_ops\x18\x03 \x01(\x03\x12\x11\n\twrite_ops\x18\x04 \x01(\x03\"W\n\tNetworkIO\x12\x10\n\x08rx_bytes\x18\x01 \x01(\x03\x12\x10\n\x08tx_bytes\x18\x02 \x01(\x03\x12\x12\n\nrx_packets\x18\x03 \x01(\x03\x12\x12\n\ntx_packets\x18\x04 \x01(\x03*Y\n\nStreamType\x12\x1b\n\x17STREAM_TYPE_UNSPECIFIED\x10\x00\x12\x16\n\x12STREAM_TYPE_STDOUT\x10\x01\x12\x16\n\x12STREAM_TYPE_STDERR\x10\x02\x32\xa9\x01\n\x0ePersistService\x12H\n\tQueryLogs\x12 .joblet.persist.QueryLogsRequest\x1a\x17.joblet.persist.LogLine0\x01\x12M\n\x0cQueryMetrics\x12#.joblet.persist.QueryMetricsRequest\x1a\x16.joblet.persist.Metric0\x01\x42/Z-github.com/ehsaniara/joblet-proto/gen/persistb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13proto/persist.proto\x12\x0ejoblet.persist\"\x93\x01\n\x10QueryLogsRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06stream\x18\x02 \x01(\x0e\x32\x1a.joblet.persist.StreamType\x12\x12\n\nstart_time\x18\x03 \x01(\x03\x12\x10\n\x08\x65nd_time\x18\x04 \x01(\x03\x12\r\n\x05limit\x18\x05 \x01(\x05\x12\x0e\n\x06offset\x18\x06 \x01(\x05\"j\n\x13QueryMetricsRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x12\n\nstart_time\x18\x02 \x01(\x03\x12\x10\n\x08\x65nd_time\x18\x03 \x01(\x03\x12\r\n\x05limit\x18\x04 \x01(\x05\x12\x0e\n\x06offset\x18\x05 \x01(\x05\"{\n\x07LogLine\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06stream\x18\x02 \x01(\x0e\x32\x1a.joblet.persist.StreamType\x12\x11\n\ttimestamp\x18\x03 \x01(\x03\x12\x10\n\x08sequence\x18\x04 \x01(\x04\x12\x0f\n\x07\x63ontent\x18\x05 \x01(\x0c\"g\n\x06Metric\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x03\x12\x10\n\x08sequence\x18\x03 \x01(\x04\x12(\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x1a.joblet.persist.MetricData\"\xa0\x01\n\nMetricData\x12\x11\n\tcpu_usage\x18\x01 \x01(\x01\x12\x14\n\x0cmemory_usage\x18\x02 \x01(\x03\x12\x11\n\tgpu_usage\x18\x03 \x01(\x01\x12\'\n\x07\x64isk_io\x18\x04 \x01(\x0b\x32\x16.joblet.persist.DiskIO\x12-\n\nnetwork_io\x18\x05 \x01(\x0b\x32\x19.joblet.persist.NetworkIO\"V\n\x06\x44iskIO\x12\x12\n\nread_bytes\x18\x01 \x01(\x03\x12\x13\n\x0bwrite_bytes\x18\x02 \x01(\x03\x12\x10\n\x08read_ops\x18\x03 \x01(\x03\x12\x11\n\twrite_ops\x18\x04 \x01(\x03\"W\n\tNetworkIO\x12\x10\n\x08rx_bytes\x18\x01 \x01(\x03\x12\x10\n\x08tx_bytes\x18\x02 \x01(\x03\x12\x12\n\nrx_packets\x18\x03 \x01(\x03\x12\x12\n\ntx_packets\x18\x04 \x01(\x03\"\"\n\x10\x44\x65leteJobRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\"5\n\x11\x44\x65leteJobResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t*Y\n\nStreamType\x12\x1b\n\x17STREAM_TYPE_UNSPECIFIED\x10\x00\x12\x16\n\x12STREAM_TYPE_STDOUT\x10\x01\x12\x16\n\x12STREAM_TYPE_STDERR\x10\x02\x32\xfb\x01\n\x0ePersistService\x12H\n\tQueryLogs\x12 .joblet.persist.QueryLogsRequest\x1a\x17.joblet.persist.LogLine0\x01\x12M\n\x0cQueryMetrics\x12#.joblet.persist.QueryMetricsRequest\x1a\x16.joblet.persist.Metric0\x01\x12P\n\tDeleteJob\x12 .joblet.persist.DeleteJobRequest\x1a!.joblet.persist.DeleteJobResponseB*Z(github.com/ehsaniara/joblet-proto/v2/genb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.persist_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z-github.com/ehsaniara/joblet-proto/gen/persist'
-  _globals['_STREAMTYPE']._serialized_start=867
-  _globals['_STREAMTYPE']._serialized_end=956
+  _globals['DESCRIPTOR']._serialized_options = b'Z(github.com/ehsaniara/joblet-proto/v2/gen'
+  _globals['_STREAMTYPE']._serialized_start=958
+  _globals['_STREAMTYPE']._serialized_end=1047
   _globals['_QUERYLOGSREQUEST']._serialized_start=40
   _globals['_QUERYLOGSREQUEST']._serialized_end=187
   _globals['_QUERYMETRICSREQUEST']._serialized_start=189
@@ -48,6 +48,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DISKIO']._serialized_end=776
   _globals['_NETWORKIO']._serialized_start=778
   _globals['_NETWORKIO']._serialized_end=865
-  _globals['_PERSISTSERVICE']._serialized_start=959
-  _globals['_PERSISTSERVICE']._serialized_end=1128
+  _globals['_DELETEJOBREQUEST']._serialized_start=867
+  _globals['_DELETEJOBREQUEST']._serialized_end=901
+  _globals['_DELETEJOBRESPONSE']._serialized_start=903
+  _globals['_DELETEJOBRESPONSE']._serialized_end=956
+  _globals['_PERSISTSERVICE']._serialized_start=1050
+  _globals['_PERSISTSERVICE']._serialized_end=1301
 # @@protoc_insertion_point(module_scope)

@@ -6,7 +6,6 @@ Complete API reference for the Joblet Python SDK.
 
 - [JobletClient](#jobletclient)
 - [JobService](#jobservice)
-- [PersistService](#persistservice)
 - [NetworkService](#networkservice)
 - [VolumeService](#volumeservice)
 - [MonitoringService](#monitoringservice)
@@ -75,7 +74,12 @@ Access the Job Service for managing jobs and workflows.
 @property
 def persist(self) -> PersistService
 ```
-Access the Persist Service for querying historical logs and metrics (port 50052).
+**Deprecated**: Access the Persist Service for querying historical logs and metrics.
+Use `client.jobs.query_logs()` and `client.jobs.query_metrics()` instead.
+
+Historical queries now go through the main JobletService (port 50051), which internally
+proxies requests to joblet-persist via Unix socket IPC. This property is maintained for
+backward compatibility.
 
 #### networks
 ```python
@@ -127,8 +131,7 @@ The SDK can load connection information from `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "joblet-server:50051"  # Required
-    persistAddress: "joblet-server:50052"  # Required
+    address: "joblet-server:50051"  # Required - single endpoint for all operations
     nodeId: "node-001"  # Optional: unique node identifier
     cert: |
       -----BEGIN CERTIFICATE-----
@@ -144,8 +147,7 @@ nodes:
       -----END CERTIFICATE-----
 
   production:
-    address: "prod-joblet:50051"  # Required
-    persistAddress: "prod-joblet:50052"  # Required
+    address: "prod-joblet:50051"  # Required - single endpoint
     nodeId: "prod-node-001"  # Optional
     cert: |
       [Production certificate]
@@ -156,12 +158,15 @@ nodes:
 ```
 
 **Configuration Fields:**
-- `address` - **Required**: Main Joblet service endpoint (joblet-core, default port 50051)
-- `persistAddress` - **Required**: Persist service endpoint for historical data (default port 50052)
+- `address` - **Required**: Joblet service endpoint (default port 50051)
+  - Single endpoint for all operations including historical queries
+  - Joblet internally handles persistence via Unix socket IPC
 - `nodeId` - Optional: Unique identifier for the node
 - `cert` - Client certificate for mTLS authentication
 - `key` - Client private key for mTLS authentication
 - `ca` - CA certificate for server verification (can also be placed as `~/.rnx/ca.crt`)
+
+**Note**: Joblet runs as a unified Linux systemd service. All operations go through the main service on port 50051, which transparently handles both live streaming and historical queries via internal Unix socket communication with joblet-persist.
 
 **Using Multiple Nodes:**
 ```python
@@ -287,12 +292,14 @@ def get_job_logs(
 ) -> Iterator[bytes]
 ```
 
-**Smart log streaming** - automatically fetches historical logs from persist service,
-then streams live logs from job service.
+**Smart log streaming** - automatically fetches historical logs then streams live logs.
 
 This method intelligently handles both historical and live logs:
-1. First fetches any historical logs from persist service (if available)
-2. Then streams live logs from the job service
+1. First fetches any historical logs (internally from joblet-persist via IPC)
+2. Then streams live logs from the running job
+
+All operations go through a single endpoint (port 50051), with internal Unix socket
+proxying for historical data.
 
 **Parameters:**
 - `job_uuid`: Job UUID or short UUID prefix
@@ -315,7 +322,7 @@ for chunk in client.jobs.get_job_logs(job_uuid, include_historical=False):
 - **Completed job**: Fetches all logs from historical storage
 - **Running job**: Streams live logs as they're generated
 - **Reconnecting**: Shows historical logs, then continues with live stream
-- **Persist unavailable**: Gracefully falls back to live streaming only
+- **Graceful fallback**: Works even if historical data unavailable
 
 #### stream_live_logs()
 ```python
@@ -357,13 +364,9 @@ def list_workflows(include_completed: bool = False) -> List[Dict[str, Any]]
 
 List all workflows.
 
----
+### Historical Data Queries
 
-## PersistService
-
-Service for querying historical logs and metrics from persistent storage (port 50052).
-
-### query_logs()
+#### query_logs()
 ```python
 def query_logs(
     job_id: str,
@@ -375,7 +378,10 @@ def query_logs(
 ) -> Iterator[Dict[str, Any]]
 ```
 
-Query historical logs for a job.
+Query historical logs for a job from persistent storage.
+
+**Note**: All queries go through the JobletService (port 50051), which internally proxies
+requests to joblet-persist via Unix socket IPC.
 
 **Parameters:**
 - `job_id`: Job UUID
@@ -390,23 +396,23 @@ Query historical logs for a job.
 **Example:**
 ```python
 # Query all logs
-for log in client.persist.query_logs(job_id="abc123"):
+for log in client.jobs.query_logs(job_id="abc123"):
     timestamp = datetime.fromtimestamp(log['timestamp'] / 1e9)
     content = log['content'].decode('utf-8')
     print(f"[{timestamp}] {content}")
 
 # Query only stdout logs
-for log in client.persist.query_logs(job_id="abc123", stream="stdout"):
+for log in client.jobs.query_logs(job_id="abc123", stream="stdout"):
     print(log['content'].decode('utf-8'))
 
 # Query with time range
 five_sec_ago = int((time.time() - 5) * 1e9)
 now = int(time.time() * 1e9)
-for log in client.persist.query_logs(job_id="abc123", start_time=five_sec_ago, end_time=now):
+for log in client.jobs.query_logs(job_id="abc123", start_time=five_sec_ago, end_time=now):
     print(log['content'].decode('utf-8'))
 ```
 
-### query_metrics()
+#### query_metrics()
 ```python
 def query_metrics(
     job_id: str,
@@ -417,13 +423,23 @@ def query_metrics(
 ) -> Iterator[Dict[str, Any]]
 ```
 
-Query historical metrics for a job.
+Query historical metrics for a job from persistent storage.
+
+**Note**: All queries go through the JobletService (port 50051), which internally proxies
+requests to joblet-persist via Unix socket IPC.
+
+**Parameters:**
+- `job_id`: Job UUID
+- `start_time`: Start time in Unix nanoseconds
+- `end_time`: End time in Unix nanoseconds
+- `limit`: Maximum samples to return (0 = all)
+- `offset`: Skip samples
 
 **Returns:** Iterator yielding metric dictionaries with CPU, memory, GPU, disk, and network data
 
 **Example:**
 ```python
-for metric in client.persist.query_metrics(job_id="abc123"):
+for metric in client.jobs.query_metrics(job_id="abc123"):
     cpu = metric['data'].get('cpu_usage', 0)
     memory_mb = metric['data'].get('memory_usage', 0) / (1024 * 1024)
     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
@@ -641,8 +657,17 @@ except Exception as e:
 
 ---
 
+## Related Projects
+
+- **[Joblet](https://github.com/ehsaniara/joblet)** - Main orchestration system (server-side)
+- **[joblet-proto](https://github.com/ehsaniara/joblet-proto)** - Protocol Buffer definitions
+- **rnx** - Official CLI tool (included in Joblet repo)
+
+---
+
 ## See Also
 
 - [User Guide](USER_GUIDE.md) - Detailed usage guide and best practices
 - [Examples](../examples/) - Complete example scripts
 - [CHANGELOG](../CHANGELOG.md) - Version history and changes
+- [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) - Server setup

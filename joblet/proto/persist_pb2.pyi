@@ -108,3 +108,17 @@ class NetworkIO(_message.Message):
     rx_packets: int
     tx_packets: int
     def __init__(self, rx_bytes: _Optional[int] = ..., tx_bytes: _Optional[int] = ..., rx_packets: _Optional[int] = ..., tx_packets: _Optional[int] = ...) -> None: ...
+
+class DeleteJobRequest(_message.Message):
+    __slots__ = ("job_id",)
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    job_id: str
+    def __init__(self, job_id: _Optional[str] = ...) -> None: ...
+
+class DeleteJobResponse(_message.Message):
+    __slots__ = ("success", "message")
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    message: str
+    def __init__(self, success: bool = ..., message: _Optional[str] = ...) -> None: ...

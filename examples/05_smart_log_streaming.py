@@ -6,11 +6,12 @@ This example demonstrates the intelligent log streaming feature that
 automatically handles both historical and live logs - just like 'rnx job log'.
 
 The get_job_logs() method:
-1. First fetches any historical logs from persist service (if available)
-2. Then streams live logs from the job service
+1. First fetches any historical logs (internally from joblet-persist via IPC)
+2. Then streams live logs from the running job
 
 This provides seamless log access for both completed and running jobs
-without needing to know the job's status or choose the right service.
+without needing to know the job's status. All operations go through a single
+endpoint (port 50051), with internal Unix socket proxying for historical data.
 """
 
 import time
@@ -64,7 +65,7 @@ def example_completed_job_logs():
             print(chunk.decode("utf-8"), end="")
 
         print("\n" + "-" * 70)
-        print("✓ All logs retrieved successfully (from persist service)")
+        print("✓ All logs retrieved successfully (from historical storage)")
 
 
 def example_running_job_logs():
@@ -144,8 +145,8 @@ def example_reconnect_to_running_job():
         # Now "reconnect" and get ALL logs (historical + continuing live)
         print("\n3. Reconnecting to get all logs (historical + live)...")
         print("-" * 70)
-        print("   ↓ Historical logs from persist service")
-        print("   ↓ Then live logs from job service")
+        print("   ↓ Historical logs (fetched from storage)")
+        print("   ↓ Then live logs (streaming from job)")
         print("-" * 70)
 
         log_count = 0
@@ -200,14 +201,14 @@ def example_live_only_streaming():
 
 
 def example_with_error_handling():
-    """Example 5: Error handling when persist service unavailable"""
+    """Example 5: Error handling with graceful fallback"""
     print("\n" + "=" * 70)
-    print("Example 5: Graceful Fallback When Persist Unavailable")
+    print("Example 5: Graceful Fallback for Historical Data")
     print("=" * 70)
 
     with JobletClient() as client:
-        print("\nNote: If joblet-persist is not running, the SDK will:")
-        print("  1. Try to fetch historical logs (may fail)")
+        print("\nNote: If historical data is unavailable, the SDK will:")
+        print("  1. Try to fetch historical logs (may return empty)")
         print("  2. Gracefully fall back to live streaming")
         print("  3. Continue working without errors")
 
@@ -222,12 +223,12 @@ def example_with_error_handling():
         print("\n2. Fetching logs...")
         print("-" * 70)
 
-        # This will work even if persist service is unavailable
+        # This works seamlessly - single endpoint for all operations
         for chunk in client.jobs.get_job_logs(job_id):
             print(chunk.decode("utf-8"), end="")
 
         print("-" * 70)
-        print("✓ Logs retrieved successfully (with graceful fallback)")
+        print("✓ Logs retrieved successfully (single endpoint)")
 
 
 def main():
@@ -262,6 +263,7 @@ def main():
         print("  - Completed jobs: fetches from historical storage")
         print("  - Running jobs: streams live")
         print("  - Reconnecting: shows history + continues live")
+        print("  - All via single endpoint (port 50051)")
         print("=" * 70)
 
     except Exception as e:

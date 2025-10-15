@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
-Example 04: Querying Historical Logs and Metrics with PersistService
+Example 04: Querying Historical Logs and Metrics
 
-This example demonstrates how to use the PersistService to query historical
-job logs and metrics from persistent storage. This is useful for analyzing
-completed jobs or debugging past executions.
+This example demonstrates how to query historical job logs and metrics from
+persistent storage. This is useful for analyzing completed jobs or debugging
+past executions.
 
-The PersistService connects to joblet-persist on port 50052, which provides
-efficient querying of stored logs and metrics with filtering and pagination.
+All queries go through the JobletService (port 50051), which internally proxies
+requests to joblet-persist via Unix socket IPC. This provides efficient querying
+of stored logs and metrics with filtering and pagination.
 """
 
 from datetime import datetime
@@ -43,12 +44,12 @@ def example_query_historical_logs():
                 break
             time.sleep(0.5)
 
-        # Query historical logs using persist service
-        print("\n3. Querying historical logs from persist service...")
+        # Query historical logs (internally proxied to persist service)
+        print("\n3. Querying historical logs...")
         print("-" * 60)
 
         log_count = 0
-        for log in client.persist.query_logs(job_id=job_id):
+        for log in client.jobs.query_logs(job_id=job_id):
             log_count += 1
             timestamp = datetime.fromtimestamp(log["timestamp"] / 1e9)
             content = log["content"].decode("utf-8").strip()
@@ -62,7 +63,7 @@ def example_query_historical_logs():
         print("-" * 60)
 
         stdout_count = 0
-        for log in client.persist.query_logs(job_id=job_id, stream="stdout"):
+        for log in client.jobs.query_logs(job_id=job_id, stream="stdout"):
             stdout_count += 1
             content = log["content"].decode("utf-8").strip()
             print(f"   STDOUT: {content}")
@@ -73,7 +74,7 @@ def example_query_historical_logs():
         print("\n5. Querying with pagination (limit=5)...")
         print("-" * 60)
 
-        for log in client.persist.query_logs(job_id=job_id, limit=5):
+        for log in client.jobs.query_logs(job_id=job_id, limit=5):
             content = log["content"].decode("utf-8").strip()
             print(f"   {content}")
 
@@ -107,12 +108,12 @@ def example_query_historical_metrics():
                 break
             time.sleep(2)
 
-        # Query historical metrics using persist service
-        print("\n3. Querying historical metrics from persist service...")
+        # Query historical metrics (internally proxied to persist service)
+        print("\n3. Querying historical metrics...")
         print("-" * 60)
 
         metrics_count = 0
-        for metric in client.persist.query_metrics(job_id=job_id):
+        for metric in client.jobs.query_metrics(job_id=job_id):
             metrics_count += 1
             timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
             data = metric["data"]
@@ -153,7 +154,7 @@ def example_query_historical_metrics():
         print("\n4. Querying recent metrics (limit=10)...")
         print("-" * 60)
 
-        for metric in client.persist.query_metrics(job_id=job_id, limit=10):
+        for metric in client.jobs.query_metrics(job_id=job_id, limit=10):
             timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
             cpu = metric["data"].get("cpu_usage", 0)
             memory = metric["data"].get("memory_usage", 0) / (1024 * 1024)
@@ -196,7 +197,7 @@ def example_time_range_query():
         print("-" * 60)
 
         recent_logs = 0
-        for log in client.persist.query_logs(
+        for log in client.jobs.query_logs(
             job_id=job_id, start_time=five_seconds_ago_ns, end_time=now_ns
         ):
             recent_logs += 1
@@ -212,7 +213,7 @@ def example_time_range_query():
 
 
 def example_comprehensive_job_analysis():
-    """Comprehensive analysis of a completed job using persist service"""
+    """Comprehensive analysis of a completed job using historical queries"""
     print("\n" + "=" * 60)
     print("Example 4: Comprehensive Job Analysis")
     print("=" * 60)
@@ -268,7 +269,7 @@ print('Job completed successfully!', flush=True)
         # Analyze logs
         print("\n4. Log Analysis:")
         print("-" * 60)
-        log_lines = list(client.persist.query_logs(job_id=job_id))
+        log_lines = list(client.jobs.query_logs(job_id=job_id))
         print(f"   Total log lines: {len(log_lines)}")
 
         if log_lines:
@@ -287,7 +288,7 @@ print('Job completed successfully!', flush=True)
         # Analyze metrics
         print("\n5. Metrics Analysis:")
         print("-" * 60)
-        metrics = list(client.persist.query_metrics(job_id=job_id))
+        metrics = list(client.jobs.query_metrics(job_id=job_id))
         print(f"   Total metric samples: {len(metrics)}")
 
         if metrics:

@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from proto import joblet_pb2 as proto_dot_joblet__pb2
+from . import joblet_pb2 as proto_dot_joblet__pb2
 
 GRPC_GENERATED_VERSION = '1.75.1'
 GRPC_VERSION = grpc.__version__
@@ -75,15 +75,10 @@ class JobServiceStub(object):
                 request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
                 response_deserializer=proto_dot_joblet__pb2.Jobs.FromString,
                 _registered_method=True)
-        self.StreamJobMetrics = channel.unary_stream(
-                '/joblet.JobService/StreamJobMetrics',
+        self.GetJobMetrics = channel.unary_stream(
+                '/joblet.JobService/GetJobMetrics',
                 request_serializer=proto_dot_joblet__pb2.JobMetricsRequest.SerializeToString,
                 response_deserializer=proto_dot_joblet__pb2.JobMetricsSample.FromString,
-                _registered_method=True)
-        self.GetJobMetricsSummary = channel.unary_unary(
-                '/joblet.JobService/GetJobMetricsSummary',
-                request_serializer=proto_dot_joblet__pb2.JobMetricsSummaryRequest.SerializeToString,
-                response_deserializer=proto_dot_joblet__pb2.JobMetricsSummaryResponse.FromString,
                 _registered_method=True)
         self.RunWorkflow = channel.unary_unary(
                 '/joblet.JobService/RunWorkflow',
@@ -160,15 +155,9 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamJobMetrics(self, request, context):
-        """Job metrics operations (live streaming only - historical metrics via persist.QueryMetrics)
+    def GetJobMetrics(self, request, context):
+        """Job metrics operations
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def GetJobMetricsSummary(self, request, context):
-        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -241,15 +230,10 @@ def add_JobServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
                     response_serializer=proto_dot_joblet__pb2.Jobs.SerializeToString,
             ),
-            'StreamJobMetrics': grpc.unary_stream_rpc_method_handler(
-                    servicer.StreamJobMetrics,
+            'GetJobMetrics': grpc.unary_stream_rpc_method_handler(
+                    servicer.GetJobMetrics,
                     request_deserializer=proto_dot_joblet__pb2.JobMetricsRequest.FromString,
                     response_serializer=proto_dot_joblet__pb2.JobMetricsSample.SerializeToString,
-            ),
-            'GetJobMetricsSummary': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetJobMetricsSummary,
-                    request_deserializer=proto_dot_joblet__pb2.JobMetricsSummaryRequest.FromString,
-                    response_serializer=proto_dot_joblet__pb2.JobMetricsSummaryResponse.SerializeToString,
             ),
             'RunWorkflow': grpc.unary_unary_rpc_method_handler(
                     servicer.RunWorkflow,
@@ -500,7 +484,7 @@ class JobService(object):
             _registered_method=True)
 
     @staticmethod
-    def StreamJobMetrics(request,
+    def GetJobMetrics(request,
             target,
             options=(),
             channel_credentials=None,
@@ -513,36 +497,9 @@ class JobService(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            '/joblet.JobService/StreamJobMetrics',
+            '/joblet.JobService/GetJobMetrics',
             proto_dot_joblet__pb2.JobMetricsRequest.SerializeToString,
             proto_dot_joblet__pb2.JobMetricsSample.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetJobMetricsSummary(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/joblet.JobService/GetJobMetricsSummary',
-            proto_dot_joblet__pb2.JobMetricsSummaryRequest.SerializeToString,
-            proto_dot_joblet__pb2.JobMetricsSummaryResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -38,8 +38,7 @@ Create `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "your-joblet-server:50051"  # Required
-    persistAddress: "your-joblet-server:50052"  # Required
+    address: "your-joblet-server:50051"  # Required - single endpoint for all operations
     nodeId: "node-001"  # Optional: unique identifier for this node
     cert: |
       -----BEGIN CERTIFICATE-----
@@ -56,14 +55,15 @@ nodes:
 ```
 
 **Configuration Fields:**
-- `address` - **Required**: Main Joblet service endpoint (default port 50051)
-- `persistAddress` - **Required**: Persist service endpoint for historical data (default port 50052)
+- `address` - **Required**: Joblet service endpoint (default port 50051)
+  - Single endpoint for all operations including historical queries
+  - Joblet internally handles persistence via Unix socket IPC
 - `nodeId` - Optional: Unique identifier for the node
 - `cert` - **Required**: Client certificate for mTLS authentication
 - `key` - **Required**: Client private key for mTLS authentication
 - `ca` - **Required**: CA certificate for server verification
 
-**Note**: Joblet runs as a Linux systemd service with embedded persistence. Both services are part of the same `joblet` systemd unit. See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) for server setup.
+**Note**: Joblet runs as a unified Linux systemd service with embedded persistence (joblet-persist). All operations go through the main service on port 50051, which transparently handles both live streaming and historical queries. See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) for server setup.
 
 ## GPU Support
 
@@ -255,6 +255,12 @@ See the `examples/` directory for more detailed usage examples:
 - `06_long_running_job_demo.py` - Long-running job with complete log retrieval
 
 For detailed documentation, see [examples/README.md](examples/README.md)
+
+## Related Projects
+
+- **[Joblet](https://github.com/ehsaniara/joblet)** - Main orchestration system (server-side)
+- **[joblet-proto](https://github.com/ehsaniara/joblet-proto)** - Protocol Buffer definitions
+- **rnx** - Official CLI tool (included in Joblet repo)
 
 ## License
 

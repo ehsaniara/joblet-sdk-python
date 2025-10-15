@@ -1,11 +1,10 @@
 """Service classes for Joblet SDK"""
 
 from datetime import datetime
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Optional, cast
 
 import grpc
 
-from . import joblet_pb2, joblet_pb2_grpc
 from .exceptions import (
     JobNotFoundError,
     NetworkError,
@@ -14,7 +13,7 @@ from .exceptions import (
     VolumeError,
     WorkflowNotFoundError,
 )
-from .proto import persist_pb2, persist_pb2_grpc
+from .proto import joblet_pb2, joblet_pb2_grpc, persist_pb2, persist_pb2_grpc
 
 
 class JobService:
@@ -572,6 +571,98 @@ class JobService:
             raise WorkflowNotFoundError(
                 f"Failed to get jobs for workflow {workflow_uuid}: {e.details()}"
             )
+
+    def query_logs(
+        self,
+        job_id: str,
+        stream: Optional[str] = None,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: int = 0,
+        offset: int = 0,
+    ) -> Iterator[Dict[str, Any]]:
+        """Query historical logs for a job from persistent storage.
+
+        This method delegates to the persist service. All queries go through
+        the JobletService (port 50051), which internally proxies requests
+        to joblet-persist via Unix socket IPC.
+
+        Args:
+            job_id: Job UUID
+            stream: Stream filter ("stdout", "stderr", or None for both)
+            start_time: Start time in Unix nanoseconds
+            end_time: End time in Unix nanoseconds
+            limit: Maximum lines to return (0 = all)
+            offset: Skip lines
+
+        Returns:
+            Iterator yielding log line dictionaries
+
+        Example:
+            >>> for log in client.jobs.query_logs(job_id="abc123"):
+            ...     timestamp = datetime.fromtimestamp(log['timestamp'] / 1e9)
+            ...     content = log['content'].decode('utf-8')
+            ...     print(f"[{timestamp}] {content}")
+        """
+        persist = self._persist_service
+        if persist is None:
+            raise RuntimeError("Persist service not available")
+        return cast(
+            Iterator[Dict[str, Any]],
+            persist.query_logs(
+                job_id=job_id,
+                stream=stream,
+                start_time=start_time,
+                end_time=end_time,
+                limit=limit,
+                offset=offset,
+            ),
+        )
+
+    def query_metrics(
+        self,
+        job_id: str,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: int = 0,
+        offset: int = 0,
+    ) -> Iterator[Dict[str, Any]]:
+        """Query historical metrics for a job from persistent storage.
+
+        This method delegates to the persist service. All queries go through
+        the JobletService (port 50051), which internally proxies requests
+        to joblet-persist via Unix socket IPC.
+
+        Args:
+            job_id: Job UUID
+            start_time: Start time in Unix nanoseconds
+            end_time: End time in Unix nanoseconds
+            limit: Maximum samples to return (0 = all)
+            offset: Skip samples
+
+        Returns:
+            Iterator yielding metric dictionaries with CPU, memory, GPU, disk,
+            and network data
+
+        Example:
+            >>> for metric in client.jobs.query_metrics(job_id="abc123"):
+            ...     cpu = metric['data'].get('cpu_usage', 0)
+            ...     memory_mb = metric['data'].get('memory_usage', 0) / (1024 * 1024)
+            ...     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
+        """
+        persist = self._persist_service
+        if persist is None:
+            raise RuntimeError("Persist service not available")
+        return cast(
+            Iterator[Dict[str, Any]],
+            persist.query_metrics(
+                job_id=job_id,
+                start_time=start_time,
+                end_time=end_time,
+                limit=limit,
+                offset=offset,
+            ),
+        )
 
     @staticmethod
     def _timestamp_to_datetime(timestamp: Any) -> Optional[datetime]:
