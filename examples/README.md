@@ -45,18 +45,17 @@ python examples/03_streaming_logs.py
 ```
 
 ### 04_historical_logs_metrics.py
-Shows how to query historical logs and metrics using PersistService:
-- Querying historical logs with filtering (stdout/stderr)
-- Querying historical metrics for completed jobs
-- Time-range queries for logs and metrics
-- Pagination support
-- Comprehensive job analysis using historical data
+Shows how to retrieve job logs and metrics (proto v2.3.0):
+- Getting all logs for completed jobs
+- Getting all metrics for completed jobs
+- Client-side filtering and statistics
+- Demonstrates simplified streaming API
 
 ```bash
 python examples/04_historical_logs_metrics.py
 ```
 
-**Note**: This example queries the joblet-persist service (port 50052) which stores historical job data. Ensure joblet-persist is running.
+**Note**: Proto v2.3.0 simplified the API - the server streams ALL logs/metrics for a job, and clients filter results as needed.
 
 ### 05_smart_log_streaming.py
 Demonstrates intelligent log streaming that works like `rnx job log`:
@@ -64,15 +63,14 @@ Demonstrates intelligent log streaming that works like `rnx job log`:
 - Seamless access to logs from any job (running or completed)
 - Reconnecting to running jobs with full history
 - Live-only streaming option
-- Graceful fallback when persist service unavailable
 
 ```bash
 python examples/05_smart_log_streaming.py
 ```
 
-**Key Feature**: `client.jobs.get_job_logs()` automatically:
-1. Fetches historical logs from persist service (if available)
-2. Then streams live logs from job service
+**Key Feature**: `client.jobs.get_job_logs()` automatically provides complete log history:
+1. Server handles historical data internally via IPC
+2. Streams both historical and live logs in unified response
 3. Works transparently for both completed and running jobs
 
 ## Configuration
@@ -83,8 +81,7 @@ Create `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "localhost:50051"  # Required
-    persistAddress: "localhost:50052"  # Required
+    address: "localhost:50051"  # Required: Joblet service endpoint
     nodeId: "local-dev"  # Optional: node identifier
     cert: |
       -----BEGIN CERTIFICATE-----
@@ -117,7 +114,7 @@ with JobletClient(
 
 1. Ensure Joblet service is running (Linux systemd service):
 ```bash
-# Check Joblet service status (includes both core and persist on ports 50051/50052)
+# Check Joblet service status (listens on port 50051)
 sudo systemctl status joblet
 
 # View service logs if needed

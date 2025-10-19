@@ -1,7 +1,7 @@
 """Service classes for Joblet SDK"""
 
 from datetime import datetime
-from typing import Any, Callable, Dict, Iterator, List, Optional, cast
+from typing import Any, Dict, Iterator, List, Optional
 
 import grpc
 
@@ -13,27 +13,14 @@ from .exceptions import (
     VolumeError,
     WorkflowNotFoundError,
 )
-from .proto import joblet_pb2, joblet_pb2_grpc, persist_pb2, persist_pb2_grpc
+from .proto import joblet_pb2, joblet_pb2_grpc
 
 
 class JobService:
     """Service for managing jobs and workflows"""
 
-    def __init__(
-        self, channel: grpc.Channel, persist_service_getter: Optional[Callable] = None
-    ):
+    def __init__(self, channel: grpc.Channel):
         self.stub = joblet_pb2_grpc.JobServiceStub(channel)
-        self._persist_service_getter = persist_service_getter
-
-    @property
-    def _persist_service(self):
-        """Lazy access to persist service to avoid circular dependency"""
-        if self._persist_service_getter:
-            try:
-                return self._persist_service_getter()
-            except Exception:
-                return None
-        return None
 
     def run_job(
         self,
@@ -267,16 +254,18 @@ class JobService:
     ) -> Iterator[bytes]:
         """Stream job logs with automatic historical + live log handling
 
-        This method intelligently handles both historical and live logs:
-        1. First fetches any historical logs from persist service (if available)
-        2. Then streams live logs from the job service
+        The Joblet service automatically provides both historical and live logs in a
+        single stream. Historical logs (if any) are sent first, followed by live logs
+        from the running job. The server handles this internally via IPC to the persist
+        subprocess.
 
         This provides seamless log access for both completed and running jobs,
         similar to how 'rnx job log' works.
 
         Args:
             job_uuid: Job UUID or short UUID prefix
-            include_historical: If True, fetch historical logs first (default: True)
+            include_historical: Deprecated parameter, kept for backwards
+                compatibility. Server always includes historical logs.
 
         Yields:
             bytes: Log chunks from both historical and live sources
@@ -288,44 +277,8 @@ class JobService:
             >>> # Get all logs (historical + live) for any job
             >>> for chunk in client.jobs.get_job_logs(job_uuid):
             ...     print(chunk.decode('utf-8'), end='')
-            ...
-            >>> # Get only live logs (skip historical)
-            >>> for chunk in client.jobs.get_job_logs(
-            ...     job_uuid, include_historical=False
-            ... ):
-            ...     print(chunk.decode('utf-8'), end='')
         """
-        # Step 1: Try to fetch historical logs from persist service first
-        if include_historical and self._persist_service:
-            try:
-                for log_line in self._persist_service.query_logs(job_id=job_uuid):
-                    # Yield historical log content
-                    yield log_line["content"]
-            except grpc.RpcError as e:
-                # Gracefully handle persist service errors
-                # - Not implemented: persist service doesn't have this feature yet
-                # - Unavailable: persist service is not running
-                # - Not found: no historical logs exist for this job
-                # All these are OK - we'll just stream live logs
-                if e.code() not in [
-                    grpc.StatusCode.UNIMPLEMENTED,
-                    grpc.StatusCode.UNAVAILABLE,
-                    grpc.StatusCode.NOT_FOUND,
-                ]:
-                    # For unexpected errors, log but continue
-                    import sys
-
-                    print(
-                        f"⚠️  Warning: couldn't fetch historical logs: "
-                        f"{e.details()}",
-                        file=sys.stderr,
-                    )
-            except Exception:
-                # Any other error (e.g., persist not configured)
-                # Continue silently
-                pass
-
-        # Step 2: Stream live logs from joblet-core
+        # Stream logs from joblet service (includes both historical and live)
         request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
 
         try:
@@ -356,6 +309,107 @@ class JobService:
             ...     print(chunk.decode('utf-8'), end='')
         """
         return self.get_job_logs(job_uuid, include_historical=False)
+
+    def get_job_metrics(self, job_uuid: str) -> Iterator[Dict[str, Any]]:
+        """Stream all metrics for a job
+
+        Streams all available metrics for the specified job from the server. The server
+        provides metrics samples collected during job execution, including CPU, memory,
+        I/O, network, and GPU usage (if applicable).
+
+        Note: Proto v2.3.0 simplified the metrics API - the server returns ALL metrics
+        for a job. If you need filtering (e.g., by time range), collect the results
+        and filter client-side.
+
+        Args:
+            job_uuid: Job UUID or short UUID prefix
+
+        Yields:
+            Dict[str, Any]: Metric sample dictionaries containing:
+                - timestamp: Unix timestamp in nanoseconds
+                - cpu_usage: CPU usage percentage
+                - memory_usage: Memory usage in bytes
+                - disk_io: Disk I/O metrics (if available)
+                - network_io: Network I/O metrics (if available)
+                - gpu_metrics: GPU metrics list (if applicable)
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist
+
+        Example:
+            >>> for metric in client.jobs.get_job_metrics(job_uuid):
+            ...     cpu = metric['cpu_usage']
+            ...     memory_mb = metric['memory_usage'] / (1024 * 1024)
+            ...     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
+        """
+        request = joblet_pb2.JobMetricsRequest(uuid=job_uuid)
+
+        try:
+            for sample in self.stub.GetJobMetrics(request):
+                # Convert protobuf message to dict
+                metric_dict = {
+                    "timestamp": sample.timestamp,
+                    "job_id": sample.jobId,
+                    "sample_interval_seconds": sample.sampleIntervalSeconds,
+                }
+
+                # Add CPU metrics
+                if sample.HasField("cpu"):
+                    metric_dict["cpu_usage"] = sample.cpu.usagePercent
+                    metric_dict["cpu_throttle_percent"] = sample.cpu.throttlePercent
+
+                # Add memory metrics
+                if sample.HasField("memory"):
+                    metric_dict["memory_usage"] = sample.memory.current
+                    metric_dict["memory_max"] = sample.memory.max
+                    metric_dict["memory_usage_percent"] = sample.memory.usagePercent
+
+                # Add I/O metrics
+                if sample.HasField("io"):
+                    metric_dict["disk_io"] = {
+                        "read_bytes": sample.io.totalReadBytes,
+                        "write_bytes": sample.io.totalWriteBytes,
+                        "read_ops": sample.io.totalReadOps,
+                        "write_ops": sample.io.totalWriteOps,
+                        "read_bps": sample.io.readBPS,
+                        "write_bps": sample.io.writeBPS,
+                    }
+
+                # Add network metrics
+                if sample.HasField("network"):
+                    metric_dict["network_io"] = {
+                        "rx_bytes": sample.network.totalRxBytes,
+                        "tx_bytes": sample.network.totalTxBytes,
+                        "rx_packets": sample.network.totalRxPackets,
+                        "tx_packets": sample.network.totalTxPackets,
+                        "rx_bps": sample.network.rxBPS,
+                        "tx_bps": sample.network.txBPS,
+                    }
+
+                # Add GPU metrics if available
+                if sample.gpu:
+                    metric_dict["gpu_metrics"] = []
+                    for gpu in sample.gpu:
+                        metric_dict["gpu_metrics"].append(
+                            {
+                                "index": gpu.index,
+                                "uuid": gpu.uuid,
+                                "name": gpu.name,
+                                "utilization": gpu.utilization,
+                                "memory_used": gpu.memoryUsed,
+                                "memory_total": gpu.memoryTotal,
+                                "memory_percent": gpu.memoryPercent,
+                                "temperature": gpu.temperature,
+                                "power_draw": gpu.powerDraw,
+                            }
+                        )
+
+                yield metric_dict
+
+        except grpc.RpcError as e:
+            raise JobNotFoundError(
+                f"Failed to get metrics for job {job_uuid}: {e.details()}"
+            )
 
     def list_jobs(self) -> List[Dict[str, Any]]:
         """List all jobs on the server
@@ -571,98 +625,6 @@ class JobService:
             raise WorkflowNotFoundError(
                 f"Failed to get jobs for workflow {workflow_uuid}: {e.details()}"
             )
-
-    def query_logs(
-        self,
-        job_id: str,
-        stream: Optional[str] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: int = 0,
-        offset: int = 0,
-    ) -> Iterator[Dict[str, Any]]:
-        """Query historical logs for a job from persistent storage.
-
-        This method delegates to the persist service. All queries go through
-        the JobletService (port 50051), which internally proxies requests
-        to joblet-persist via Unix socket IPC.
-
-        Args:
-            job_id: Job UUID
-            stream: Stream filter ("stdout", "stderr", or None for both)
-            start_time: Start time in Unix nanoseconds
-            end_time: End time in Unix nanoseconds
-            limit: Maximum lines to return (0 = all)
-            offset: Skip lines
-
-        Returns:
-            Iterator yielding log line dictionaries
-
-        Example:
-            >>> for log in client.jobs.query_logs(job_id="abc123"):
-            ...     timestamp = datetime.fromtimestamp(log['timestamp'] / 1e9)
-            ...     content = log['content'].decode('utf-8')
-            ...     print(f"[{timestamp}] {content}")
-        """
-        persist = self._persist_service
-        if persist is None:
-            raise RuntimeError("Persist service not available")
-        return cast(
-            Iterator[Dict[str, Any]],
-            persist.query_logs(
-                job_id=job_id,
-                stream=stream,
-                start_time=start_time,
-                end_time=end_time,
-                limit=limit,
-                offset=offset,
-            ),
-        )
-
-    def query_metrics(
-        self,
-        job_id: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: int = 0,
-        offset: int = 0,
-    ) -> Iterator[Dict[str, Any]]:
-        """Query historical metrics for a job from persistent storage.
-
-        This method delegates to the persist service. All queries go through
-        the JobletService (port 50051), which internally proxies requests
-        to joblet-persist via Unix socket IPC.
-
-        Args:
-            job_id: Job UUID
-            start_time: Start time in Unix nanoseconds
-            end_time: End time in Unix nanoseconds
-            limit: Maximum samples to return (0 = all)
-            offset: Skip samples
-
-        Returns:
-            Iterator yielding metric dictionaries with CPU, memory, GPU, disk,
-            and network data
-
-        Example:
-            >>> for metric in client.jobs.query_metrics(job_id="abc123"):
-            ...     cpu = metric['data'].get('cpu_usage', 0)
-            ...     memory_mb = metric['data'].get('memory_usage', 0) / (1024 * 1024)
-            ...     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
-        """
-        persist = self._persist_service
-        if persist is None:
-            raise RuntimeError("Persist service not available")
-        return cast(
-            Iterator[Dict[str, Any]],
-            persist.query_metrics(
-                job_id=job_id,
-                start_time=start_time,
-                end_time=end_time,
-                limit=limit,
-                offset=offset,
-            ),
-        )
 
     @staticmethod
     def _timestamp_to_datetime(timestamp: Any) -> Optional[datetime]:
@@ -1417,139 +1379,10 @@ class RuntimeService:
             raise RuntimeNotFoundError(f"Failed to remove runtime: {e.details()}")
 
 
-class PersistService:
-    """Service for querying historical logs and metrics (Port 50052)"""
-
-    def __init__(self, channel: grpc.Channel):
-        self.stub = persist_pb2_grpc.PersistServiceStub(channel)
-
-    def query_logs(
-        self,
-        job_id: str,
-        stream: Optional[str] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: int = 0,
-        offset: int = 0,
-    ) -> Iterator[Dict[str, Any]]:
-        """Query historical logs for a job
-
-        Args:
-            job_id: Job UUID
-            stream: Stream filter ("stdout", "stderr", or None for both)
-            start_time: Start time in Unix nanoseconds
-            end_time: End time in Unix nanoseconds
-            limit: Maximum lines to return (0 = all)
-            offset: Skip lines
-
-        Yields:
-            Log line dictionaries with job_id, stream, timestamp, sequence, content
-        """
-        # Convert stream string to enum
-        stream_type = persist_pb2.STREAM_TYPE_UNSPECIFIED
-        if stream == "stdout":
-            stream_type = persist_pb2.STREAM_TYPE_STDOUT
-        elif stream == "stderr":
-            stream_type = persist_pb2.STREAM_TYPE_STDERR
-
-        request = persist_pb2.QueryLogsRequest(
-            job_id=job_id,
-            stream=stream_type,
-            start_time=start_time or 0,
-            end_time=end_time or 0,
-            limit=limit,
-            offset=offset,
-        )
-
-        try:
-            for log_line in self.stub.QueryLogs(request):
-                # Convert stream enum to string
-                stream_str = "unknown"
-                if log_line.stream == persist_pb2.STREAM_TYPE_STDOUT:
-                    stream_str = "stdout"
-                elif log_line.stream == persist_pb2.STREAM_TYPE_STDERR:
-                    stream_str = "stderr"
-
-                yield {
-                    "job_id": log_line.job_id,
-                    "stream": stream_str,
-                    "timestamp": log_line.timestamp,
-                    "sequence": log_line.sequence,
-                    "content": log_line.content,
-                }
-        except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to query logs: {e.details()}")
-
-    def query_metrics(
-        self,
-        job_id: str,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        limit: int = 0,
-        offset: int = 0,
-    ) -> Iterator[Dict[str, Any]]:
-        """Query historical metrics for a job
-
-        Args:
-            job_id: Job UUID
-            start_time: Start time in Unix nanoseconds
-            end_time: End time in Unix nanoseconds
-            limit: Maximum samples to return (0 = all)
-            offset: Skip samples
-
-        Yields:
-            Metric dictionaries with job_id, timestamp, sequence, and data
-        """
-        request = persist_pb2.QueryMetricsRequest(
-            job_id=job_id,
-            start_time=start_time or 0,
-            end_time=end_time or 0,
-            limit=limit,
-            offset=offset,
-        )
-
-        try:
-            for metric in self.stub.QueryMetrics(request):
-                metric_dict = {
-                    "job_id": metric.job_id,
-                    "timestamp": metric.timestamp,
-                    "sequence": metric.sequence,
-                    "data": {},
-                }
-
-                if metric.HasField("data"):
-                    metric_dict["data"] = {
-                        "cpu_usage": metric.data.cpu_usage,
-                        "memory_usage": metric.data.memory_usage,
-                        "gpu_usage": metric.data.gpu_usage,
-                    }
-
-                    if metric.data.HasField("disk_io"):
-                        metric_dict["data"]["disk_io"] = {
-                            "read_bytes": metric.data.disk_io.read_bytes,
-                            "write_bytes": metric.data.disk_io.write_bytes,
-                            "read_ops": metric.data.disk_io.read_ops,
-                            "write_ops": metric.data.disk_io.write_ops,
-                        }
-
-                    if metric.data.HasField("network_io"):
-                        metric_dict["data"]["network_io"] = {
-                            "rx_bytes": metric.data.network_io.rx_bytes,
-                            "tx_bytes": metric.data.network_io.tx_bytes,
-                            "rx_packets": metric.data.network_io.rx_packets,
-                            "tx_packets": metric.data.network_io.tx_packets,
-                        }
-
-                yield metric_dict
-        except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to query metrics: {e.details()}")
-
-
 __all__ = [
     "JobService",
     "NetworkService",
     "VolumeService",
     "MonitoringService",
     "RuntimeService",
-    "PersistService",
 ]

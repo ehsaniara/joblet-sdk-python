@@ -3,4 +3,4 @@
 # This package contains auto-generated protobuf code
 # Import the modules directly, not through this __init__.py
 
-__all__ = ["joblet_pb2", "joblet_pb2_grpc", "persist_pb2", "persist_pb2_grpc"]
+__all__ = ["joblet_pb2", "joblet_pb2_grpc"]

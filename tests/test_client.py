@@ -183,11 +183,10 @@ class TestJobletClient:
 
                 # First access should create the service
                 jobs_service = client.jobs
-                # Check JobService called with channel and persist_service_getter
+                # Check JobService called with channel
                 assert mock_job_service.call_count == 1
                 call_args = mock_job_service.call_args
                 assert call_args[0][0] == mock_channel  # First arg is channel
-                assert "persist_service_getter" in call_args[1]  # Named arg
                 assert jobs_service == mock_service_instance
 
                 # Second access should return the same instance

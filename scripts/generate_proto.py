@@ -224,7 +224,7 @@ GRPCIO_TOOLS_VERSION = "{get_grpc_version()}"
         with open(joblet_dir / "_proto_generation_info.py", "w") as f:
             f.write(generation_info)
 
-        print("✅ Proto files generated successfully!")
+        print("SUCCESS: Proto files generated successfully!")
         print(f"   Version: {version}")
         print(f"   Commit: {commit_hash}")
         print(f"   gRPC Tools: {get_grpc_version()}")

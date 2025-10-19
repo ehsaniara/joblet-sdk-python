@@ -131,7 +131,8 @@ The SDK can load connection information from `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "joblet-server:50051"  # Required - single endpoint for all operations
+    address: "joblet-server:50051"        # Required: Main Joblet service
+    persistAddress: "joblet-server:50052"  # Required: Historical data service
     nodeId: "node-001"  # Optional: unique node identifier
     cert: |
       -----BEGIN CERTIFICATE-----
@@ -147,7 +148,8 @@ nodes:
       -----END CERTIFICATE-----
 
   production:
-    address: "prod-joblet:50051"  # Required - single endpoint
+    address: "prod-joblet:50051"        # Required: Main service
+    persistAddress: "prod-joblet:50052"  # Required: Historical data
     nodeId: "prod-node-001"  # Optional
     cert: |
       [Production certificate]
@@ -158,15 +160,16 @@ nodes:
 ```
 
 **Configuration Fields:**
-- `address` - **Required**: Joblet service endpoint (default port 50051)
-  - Single endpoint for all operations including historical queries
-  - Joblet internally handles persistence via Unix socket IPC
+- `address` - **Required**: Joblet main service endpoint (port 50051)
+  - Handles job execution, workflows, live logs, and resource management
+- `persistAddress` - **Required**: Joblet persist service endpoint (port 50052)
+  - Provides historical logs and metrics queries via gRPC
 - `nodeId` - Optional: Unique identifier for the node
-- `cert` - Client certificate for mTLS authentication
-- `key` - Client private key for mTLS authentication
-- `ca` - CA certificate for server verification (can also be placed as `~/.rnx/ca.crt`)
+- `cert` - **Required**: Client certificate for mTLS authentication
+- `key` - **Required**: Client private key for mTLS authentication
+- `ca` - **Required**: CA certificate for server verification (can also be placed as `~/.rnx/ca.crt`)
 
-**Note**: Joblet runs as a unified Linux systemd service. All operations go through the main service on port 50051, which transparently handles both live streaming and historical queries via internal Unix socket communication with joblet-persist.
+**Note**: Joblet runs as a unified Linux systemd service with two components: the main service (port 50051) for live operations and the persist service (port 50052) for historical data access.
 
 **Using Multiple Nodes:**
 ```python
@@ -295,11 +298,8 @@ def get_job_logs(
 **Smart log streaming** - automatically fetches historical logs then streams live logs.
 
 This method intelligently handles both historical and live logs:
-1. First fetches any historical logs (internally from joblet-persist via IPC)
-2. Then streams live logs from the running job
-
-All operations go through a single endpoint (port 50051), with internal Unix socket
-proxying for historical data.
+1. First fetches any historical logs from the persist service (port 50052)
+2. Then streams live logs from the main service (port 50051)
 
 **Parameters:**
 - `job_uuid`: Job UUID or short UUID prefix
@@ -380,8 +380,7 @@ def query_logs(
 
 Query historical logs for a job from persistent storage.
 
-**Note**: All queries go through the JobletService (port 50051), which internally proxies
-requests to joblet-persist via Unix socket IPC.
+**Note**: This method connects to the persist service (port 50052) to retrieve historical data.
 
 **Parameters:**
 - `job_id`: Job UUID

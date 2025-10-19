@@ -38,7 +38,7 @@ Create `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "your-joblet-server:50051"  # Required - single endpoint for all operations
+    address: "your-joblet-server:50051"  # Required: Joblet service endpoint
     nodeId: "node-001"  # Optional: unique identifier for this node
     cert: |
       -----BEGIN CERTIFICATE-----
@@ -55,15 +55,15 @@ nodes:
 ```
 
 **Configuration Fields:**
-- `address` - **Required**: Joblet service endpoint (default port 50051)
-  - Single endpoint for all operations including historical queries
-  - Joblet internally handles persistence via Unix socket IPC
+- `address` - **Required**: Joblet service endpoint (port 50051)
+  - Handles all operations: job execution, workflows, logs, metrics, and resource management
+  - Historical data is handled internally via IPC
 - `nodeId` - Optional: Unique identifier for the node
 - `cert` - **Required**: Client certificate for mTLS authentication
 - `key` - **Required**: Client private key for mTLS authentication
 - `ca` - **Required**: CA certificate for server verification
 
-**Note**: Joblet runs as a unified Linux systemd service with embedded persistence (joblet-persist). All operations go through the main service on port 50051, which transparently handles both live streaming and historical queries. See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) for server setup.
+**Note**: Joblet runs as a unified Linux systemd service on port 50051. The server handles historical data internally via IPC to the persist subprocess. See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md) for server setup.
 
 ## GPU Support
 
@@ -101,13 +101,13 @@ for chunk in client.jobs.get_job_logs(job['job_uuid']):
     print(chunk.decode('utf-8'), end='', flush=True)
 ```
 
-### Query Historical Data
+### Get Job Metrics
 
 ```python
-# Analyze past job performance
-for metric in client.persist.query_metrics(job_id=job_uuid):
-    print(f"CPU: {metric['data']['cpu_usage']:.2f}%")
-    print(f"Memory: {metric['data']['memory_usage'] / 1e9:.2f} GB")
+# Get all metrics for a job (server streams everything)
+for metric in client.jobs.get_job_metrics(job_uuid):
+    print(f"CPU: {metric['cpu_usage']:.2f}%")
+    print(f"Memory: {metric['memory_usage'] / 1e9:.2f} GB")
 ```
 
 ### Build Workflows
@@ -165,12 +165,8 @@ for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
 - `client.jobs.get_job_status()` - Get job status
 - `client.jobs.get_job_logs()` - **Smart log streaming** (historical + live)
 - `client.jobs.stream_live_logs()` - Live-only log streaming
+- `client.jobs.get_job_metrics()` - Stream all job metrics
 - `client.jobs.run_workflow()` - Execute a workflow
-
-### Historical Data
-
-- `client.persist.query_logs()` - Query historical logs with filtering
-- `client.persist.query_metrics()` - Query historical metrics data
 
 ### Resources
 - `client.networks` - Network management

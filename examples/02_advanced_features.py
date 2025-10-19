@@ -78,7 +78,7 @@ def scheduled_job_example(client):
 
     # Schedule a job to run in 5 seconds
     future_time = datetime.now() + timedelta(seconds=5)
-    schedule_time = future_time.strftime("%Y-%m-%d %H:%M:%S")
+    schedule_time = future_time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     job = client.jobs.run_job(
         name="scheduled-job",

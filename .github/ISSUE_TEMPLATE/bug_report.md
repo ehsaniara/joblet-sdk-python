@@ -6,11 +6,11 @@ labels: bug
 assignees: ''
 ---
 
-## 🐛 Bug Description
+## Bug Description
 
 A clear and concise description of what the bug is.
 
-## 🔄 To Reproduce
+## To Reproduce
 
 Steps to reproduce the behavior:
 
@@ -18,11 +18,11 @@ Steps to reproduce the behavior:
 2. Run command '...'
 3. See error
 
-## ✅ Expected Behavior
+## Expected Behavior
 
 A clear and concise description of what you expected to happen.
 
-## 📸 Screenshots/Logs
+## Screenshots/Logs
 
 If applicable, add screenshots or error logs to help explain your problem.
 
@@ -30,7 +30,7 @@ If applicable, add screenshots or error logs to help explain your problem.
 Paste error logs here
 ```
 
-## 🖥️ Environment
+## Environment
 
 **Desktop/Server:**
 
@@ -44,11 +44,11 @@ Paste error logs here
 - mTLS setup: [yes/no]
 - Certificate authority: [self-signed/company CA/other]
 
-## 📋 Additional Context
+## Additional Context
 
 Add any other context about the problem here.
 
-## 🔧 Attempted Solutions
+## Attempted Solutions
 
 What have you tried to fix this issue?
 
@@ -58,7 +58,7 @@ What have you tried to fix this issue?
 - [ ] Checked examples directory for similar usage
 - [ ] Reviewed API documentation
 
-## 🤝 Contributing
+## Contributing
 
 - [ ] I'd be willing to help fix this issue
 - [ ] I can provide additional testing/reproduction steps

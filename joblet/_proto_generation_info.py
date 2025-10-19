@@ -9,10 +9,10 @@ import subprocess
 
 # Source repository information
 PROTO_REPOSITORY = "https://github.com/ehsaniara/joblet-proto"
-PROTO_COMMIT_HASH = "2091bf61cc03f11e923bc7f6695b3f168996beb2"
-PROTO_TAG = "v2.2.1"
+PROTO_COMMIT_HASH = "02ea2bb95d51fa3b17b63e23600d57a8f68cba33"
+PROTO_TAG = "v2.3.0"
 GENERATION_TIMESTAMP = (
-    "Wed Oct 15 08:41:44 PM UTC 2025"
+    "Sat Oct 18 05:24:38 PM UTC 2025"
 )
 
 # Protocol buffer compiler version

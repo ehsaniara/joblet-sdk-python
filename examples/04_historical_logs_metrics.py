@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Example 04: Querying Historical Logs and Metrics
+Example 04: Retrieving Job Logs and Metrics
 
-This example demonstrates how to query historical job logs and metrics from
-persistent storage. This is useful for analyzing completed jobs or debugging
-past executions.
+This example demonstrates how to retrieve job logs and metrics from the server.
+In proto v2.3.0, the server streams ALL available logs and metrics for a job,
+and clients can filter the results as needed.
 
-All queries go through the JobletService (port 50051), which internally proxies
-requests to joblet-persist via Unix socket IPC. This provides efficient querying
-of stored logs and metrics with filtering and pagination.
+The server handles historical data internally via IPC to the persist subprocess,
+providing a unified API through the JobService (port 50051).
 """
 
 from datetime import datetime
@@ -16,10 +15,10 @@ from datetime import datetime
 from joblet import JobletClient
 
 
-def example_query_historical_logs():
-    """Query historical logs for a completed job"""
+def example_get_job_logs():
+    """Get all logs for a completed job"""
     print("=" * 60)
-    print("Example 1: Query Historical Logs")
+    print("Example 1: Get Job Logs")
     print("=" * 60)
 
     with JobletClient() as client:
@@ -44,53 +43,40 @@ def example_query_historical_logs():
                 break
             time.sleep(0.5)
 
-        # Query historical logs (internally proxied to persist service)
-        print("\n3. Querying historical logs...")
+        # Get all logs (server streams everything)
+        print("\n3. Getting all logs...")
         print("-" * 60)
 
-        log_count = 0
-        for log in client.jobs.query_logs(job_id=job_id):
-            log_count += 1
-            timestamp = datetime.fromtimestamp(log["timestamp"] / 1e9)
-            content = log["content"].decode("utf-8").strip()
-            stream = log["stream"].upper()
-            print(f"   [{timestamp.strftime('%H:%M:%S.%f')[:-3]}] [{stream}] {content}")
+        # Collect logs to show we got them all
+        all_logs = b""
+        for chunk in client.jobs.get_job_logs(job_id):
+            all_logs += chunk
 
-        print(f"\n   Total logs retrieved: {log_count}")
+        # Decode and display
+        log_text = all_logs.decode("utf-8")
+        log_lines = [line for line in log_text.strip().split("\n") if line]
 
-        # Query only stdout logs
-        print("\n4. Querying only STDOUT logs...")
-        print("-" * 60)
+        print(f"   Total log lines: {len(log_lines)}")
+        print("\n   Sample logs:")
+        for line in log_lines[:5]:
+            print(f"      {line}")
 
-        stdout_count = 0
-        for log in client.jobs.query_logs(job_id=job_id, stream="stdout"):
-            stdout_count += 1
-            content = log["content"].decode("utf-8").strip()
-            print(f"   STDOUT: {content}")
-
-        print(f"\n   Total STDOUT logs: {stdout_count}")
-
-        # Query with pagination (first 5 lines)
-        print("\n5. Querying with pagination (limit=5)...")
-        print("-" * 60)
-
-        for log in client.jobs.query_logs(job_id=job_id, limit=5):
-            content = log["content"].decode("utf-8").strip()
-            print(f"   {content}")
+        if len(log_lines) > 5:
+            print(f"      ... and {len(log_lines) - 5} more lines")
 
 
-def example_query_historical_metrics():
-    """Query historical metrics for a completed job"""
+def example_get_job_metrics():
+    """Get all metrics for a completed job"""
     print("\n" + "=" * 60)
-    print("Example 2: Query Historical Metrics")
+    print("Example 2: Get Job Metrics")
     print("=" * 60)
 
     with JobletClient() as client:
         # Run a CPU-intensive job that generates metrics
-        print("\n1. Running a CPU-intensive job to generate metrics...")
+        print("\n1. Running a job to generate metrics...")
         job = client.jobs.run_job(
             command="bash",
-            args=["-c", "for i in {1..30}; do echo 'Working...' $i; sleep 1; done"],
+            args=["-c", "for i in {1..15}; do echo 'Working...' $i; sleep 1; done"],
             name="metrics-example-job",
             max_cpu=50,  # Limit CPU to 50%
         )
@@ -98,7 +84,7 @@ def example_query_historical_metrics():
         print(f"   Job started: {job_id}")
 
         # Wait for job to complete
-        print("\n2. Waiting for job to complete (this takes ~30 seconds)...")
+        print("\n2. Waiting for job to complete (this takes ~15 seconds)...")
         import time
 
         while True:
@@ -108,142 +94,74 @@ def example_query_historical_metrics():
                 break
             time.sleep(2)
 
-        # Query historical metrics (internally proxied to persist service)
-        print("\n3. Querying historical metrics...")
+        # Get all metrics (server streams everything)
+        print("\n3. Getting all metrics...")
         print("-" * 60)
 
-        metrics_count = 0
-        for metric in client.jobs.query_metrics(job_id=job_id):
-            metrics_count += 1
+        # Collect all metrics
+        all_metrics = list(client.jobs.get_job_metrics(job_id))
+
+        print(f"   Total metric samples: {len(all_metrics)}")
+
+        # Show first few samples
+        print("\n   Sample metrics:")
+        for metric in all_metrics[:5]:
             timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
-            data = metric["data"]
+            cpu = metric.get("cpu_usage", 0)
+            memory = metric.get("memory_usage", 0) / (1024 * 1024)  # Convert to MB
 
-            # Format metrics
-            cpu = data.get("cpu_usage", 0)
-            memory = data.get("memory_usage", 0) / (1024 * 1024)  # Convert to MB
-            gpu = data.get("gpu_usage", 0)
-
-            print(
-                f"   [{timestamp.strftime('%H:%M:%S')}] "
-                f"CPU: {cpu:6.2f}%, Memory: {memory:8.2f} MB, GPU: {gpu:6.2f}%"
-            )
-
-            # Show disk I/O if available
-            if "disk_io" in data:
-                disk = data["disk_io"]
-                read_mb = disk["read_bytes"] / (1024 * 1024)
-                write_mb = disk["write_bytes"] / (1024 * 1024)
-                print(
-                    f"              Disk I/O - Read: {read_mb:.2f} MB, "
-                    f"Write: {write_mb:.2f} MB"
-                )
-
-            # Show network I/O if available
-            if "network_io" in data:
-                net = data["network_io"]
-                rx_mb = net["rx_bytes"] / (1024 * 1024)
-                tx_mb = net["tx_bytes"] / (1024 * 1024)
-                print(
-                    f"              Network - RX: {rx_mb:.2f} MB, "
-                    f"TX: {tx_mb:.2f} MB"
-                )
-
-        print(f"\n   Total metrics samples: {metrics_count}")
-
-        # Query recent metrics (last 10 samples)
-        print("\n4. Querying recent metrics (limit=10)...")
-        print("-" * 60)
-
-        for metric in client.jobs.query_metrics(job_id=job_id, limit=10):
-            timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
-            cpu = metric["data"].get("cpu_usage", 0)
-            memory = metric["data"].get("memory_usage", 0) / (1024 * 1024)
             print(
                 f"   [{timestamp.strftime('%H:%M:%S')}] "
                 f"CPU: {cpu:6.2f}%, Memory: {memory:8.2f} MB"
             )
 
+        if len(all_metrics) > 5:
+            print(f"\n   ... and {len(all_metrics) - 5} more samples")
 
-def example_time_range_query():
-    """Query logs and metrics within a specific time range"""
+        # Calculate statistics (client-side)
+        if all_metrics:
+            cpu_values = [m.get("cpu_usage", 0) for m in all_metrics]
+            memory_values = [
+                m.get("memory_usage", 0) / (1024 * 1024) for m in all_metrics
+            ]
+
+            print("\n4. Statistics (calculated client-side):")
+            print("-" * 60)
+            if cpu_values:
+                print("   CPU Usage:")
+                print(f"      Average: {sum(cpu_values) / len(cpu_values):.2f}%")
+                print(f"      Peak: {max(cpu_values):.2f}%")
+                print(f"      Min: {min(cpu_values):.2f}%")
+
+            if memory_values:
+                print("\n   Memory Usage:")
+                print(
+                    f"      Average: {sum(memory_values) / len(memory_values):.2f} MB"
+                )
+                print(f"      Peak: {max(memory_values):.2f} MB")
+                print(f"      Min: {min(memory_values):.2f} MB")
+
+
+def example_client_side_filtering():
+    """Demonstrate client-side filtering of logs and metrics"""
     print("\n" + "=" * 60)
-    print("Example 3: Time Range Queries")
+    print("Example 3: Client-Side Filtering")
     print("=" * 60)
 
     with JobletClient() as client:
-        # Run a long job
-        print("\n1. Running a long-running job...")
+        # Run a job
+        print("\n1. Running a sample job...")
         job = client.jobs.run_job(
             command="bash",
             args=[
                 "-c",
-                "for i in {1..20}; do echo 'Timestamp: '$(date); sleep 1; done",
+                "for i in {1..20}; do echo 'Timestamp: '$(date); sleep 0.5; done",
             ],
-            name="timerange-example-job",
+            name="filter-example-job",
+            max_cpu=75,
         )
         job_id = job["job_uuid"]
         print(f"   Job started: {job_id}")
-
-        import time
-
-        time.sleep(5)  # Let it run for a bit
-
-        # Get current time in nanoseconds
-        now_ns = int(time.time() * 1e9)
-        five_seconds_ago_ns = now_ns - (5 * int(1e9))
-
-        # Query logs from the last 5 seconds
-        print("\n2. Querying logs from the last 5 seconds...")
-        print("-" * 60)
-
-        recent_logs = 0
-        for log in client.jobs.query_logs(
-            job_id=job_id, start_time=five_seconds_ago_ns, end_time=now_ns
-        ):
-            recent_logs += 1
-            content = log["content"].decode("utf-8").strip()
-            timestamp = datetime.fromtimestamp(log["timestamp"] / 1e9)
-            print(f"   [{timestamp.strftime('%H:%M:%S')}] {content}")
-
-        print(f"\n   Logs in last 5 seconds: {recent_logs}")
-
-        # Stop the job
-        print("\n3. Stopping the job...")
-        client.jobs.stop_job(job_id)
-
-
-def example_comprehensive_job_analysis():
-    """Comprehensive analysis of a completed job using historical queries"""
-    print("\n" + "=" * 60)
-    print("Example 4: Comprehensive Job Analysis")
-    print("=" * 60)
-
-    with JobletClient() as client:
-        # Run a job that we'll analyze
-        print("\n1. Running a sample job...")
-        job = client.jobs.run_job(
-            command="python3",
-            args=[
-                "-c",
-                """
-import time
-import sys
-
-for i in range(10):
-    print(f'Processing batch {i+1}/10...', flush=True)
-    # Do some work
-    sum([j**2 for j in range(100000)])
-    time.sleep(0.5)
-
-print('Job completed successfully!', flush=True)
-""",
-            ],
-            name="analysis-example-job",
-            max_cpu=75,
-            max_memory=256,  # 256 MB
-        )
-        job_id = job["job_uuid"]
-        print(f"   Job ID: {job_id}")
 
         # Wait for completion
         print("\n2. Waiting for job to complete...")
@@ -253,91 +171,62 @@ print('Job completed successfully!', flush=True)
             status = client.jobs.get_job_status(job_id)
             if status["status"] in ["COMPLETED", "FAILED"]:
                 break
-            time.sleep(0.5)
+            time.sleep(1)
 
-        # Comprehensive analysis
-        print("\n3. Analyzing job execution...")
+        # Get all metrics and filter client-side
+        print("\n3. Getting metrics and filtering client-side...")
         print("-" * 60)
 
-        # Get job details
-        job_info = client.jobs.get_job_status(job_id)
-        print(f"\n   Job Status: {job_info['status']}")
-        print(f"   Exit Code: {job_info['exit_code']}")
-        print(f"   Start Time: {job_info['start_time']}")
-        print(f"   End Time: {job_info['end_time']}")
+        all_metrics = list(client.jobs.get_job_metrics(job_id))
+        print(f"   Total samples: {len(all_metrics)}")
 
-        # Analyze logs
-        print("\n4. Log Analysis:")
-        print("-" * 60)
-        log_lines = list(client.jobs.query_logs(job_id=job_id))
-        print(f"   Total log lines: {len(log_lines)}")
+        # Example: Get only the last 5 samples (client-side filtering)
+        last_5 = all_metrics[-5:] if len(all_metrics) >= 5 else all_metrics
 
-        if log_lines:
-            first_log_time = datetime.fromtimestamp(log_lines[0]["timestamp"] / 1e9)
-            last_log_time = datetime.fromtimestamp(log_lines[-1]["timestamp"] / 1e9)
-            duration = (log_lines[-1]["timestamp"] - log_lines[0]["timestamp"]) / 1e9
-            print(f"   First log: {first_log_time.strftime('%H:%M:%S.%f')[:-3]}")
-            print(f"   Last log: {last_log_time.strftime('%H:%M:%S.%f')[:-3]}")
-            print(f"   Log duration: {duration:.2f} seconds")
+        print("\n   Last 5 samples (client-side filter):")
+        for metric in last_5:
+            timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
+            cpu = metric.get("cpu_usage", 0)
+            print(f"      [{timestamp.strftime('%H:%M:%S')}] CPU: {cpu:6.2f}%")
 
-            print("\n   Sample logs:")
-            for log in log_lines[:3]:
-                content = log["content"].decode("utf-8").strip()
-                print(f"      {content}")
+        # Example: Filter by time range (client-side)
+        if all_metrics:
+            # Get metrics from the last 5 seconds
+            now_ns = all_metrics[-1]["timestamp"]
+            five_sec_ago_ns = now_ns - (5 * int(1e9))
 
-        # Analyze metrics
-        print("\n5. Metrics Analysis:")
-        print("-" * 60)
-        metrics = list(client.jobs.query_metrics(job_id=job_id))
-        print(f"   Total metric samples: {len(metrics)}")
-
-        if metrics:
-            # Calculate stats
-            cpu_values = [m["data"].get("cpu_usage", 0) for m in metrics]
-            memory_values = [
-                m["data"].get("memory_usage", 0) / (1024 * 1024) for m in metrics
+            recent_metrics = [
+                m for m in all_metrics if m["timestamp"] >= five_sec_ago_ns
             ]
 
-            if cpu_values:
-                print("\n   CPU Usage:")
-                print(f"      Average: {sum(cpu_values) / len(cpu_values):.2f}%")
-                print(f"      Peak: {max(cpu_values):.2f}%")
-                print(f"      Min: {min(cpu_values):.2f}%")
-
-            if memory_values:
-                print("\n   Memory Usage:")
-                print(
-                    f"      Average: "
-                    f"{sum(memory_values) / len(memory_values):.2f} MB"
-                )
-                print(f"      Peak: {max(memory_values):.2f} MB")
-                print(f"      Min: {min(memory_values):.2f} MB")
+            print("\n   Metrics from last 5 seconds (client-side filter):")
+            print(f"      Found {len(recent_metrics)} samples in last 5 seconds")
 
 
 def main():
     """Run all examples"""
     print("\n" + "=" * 60)
-    print("Joblet SDK - Historical Logs and Metrics Examples")
+    print("Joblet SDK - Job Logs and Metrics Examples (Proto v2.3.0)")
     print("=" * 60)
 
     try:
-        # Example 1: Basic log queries
-        example_query_historical_logs()
+        # Example 1: Get job logs
+        example_get_job_logs()
 
-        # Example 2: Basic metrics queries
-        # Uncomment to run (takes ~30 seconds)
-        # example_query_historical_metrics()
+        # Example 2: Get job metrics
+        # Uncomment to run (takes ~15 seconds)
+        # example_get_job_metrics()
 
-        # Example 3: Time range queries
+        # Example 3: Client-side filtering
         # Uncomment to run
-        # example_time_range_query()
-
-        # Example 4: Comprehensive analysis
-        # Uncomment to run
-        # example_comprehensive_job_analysis()
+        # example_client_side_filtering()
 
         print("\n" + "=" * 60)
         print("Examples completed successfully!")
+        print("\n" + "Note: Proto v2.3.0 simplified the API:")
+        print("  - Server streams ALL logs/metrics for a job")
+        print("  - Clients filter results as needed (shown in Example 3)")
+        print("  - No more server-side pagination or time-range filtering")
         print("=" * 60)
 
     except Exception as e:

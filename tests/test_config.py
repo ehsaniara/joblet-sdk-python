@@ -145,8 +145,6 @@ class TestConfigLoader:
         assert conn_info is not None
         assert conn_info["host"] == "192.168.1.100"
         assert conn_info["port"] == 50051
-        assert conn_info["persist_host"] == "192.168.1.100"
-        assert conn_info["persist_port"] == 50052
         assert conn_info["node_id"] == "test-node-default"
 
     def test_extract_connection_info_without_port(self, sample_config):
@@ -166,9 +164,6 @@ class TestConfigLoader:
             assert conn_info is not None
             assert conn_info["host"] == "192.168.1.100"
             assert conn_info["port"] == 50051  # Should use default port
-            # persistAddress should still be parsed
-            assert conn_info["persist_host"] == "192.168.1.100"
-            assert conn_info["persist_port"] == 50052
             assert conn_info["node_id"] == "test-node-default"
         finally:
             os.unlink(config_path)
@@ -283,10 +278,11 @@ class TestConfigLoader:
         finally:
             os.unlink(config_path)
 
-    def test_missing_persist_address_field(self, sample_config):
-        """Test that missing persistAddress field raises ValueError"""
-        # Remove persistAddress field
-        del sample_config["nodes"]["default"]["persistAddress"]
+    def test_persistAddress_is_optional(self, sample_config):
+        """Test that persistAddress field is optional (proto v2.3.0)"""
+        # Remove persistAddress field - should still work
+        if "persistAddress" in sample_config["nodes"]["default"]:
+            del sample_config["nodes"]["default"]["persistAddress"]
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             yaml.dump(sample_config, f)
@@ -296,11 +292,11 @@ class TestConfigLoader:
             loader = ConfigLoader(config_path=config_path)
             loader.load()
 
-            # Should raise ValueError for missing persistAddress
-            with pytest.raises(
-                ValueError, match="Missing required field 'persistAddress'"
-            ):
-                loader.extract_connection_info("default")
+            # Should work fine without persistAddress
+            conn_info = loader.extract_connection_info("default")
+            assert conn_info is not None
+            assert conn_info["host"] == "192.168.1.100"
+            assert conn_info["port"] == 50051
         finally:
             os.unlink(config_path)
 

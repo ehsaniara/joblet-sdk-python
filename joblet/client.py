@@ -11,7 +11,6 @@ from .services import (
     JobService,
     MonitoringService,
     NetworkService,
-    PersistService,
     RuntimeService,
     VolumeService,
 )
@@ -54,10 +53,6 @@ class JobletClient:
             node_name: Config node to use (default: "default")
         """
         self._config_loader: Optional[ConfigLoader] = None
-
-        # Initialize persist connection info with defaults
-        persist_host = None
-        persist_port = None
         node_id = None
 
         # Try to load from config file if not all parameters are provided
@@ -76,9 +71,6 @@ class JobletClient:
                     client_key_path = client_key_path or config_info.get(
                         "client_key_path"
                     )
-                    # Extract persist connection info
-                    persist_host = config_info.get("persist_host")
-                    persist_port = config_info.get("persist_port")
                     node_id = config_info.get("node_id")
 
         # Validate that we have all required parameters
@@ -98,7 +90,7 @@ class JobletClient:
                 f"Missing required parameters: {', '.join(missing)}. "
                 f"Provide all params or ensure config file "
                 f"(~/.rnx/rnx-config.yml) contains all required fields "
-                f"(address, persistAddress, cert, key, ca)."
+                f"(address, cert, key, ca)."
             )
 
         # Store connection parameters
@@ -116,10 +108,6 @@ class JobletClient:
         self._volume_service: Optional[VolumeService] = None
         self._monitoring_service: Optional[MonitoringService] = None
         self._runtime_service: Optional[RuntimeService] = None
-        self._persist_service: Optional[PersistService] = None
-        self._persist_channel: Optional[grpc.Channel] = None
-        self._persist_host = persist_host or host
-        self._persist_port = persist_port  # Will default to 50052 if not set
         self._node_id = node_id
 
         # Connect now
@@ -211,10 +199,6 @@ class JobletClient:
             self._channel.close()
             self._channel = None
 
-        if self._persist_channel:
-            self._persist_channel.close()
-            self._persist_channel = None
-
         # Clean up config loader and temporary certificate files
         if self._config_loader:
             self._config_loader.cleanup()
@@ -266,10 +250,7 @@ class JobletClient:
         if not self._job_service:
             if self._channel is None:
                 raise ConnectionError("Client is not connected to server")
-            # Pass a getter function to avoid circular dependency
-            self._job_service = JobService(
-                self._channel, persist_service_getter=lambda: self.persist
-            )
+            self._job_service = JobService(self._channel)
         return self._job_service
 
     @property
@@ -386,75 +367,6 @@ class JobletClient:
                 raise ConnectionError("Client is not connected to server")
             self._runtime_service = RuntimeService(self._channel)
         return self._runtime_service
-
-    @property
-    def persist(self) -> PersistService:
-        """
-        Access the Persist Service for querying historical logs and metrics.
-
-        The PersistService provides methods for querying historical job logs
-        and metrics from persistent storage. This service connects to
-        joblet-persist on port 50052, separate from the main joblet-core
-        service.
-
-        Returns:
-            PersistService: A service instance for historical query operations.
-
-        Example:
-            >>> with JobletClient() as client:
-            ...     # Query historical logs for a job
-            ...     for log in client.persist.query_logs(job_id="abc123"):
-            ...         content = log['content'].decode()
-            ...         print(f"[{log['stream']}] {content}")
-            ...
-            ...     # Query historical metrics
-            ...     metrics = client.persist.query_metrics(
-            ...         job_id="abc123", limit=10
-            ...     )
-            ...     for metric in metrics:
-            ...         print(f"CPU: {metric['data']['cpu_usage']:.2f}")
-        """
-        if not self._persist_service:
-            # Create persist channel if not already created
-            if not self._persist_channel:
-                # Determine persist port (default to 50052 if not set)
-                persist_port = self._persist_port if self._persist_port else 50052
-                persist_target = f"{self._persist_host}:{persist_port}"
-
-                # Use same options and credentials as main channel
-                default_options = [
-                    ("grpc.keepalive_time_ms", 30000),
-                    ("grpc.keepalive_timeout_ms", 5000),
-                    ("grpc.keepalive_permit_without_calls", True),
-                    ("grpc.http2.max_pings_without_data", 0),
-                    ("grpc.http2.min_ping_interval_without_data_ms", 300000),
-                    ("grpc.http2.min_time_between_pings_ms", 10000),
-                ]
-                all_options = default_options + list(self._options.items())
-
-                # Use same certs as main connection
-                assert self.ca_cert_path is not None
-                assert self.client_cert_path is not None
-                assert self.client_key_path is not None
-
-                with open(self.ca_cert_path, "rb") as f:
-                    ca_cert = f.read()
-                with open(self.client_cert_path, "rb") as f:
-                    client_cert = f.read()
-                with open(self.client_key_path, "rb") as f:
-                    client_key = f.read()
-
-                credentials = grpc.ssl_channel_credentials(
-                    root_certificates=ca_cert,
-                    private_key=client_key,
-                    certificate_chain=client_cert,
-                )
-                self._persist_channel = grpc.secure_channel(
-                    persist_target, credentials, options=all_options
-                )
-
-            self._persist_service = PersistService(self._persist_channel)
-        return self._persist_service
 
     @property
     def node_id(self) -> Optional[str]:

@@ -36,26 +36,26 @@ echo ""
 
 echo "2. Cleaning build artifacts..."
 rm -rf build/ dist/ *.egg-info joblet_sdk_python.egg-info
-echo "   ✓ Cleaned"
+echo "   Cleaned"
 echo ""
 
 echo "3. Building package..."
 $PYTHON -m build --sdist --wheel
-echo "   ✓ Built successfully"
+echo "   Built successfully"
 echo ""
 
 echo "4. Installing package from wheel (non-editable)..."
 $PIP -m pip install dist/joblet_sdk_python-*.whl --force-reinstall
-echo "   ✓ Installed"
+echo "   Installed"
 echo ""
 
 echo "5. Testing imports (from installed package)..."
 cd /tmp  # Move out of source directory to ensure we're testing the installed package
 $PYTHON -c "
 from joblet import JobletClient
-from joblet.proto import persist_pb2, persist_pb2_grpc
-from joblet.services import JobService, PersistService
-print('   ✓ All imports successful')
+from joblet.proto import joblet_pb2, joblet_pb2_grpc
+from joblet.services import JobService
+print('   All imports successful')
 "
 cd "$PROJECT_ROOT"
 echo ""
@@ -65,7 +65,7 @@ $PYTHON -m pytest tests/ -v --tb=short
 echo ""
 
 echo "=========================================="
-echo "✓ Package validation complete!"
+echo "Package validation complete!"
 echo "=========================================="
 echo ""
 echo "To restore editable install for development:"
