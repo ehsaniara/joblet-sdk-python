@@ -36,7 +36,7 @@ jobs:
         python-version: ["3.9", "3.12"]  # Test min and max supported versions
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
@@ -61,7 +61,7 @@ jobs:
       wheel-name: ${{ steps.build.outputs.wheel-name }}
       sdist-name: ${{ steps.build.outputs.sdist-name }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Python
       uses: actions/setup-python@v6
@@ -173,7 +173,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Download build artifacts
       uses: actions/download-artifact@v6
