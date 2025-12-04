@@ -56,7 +56,7 @@ nodes:
 
 **Configuration Fields:**
 - `address` - **Required**: Joblet service endpoint (port 50051)
-  - Handles all operations: job execution, workflows, logs, metrics, and resource management
+  - Handles all operations: job execution, logs, metrics, and resource management
   - Historical data is handled internally via IPC
 - `nodeId` - Optional: Unique identifier for the node
 - `cert` - **Required**: Client certificate for mTLS authentication
@@ -110,26 +110,6 @@ for metric in client.jobs.get_job_metrics(job_uuid):
     print(f"Memory: {metric['memory_usage'] / 1e9:.2f} GB")
 ```
 
-### Build Workflows
-
-```python
-# Chain multiple jobs with dependencies
-workflow = client.jobs.run_workflow(
-    workflow="data-pipeline.yml",
-    yaml_content="""
-    jobs:
-      preprocess:
-        command: python preprocess.py
-      train:
-        command: python train.py
-        depends_on: [preprocess]
-      evaluate:
-        command: python evaluate.py
-        depends_on: [train]
-    """
-)
-```
-
 ### Manage Resources
 
 ```python
@@ -166,7 +146,6 @@ for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
 - `client.jobs.get_job_logs()` - **Smart log streaming** (historical + live)
 - `client.jobs.stream_live_logs()` - Live-only log streaming
 - `client.jobs.get_job_metrics()` - Stream all job metrics
-- `client.jobs.run_workflow()` - Execute a workflow
 
 ### Resources
 - `client.networks` - Network management

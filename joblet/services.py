@@ -11,13 +11,12 @@ from .exceptions import (
     RuntimeNotFoundError,
     ValidationError,
     VolumeError,
-    WorkflowNotFoundError,
 )
 from .proto import joblet_pb2, joblet_pb2_grpc
 
 
 class JobService:
-    """Service for managing jobs and workflows"""
+    """Service for managing jobs"""
 
     def __init__(self, channel: grpc.Channel):
         self.stub = joblet_pb2_grpc.JobServiceStub(channel)
@@ -149,8 +148,6 @@ class JobService:
                 "runtime": response.runtime,
                 "work_dir": response.workDir,
                 "uploads": list(response.uploads),
-                "dependencies": list(response.dependencies),
-                "workflow_uuid": response.workflowUuid,
                 "gpu_indices": list(response.gpu_indices),
                 "gpu_count": response.gpu_count,
                 "gpu_memory_mb": response.gpu_memory_mb,
@@ -467,164 +464,6 @@ class JobService:
             return jobs
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Failed to list jobs: {e.details()}")
-
-    def run_workflow(
-        self,
-        workflow: str,
-        yaml_content: Optional[str] = None,
-        workflow_files: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
-        """Run a workflow
-
-        Args:
-            workflow: Workflow filename
-            yaml_content: YAML content
-            workflow_files: Workflow files to upload
-
-        Returns:
-            Workflow response dictionary
-        """
-        request = joblet_pb2.RunWorkflowRequest(
-            workflow=workflow, yamlContent=yaml_content or ""
-        )
-
-        # Add workflow files if provided
-        if workflow_files:
-            for file_info in workflow_files:
-                file_upload = joblet_pb2.FileUpload(
-                    path=file_info.get("path", ""),
-                    content=file_info.get("content", b""),
-                    mode=file_info.get("mode", 0o644),
-                    isDirectory=file_info.get("is_directory", False),
-                )
-                request.workflowFiles.append(file_upload)
-
-        try:
-            response = self.stub.RunWorkflow(request)
-            return {"workflow_uuid": response.workflowUuid, "status": response.status}
-        except grpc.RpcError as e:
-            raise WorkflowNotFoundError(f"Failed to run workflow: {e.details()}")
-
-    def get_workflow_status(self, workflow_uuid: str) -> Dict[str, Any]:
-        """Get workflow status
-
-        Args:
-            workflow_uuid: Workflow UUID
-
-        Returns:
-            Workflow status dictionary
-        """
-        request = joblet_pb2.GetWorkflowStatusRequest(workflowUuid=workflow_uuid)
-
-        try:
-            response = self.stub.GetWorkflowStatus(request)
-            workflow = response.workflow
-            jobs = []
-
-            for job in response.jobs:
-                jobs.append(
-                    {
-                        "job_uuid": job.jobUuid,
-                        "job_name": job.jobName,
-                        "status": job.status,
-                        "dependencies": list(job.dependencies),
-                        "start_time": self._timestamp_to_datetime(job.startTime),
-                        "end_time": self._timestamp_to_datetime(job.endTime),
-                        "exit_code": job.exitCode,
-                    }
-                )
-
-            return {
-                "workflow": {
-                    "uuid": workflow.uuid,
-                    "workflow": workflow.workflow,
-                    "status": workflow.status,
-                    "total_jobs": workflow.totalJobs,
-                    "completed_jobs": workflow.completedJobs,
-                    "failed_jobs": workflow.failedJobs,
-                    "canceled_jobs": workflow.canceledJobs,
-                    "created_at": self._timestamp_to_datetime(workflow.createdAt),
-                    "started_at": self._timestamp_to_datetime(workflow.startedAt),
-                    "completed_at": self._timestamp_to_datetime(workflow.completedAt),
-                    "yaml_content": workflow.yamlContent,
-                },
-                "jobs": jobs,
-            }
-        except grpc.RpcError as e:
-            raise WorkflowNotFoundError(
-                f"Workflow {workflow_uuid} not found: {e.details()}"
-            )
-
-    def list_workflows(self, include_completed: bool = False) -> List[Dict[str, Any]]:
-        """List workflows
-
-        Args:
-            include_completed: Whether to include completed workflows
-
-        Returns:
-            List of workflow dictionaries
-        """
-        request = joblet_pb2.ListWorkflowsRequest(includeCompleted=include_completed)
-
-        try:
-            response = self.stub.ListWorkflows(request)
-            workflows = []
-
-            for workflow in response.workflows:
-                workflows.append(
-                    {
-                        "uuid": workflow.uuid,
-                        "workflow": workflow.workflow,
-                        "status": workflow.status,
-                        "total_jobs": workflow.totalJobs,
-                        "completed_jobs": workflow.completedJobs,
-                        "failed_jobs": workflow.failedJobs,
-                        "canceled_jobs": workflow.canceledJobs,
-                        "created_at": self._timestamp_to_datetime(workflow.createdAt),
-                        "started_at": self._timestamp_to_datetime(workflow.startedAt),
-                        "completed_at": self._timestamp_to_datetime(
-                            workflow.completedAt
-                        ),
-                    }
-                )
-
-            return workflows
-        except grpc.RpcError as e:
-            raise WorkflowNotFoundError(f"Failed to list workflows: {e.details()}")
-
-    def get_workflow_jobs(self, workflow_uuid: str) -> List[Dict[str, Any]]:
-        """Get workflow jobs
-
-        Args:
-            workflow_uuid: Workflow UUID
-
-        Returns:
-            List of job dictionaries
-        """
-        request = joblet_pb2.GetWorkflowJobsRequest(workflowUuid=workflow_uuid)
-
-        try:
-            response = self.stub.GetWorkflowJobs(request)
-            jobs = []
-
-            for job in response.jobs:
-                jobs.append(
-                    {
-                        "job_uuid": job.jobUuid,
-                        "job_name": job.jobName,
-                        "status": job.status,
-                        "dependencies": list(job.dependencies),
-                        "start_time": self._timestamp_to_datetime(job.startTime),
-                        "end_time": self._timestamp_to_datetime(job.endTime),
-                        "exit_code": job.exitCode,
-                    }
-                )
-
-            return jobs
-        except grpc.RpcError as e:
-            raise WorkflowNotFoundError(
-                f"Failed to get jobs for workflow {workflow_uuid}: {e.details()}"
-            )
 
     @staticmethod
     def _timestamp_to_datetime(timestamp: Any) -> Optional[datetime]:

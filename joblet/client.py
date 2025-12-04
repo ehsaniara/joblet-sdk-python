@@ -229,14 +229,14 @@ class JobletClient:
     @property
     def jobs(self) -> JobService:
         """
-        Access the Job Service for managing jobs and workflows.
+        Access the Job Service for managing jobs.
 
-        The JobService provides methods for running individual jobs, managing
-        multi-job workflows, monitoring execution status, streaming logs, and
-        handling job lifecycle operations like stopping and deletion.
+        The JobService provides methods for running jobs, monitoring execution
+        status, streaming logs, and handling job lifecycle operations like
+        stopping and deletion.
 
         Returns:
-            JobService: A service instance for job and workflow operations.
+            JobService: A service instance for job operations.
 
         Example:
             >>> with JobletClient() as client:

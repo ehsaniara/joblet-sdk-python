@@ -14,7 +14,6 @@ from joblet.exceptions import (
     TimeoutError,
     ValidationError,
     VolumeError,
-    WorkflowNotFoundError,
 )
 
 
@@ -53,14 +52,6 @@ class TestJobletExceptions:
         exception = JobNotFoundError("Job not found")
 
         assert str(exception) == "Job not found"
-        assert isinstance(exception, JobletException)
-        assert isinstance(exception, Exception)
-
-    def test_workflow_not_found_error_inheritance(self):
-        """Test WorkflowNotFoundError inherits from JobletException"""
-        exception = WorkflowNotFoundError("Workflow not found")
-
-        assert str(exception) == "Workflow not found"
         assert isinstance(exception, JobletException)
         assert isinstance(exception, Exception)
 
@@ -189,7 +180,6 @@ class TestJobletExceptions:
             ConnectionError,
             AuthenticationError,
             JobNotFoundError,
-            WorkflowNotFoundError,
             RuntimeNotFoundError,
             NetworkError,
             VolumeError,

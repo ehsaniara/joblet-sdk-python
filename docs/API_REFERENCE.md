@@ -67,7 +67,7 @@ with JobletClient(
 @property
 def jobs(self) -> JobService
 ```
-Access the Job Service for managing jobs and workflows.
+Access the Job Service for managing jobs.
 
 #### persist
 ```python
@@ -161,7 +161,7 @@ nodes:
 
 **Configuration Fields:**
 - `address` - **Required**: Joblet main service endpoint (port 50051)
-  - Handles job execution, workflows, live logs, and resource management
+  - Handles job execution, live logs, and resource management
 - `persistAddress` - **Required**: Joblet persist service endpoint (port 50052)
   - Provides historical logs and metrics queries via gRPC
 - `nodeId` - Optional: Unique identifier for the node
@@ -204,7 +204,7 @@ else:
 
 ## JobService
 
-Service for managing jobs and workflows.
+Service for managing jobs.
 
 ### Job Management
 
@@ -336,33 +336,6 @@ Stream only live logs (convenience method that skips historical logs).
 for chunk in client.jobs.stream_live_logs(job_uuid):
     print(chunk.decode('utf-8'), end='', flush=True)
 ```
-
-### Workflow Management
-
-#### run_workflow()
-```python
-def run_workflow(
-    workflow: str,
-    yaml_content: Optional[str] = None,
-    workflow_files: Optional[List[Dict[str, Any]]] = None
-) -> Dict[str, Any]
-```
-
-Run a multi-job workflow.
-
-#### get_workflow_status()
-```python
-def get_workflow_status(workflow_uuid: str) -> Dict[str, Any]
-```
-
-Get workflow status and all job statuses.
-
-#### list_workflows()
-```python
-def list_workflows(include_completed: bool = False) -> List[Dict[str, Any]]
-```
-
-List all workflows.
 
 ### Historical Data Queries
 
@@ -630,7 +603,6 @@ from joblet import (
     ConnectionError,          # Connection failures
     AuthenticationError,      # Authentication failures
     JobNotFoundError,         # Job not found
-    WorkflowNotFoundError,    # Workflow not found
     RuntimeNotFoundError,     # Runtime not found
     NetworkError,             # Network operation errors
     VolumeError,              # Volume operation errors
