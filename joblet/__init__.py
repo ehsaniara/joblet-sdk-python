@@ -1,14 +1,12 @@
 """
 Joblet Python SDK
 
-A comprehensive Python SDK for interacting with the Joblet job orchestration system.
+A comprehensive Python SDK for interacting with the Joblet job execution system.
 This SDK provides a high-level, Pythonic interface to all Joblet functionality including
-job execution, workflow management, runtime environments, networking, storage, and
-system monitoring.
+job execution, runtime environments, networking, storage, and system monitoring.
 
 Key Features:
     - Simple job execution with resource constraints
-    - Complex multi-job workflow orchestration
     - Runtime environment management and installation
     - Virtual network and persistent volume management
     - Real-time system monitoring and metrics streaming
@@ -42,7 +40,7 @@ For more examples and detailed documentation, see:
 Repository: https://github.com/ehsaniara/joblet-proto
 """
 
-__version__ = "1.0.2"
+__version__ = "3.0.0"
 __author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
@@ -60,7 +58,6 @@ from .exceptions import (
     TimeoutError,
     ValidationError,
     VolumeError,
-    WorkflowNotFoundError,
 )
 
 # Service classes - accessed through client properties
@@ -87,7 +84,6 @@ __all__ = [
     "ConnectionError",
     "AuthenticationError",
     "JobNotFoundError",
-    "WorkflowNotFoundError",
     "RuntimeNotFoundError",
     "NetworkError",
     "VolumeError",

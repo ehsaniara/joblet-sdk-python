@@ -216,8 +216,8 @@ class TestJobletClientIntegration:
 class TestServiceIntegration:
     """Integration tests for service interactions"""
 
-    def test_job_service_workflow_integration(self, temp_cert_files):
-        """Test job service workflow operations integration"""
+    def test_job_service_integration(self, temp_cert_files):
+        """Test job service operations integration"""
         with patch("joblet.client.grpc.secure_channel") as mock_secure_channel:
             mock_channel = Mock()
             mock_secure_channel.return_value = mock_channel
@@ -266,8 +266,6 @@ class TestServiceIntegration:
                 mock_status_response.runtime = ""
                 mock_status_response.workDir = ""
                 mock_status_response.uploads = []
-                mock_status_response.dependencies = []
-                mock_status_response.workflowUuid = ""
                 mock_status_response.gpu_indices = []
                 mock_status_response.gpu_count = 0
                 mock_status_response.gpu_memory_mb = 0

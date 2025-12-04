@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import grpc
 import pytest
 
-from joblet.exceptions import JobNotFoundError, WorkflowNotFoundError
+from joblet.exceptions import JobNotFoundError
 from joblet.services import JobService
 
 
@@ -169,8 +169,6 @@ class TestJobService:
         mock_grpc_response.runtime = "python:3.11"
         mock_grpc_response.workDir = "/app"
         mock_grpc_response.uploads = []
-        mock_grpc_response.dependencies = []
-        mock_grpc_response.workflowUuid = ""
         mock_grpc_response.gpu_indices = [0, 1]
         mock_grpc_response.gpu_count = 2
         mock_grpc_response.gpu_memory_mb = 8192
@@ -379,129 +377,6 @@ class TestJobService:
         assert result[1]["uuid"] == "job-2"
         assert result[1]["name"] == "test-job-2"
         assert result[1]["status"] == "running"
-
-    def test_run_workflow_success(self, job_service, sample_workflow_response):
-        """Test running a workflow successfully"""
-        mock_stub = Mock()
-        job_service.stub = mock_stub
-
-        mock_grpc_response = Mock()
-        mock_grpc_response.workflowUuid = sample_workflow_response["workflow_uuid"]
-        mock_grpc_response.status = sample_workflow_response["status"]
-
-        mock_stub.RunWorkflow.return_value = mock_grpc_response
-
-        yaml_content = """
-        version: "1.0"
-        name: "test-workflow"
-        jobs:
-          - name: "job1"
-            command: "echo"
-            args: ["hello"]
-        """
-
-        result = job_service.run_workflow(
-            workflow="test-workflow.yml", yaml_content=yaml_content
-        )
-
-        assert result["workflow_uuid"] == sample_workflow_response["workflow_uuid"]
-        assert result["status"] == sample_workflow_response["status"]
-
-        mock_stub.RunWorkflow.assert_called_once()
-        call_args = mock_stub.RunWorkflow.call_args[0][0]
-        assert call_args.workflow == "test-workflow.yml"
-        assert call_args.yamlContent == yaml_content
-
-    def test_run_workflow_grpc_error(self, job_service):
-        """Test run_workflow handles gRPC errors"""
-        mock_stub = Mock()
-        job_service.stub = mock_stub
-
-        grpc_error = grpc.RpcError()
-        grpc_error.details = lambda: "Workflow execution failed"
-        mock_stub.RunWorkflow.side_effect = grpc_error
-
-        with pytest.raises(WorkflowNotFoundError, match="Failed to run workflow"):
-            job_service.run_workflow("test-workflow.yml", "yaml content")
-
-    def test_get_workflow_status_success(self, job_service):
-        """Test getting workflow status successfully"""
-        mock_stub = Mock()
-        job_service.stub = mock_stub
-
-        # Create mock workflow
-        mock_workflow = Mock()
-        mock_workflow.uuid = "workflow-123"
-        mock_workflow.workflow = "test-workflow.yml"
-        mock_workflow.status = "running"
-        mock_workflow.totalJobs = 3
-        mock_workflow.completedJobs = 1
-        mock_workflow.failedJobs = 0
-        mock_workflow.canceledJobs = 0
-        mock_workflow.createdAt = Mock(
-            seconds=1672574400, nanos=0
-        )  # 2023-01-01T12:00:00Z
-        mock_workflow.startedAt = Mock(seconds=1672574400, nanos=0)
-        mock_workflow.completedAt = Mock(seconds=0, nanos=0)
-        mock_workflow.yamlContent = "yaml content"
-
-        # Create mock jobs
-        mock_job = Mock()
-        mock_job.jobUuid = "job-1"
-        mock_job.jobName = "test-job"
-        mock_job.status = "completed"
-        mock_job.dependencies = []
-        mock_job.startTime = Mock(seconds=1672574400, nanos=0)
-        mock_job.endTime = Mock(seconds=1672574405, nanos=0)
-        mock_job.exitCode = 0
-
-        mock_grpc_response = Mock()
-        mock_grpc_response.workflow = mock_workflow
-        mock_grpc_response.jobs = [mock_job]
-
-        mock_stub.GetWorkflowStatus.return_value = mock_grpc_response
-
-        result = job_service.get_workflow_status("workflow-123")
-
-        assert result["workflow"]["uuid"] == "workflow-123"
-        assert result["workflow"]["status"] == "running"
-        assert result["workflow"]["total_jobs"] == 3
-        assert result["workflow"]["completed_jobs"] == 1
-        assert len(result["jobs"]) == 1
-        assert result["jobs"][0]["job_uuid"] == "job-1"
-        assert result["jobs"][0]["status"] == "completed"
-
-    def test_list_workflows_success(self, job_service):
-        """Test listing workflows successfully"""
-        mock_stub = Mock()
-        job_service.stub = mock_stub
-
-        # Create mock workflow
-        mock_workflow = Mock()
-        mock_workflow.uuid = "workflow-123"
-        mock_workflow.workflow = "test-workflow.yml"
-        mock_workflow.status = "completed"
-        mock_workflow.totalJobs = 2
-        mock_workflow.completedJobs = 2
-        mock_workflow.failedJobs = 0
-        mock_workflow.canceledJobs = 0
-        mock_workflow.createdAt = Mock(seconds=1672574400, nanos=0)
-        mock_workflow.startedAt = Mock(seconds=1672574400, nanos=0)
-        mock_workflow.completedAt = Mock(seconds=1672574500, nanos=0)
-
-        mock_grpc_response = Mock()
-        mock_grpc_response.workflows = [mock_workflow]
-
-        mock_stub.ListWorkflows.return_value = mock_grpc_response
-
-        result = job_service.list_workflows(include_completed=True)
-
-        assert len(result) == 1
-        assert result[0]["uuid"] == "workflow-123"
-        assert result[0]["workflow"] == "test-workflow.yml"
-        assert result[0]["status"] == "completed"
-        assert result[0]["total_jobs"] == 2
-        assert result[0]["completed_jobs"] == 2
 
     def test_run_job_with_gpu(self, job_service, sample_job_response):
         """Test running a job with GPU parameters"""

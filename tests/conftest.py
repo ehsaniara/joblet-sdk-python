@@ -116,15 +116,6 @@ def sample_job_response():
 
 
 @pytest.fixture
-def sample_workflow_response():
-    """Sample workflow response data"""
-    return {
-        "workflow_uuid": "test-workflow-456",
-        "status": "running",
-    }
-
-
-@pytest.fixture
 def sample_system_status():
     """Sample system status data"""
     return {

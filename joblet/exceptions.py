@@ -25,12 +25,6 @@ class JobNotFoundError(JobletException):
     pass
 
 
-class WorkflowNotFoundError(JobletException):
-    """Workflow not found."""
-
-    pass
-
-
 class RuntimeNotFoundError(JobletException):
     """Runtime not found."""
 

@@ -142,8 +142,8 @@ for getting started.
 from joblet import JobletClient, JobNotFoundError, ConnectionError
 
 try:
-    client = JobletClient(host="localhost", port=8080)
-    job = client.run_job(name="test", command="echo", args=["hello"])
+    with JobletClient(host="localhost", port=50051) as client:
+        job = client.jobs.run_job(name="test", command="echo", args=["hello"])
 except ConnectionError as e:
     print(f"Failed to connect: {e}")
 except JobNotFoundError as e:
@@ -152,13 +152,12 @@ except JobNotFoundError as e:
 
 ### Waiting for Job Completion
 ```python
-# With timeout
-status = client.wait_for_job(job_uuid, timeout=30)
+import time
 
 # Manual polling
 while True:
-    status = client.get_job_status(job_uuid)
-    if status.status in ["completed", "failed", "canceled"]:
+    status = client.jobs.get_job_status(job_uuid)
+    if status["status"] in ["COMPLETED", "FAILED", "STOPPED"]:
         break
     time.sleep(1)
 ```
@@ -167,14 +166,14 @@ while True:
 ```python
 # Always clean up jobs when done
 try:
-    job = client.run_job(...)
+    job = client.jobs.run_job(...)
     # Do work
 finally:
-    client.delete_job(job.uuid)
+    client.jobs.delete_job(job["job_uuid"])
 ```
 
 ## Notes
 
-- All examples use `localhost:8080` as the default server
+- All examples use `localhost:50051` as the default server
 - Modify the host and port in the examples to match your setup
 - Some features (like GPU) require appropriate hardware and drivers

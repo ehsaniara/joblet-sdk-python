@@ -93,7 +93,7 @@ class GetJobStatusReq(_message.Message):
     def __init__(self, uuid: _Optional[str] = ...) -> None: ...
 
 class GetJobStatusRes(_message.Message):
-    __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status", "startTime", "endTime", "exitCode", "scheduledTime", "environment", "secret_environment", "network", "volumes", "runtime", "workDir", "uploads", "dependencies", "workflowUuid", "gpu_indices", "gpu_count", "gpu_memory_mb", "nodeId")
+    __slots__ = ("uuid", "name", "command", "args", "maxCPU", "cpuCores", "maxMemory", "maxIOBPS", "status", "startTime", "endTime", "exitCode", "scheduledTime", "environment", "secret_environment", "network", "volumes", "runtime", "workDir", "uploads", "gpu_indices", "gpu_count", "gpu_memory_mb", "nodeId")
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -128,8 +128,6 @@ class GetJobStatusRes(_message.Message):
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
     WORKDIR_FIELD_NUMBER: _ClassVar[int]
     UPLOADS_FIELD_NUMBER: _ClassVar[int]
-    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
-    WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
     GPU_INDICES_FIELD_NUMBER: _ClassVar[int]
     GPU_COUNT_FIELD_NUMBER: _ClassVar[int]
     GPU_MEMORY_MB_FIELD_NUMBER: _ClassVar[int]
@@ -154,13 +152,11 @@ class GetJobStatusRes(_message.Message):
     runtime: str
     workDir: str
     uploads: _containers.RepeatedScalarFieldContainer[str]
-    dependencies: _containers.RepeatedScalarFieldContainer[str]
-    workflowUuid: str
     gpu_indices: _containers.RepeatedScalarFieldContainer[int]
     gpu_count: int
     gpu_memory_mb: int
     nodeId: str
-    def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ..., maxIOBPS: _Optional[int] = ..., status: _Optional[str] = ..., startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ..., scheduledTime: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ..., secret_environment: _Optional[_Mapping[str, str]] = ..., network: _Optional[str] = ..., volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ..., uploads: _Optional[_Iterable[str]] = ..., dependencies: _Optional[_Iterable[str]] = ..., workflowUuid: _Optional[str] = ..., gpu_indices: _Optional[_Iterable[int]] = ..., gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ..., nodeId: _Optional[str] = ...) -> None: ...
+    def __init__(self, uuid: _Optional[str] = ..., name: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., maxCPU: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ..., maxIOBPS: _Optional[int] = ..., status: _Optional[str] = ..., startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ..., scheduledTime: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ..., secret_environment: _Optional[_Mapping[str, str]] = ..., network: _Optional[str] = ..., volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ..., uploads: _Optional[_Iterable[str]] = ..., gpu_indices: _Optional[_Iterable[int]] = ..., gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ..., nodeId: _Optional[str] = ...) -> None: ...
 
 class StopJobReq(_message.Message):
     __slots__ = ("uuid",)
@@ -774,7 +770,7 @@ class RuntimeTestRes(_message.Message):
     def __init__(self, success: bool = ..., output: _Optional[str] = ..., error: _Optional[str] = ..., exitCode: _Optional[int] = ...) -> None: ...
 
 class RunJobRequest(_message.Message):
-    __slots__ = ("name", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "uploads", "schedule", "network", "volumes", "runtime", "workDir", "environment", "secret_environment", "workflowUuid", "jobUuid", "requirements", "gpu_count", "gpu_memory_mb")
+    __slots__ = ("name", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "uploads", "schedule", "network", "volumes", "runtime", "workDir", "environment", "secret_environment", "gpu_count", "gpu_memory_mb")
     class EnvironmentEntry(_message.Message):
         __slots__ = ("key", "value")
         KEY_FIELD_NUMBER: _ClassVar[int]
@@ -804,9 +800,6 @@ class RunJobRequest(_message.Message):
     WORKDIR_FIELD_NUMBER: _ClassVar[int]
     ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
     SECRET_ENVIRONMENT_FIELD_NUMBER: _ClassVar[int]
-    WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
-    JOBUUID_FIELD_NUMBER: _ClassVar[int]
-    REQUIREMENTS_FIELD_NUMBER: _ClassVar[int]
     GPU_COUNT_FIELD_NUMBER: _ClassVar[int]
     GPU_MEMORY_MB_FIELD_NUMBER: _ClassVar[int]
     name: str
@@ -824,12 +817,9 @@ class RunJobRequest(_message.Message):
     workDir: str
     environment: _containers.ScalarMap[str, str]
     secret_environment: _containers.ScalarMap[str, str]
-    workflowUuid: str
-    jobUuid: str
-    requirements: _containers.RepeatedCompositeFieldContainer[JobRequirement]
     gpu_count: int
     gpu_memory_mb: int
-    def __init__(self, name: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ..., maxIobps: _Optional[int] = ..., uploads: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ..., schedule: _Optional[str] = ..., network: _Optional[str] = ..., volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ..., secret_environment: _Optional[_Mapping[str, str]] = ..., workflowUuid: _Optional[str] = ..., jobUuid: _Optional[str] = ..., requirements: _Optional[_Iterable[_Union[JobRequirement, _Mapping]]] = ..., gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ..., maxIobps: _Optional[int] = ..., uploads: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ..., schedule: _Optional[str] = ..., network: _Optional[str] = ..., volumes: _Optional[_Iterable[str]] = ..., runtime: _Optional[str] = ..., workDir: _Optional[str] = ..., environment: _Optional[_Mapping[str, str]] = ..., secret_environment: _Optional[_Mapping[str, str]] = ..., gpu_count: _Optional[int] = ..., gpu_memory_mb: _Optional[int] = ...) -> None: ...
 
 class RunJobResponse(_message.Message):
     __slots__ = ("jobUuid", "status", "command", "args", "maxCpu", "cpuCores", "maxMemory", "maxIobps", "startTime", "endTime", "exitCode", "scheduledTime")
@@ -859,118 +849,6 @@ class RunJobResponse(_message.Message):
     scheduledTime: str
     def __init__(self, jobUuid: _Optional[str] = ..., status: _Optional[str] = ..., command: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., maxCpu: _Optional[int] = ..., cpuCores: _Optional[str] = ..., maxMemory: _Optional[int] = ..., maxIobps: _Optional[int] = ..., startTime: _Optional[str] = ..., endTime: _Optional[str] = ..., exitCode: _Optional[int] = ..., scheduledTime: _Optional[str] = ...) -> None: ...
 
-class JobRequirement(_message.Message):
-    __slots__ = ("jobUuid", "status", "expression")
-    JOBUUID_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    EXPRESSION_FIELD_NUMBER: _ClassVar[int]
-    jobUuid: str
-    status: str
-    expression: str
-    def __init__(self, jobUuid: _Optional[str] = ..., status: _Optional[str] = ..., expression: _Optional[str] = ...) -> None: ...
-
-class RunWorkflowRequest(_message.Message):
-    __slots__ = ("workflow", "totalJobs", "jobOrder", "yamlContent", "workflowFiles")
-    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
-    TOTALJOBS_FIELD_NUMBER: _ClassVar[int]
-    JOBORDER_FIELD_NUMBER: _ClassVar[int]
-    YAMLCONTENT_FIELD_NUMBER: _ClassVar[int]
-    WORKFLOWFILES_FIELD_NUMBER: _ClassVar[int]
-    workflow: str
-    totalJobs: int
-    jobOrder: _containers.RepeatedScalarFieldContainer[str]
-    yamlContent: str
-    workflowFiles: _containers.RepeatedCompositeFieldContainer[FileUpload]
-    def __init__(self, workflow: _Optional[str] = ..., totalJobs: _Optional[int] = ..., jobOrder: _Optional[_Iterable[str]] = ..., yamlContent: _Optional[str] = ..., workflowFiles: _Optional[_Iterable[_Union[FileUpload, _Mapping]]] = ...) -> None: ...
-
-class RunWorkflowResponse(_message.Message):
-    __slots__ = ("workflowUuid", "status")
-    WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    workflowUuid: str
-    status: str
-    def __init__(self, workflowUuid: _Optional[str] = ..., status: _Optional[str] = ...) -> None: ...
-
-class GetWorkflowStatusRequest(_message.Message):
-    __slots__ = ("workflowUuid",)
-    WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
-    workflowUuid: str
-    def __init__(self, workflowUuid: _Optional[str] = ...) -> None: ...
-
-class GetWorkflowStatusResponse(_message.Message):
-    __slots__ = ("workflow", "jobs")
-    WORKFLOW_FIELD_NUMBER: _ClassVar[int]
-    JOBS_FIELD_NUMBER: _ClassVar[int]
-    workflow: WorkflowInfo
-    jobs: _containers.RepeatedCompositeFieldContainer[WorkflowJob]
-    def __init__(self, workflow: _Optional[_Union[WorkflowInfo, _Mapping]] = ..., jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...) -> None: ...
-
-class ListWorkflowsRequest(_message.Message):
-    __slots__ = ("includeCompleted",)
-    INCLUDECOMPLETED_FIELD_NUMBER: _ClassVar[int]
-    includeCompleted: bool
-    def __init__(self, includeCompleted: bool = ...) -> None: ...
-
-class ListWorkflowsResponse(_message.Message):
-    __slots__ = ("workflows",)
-    WORKFLOWS_FIELD_NUMBER: _ClassVar[int]
-    workflows: _containers.RepeatedCompositeFieldContainer[WorkflowInfo]
-    def __init__(self, workflows: _Optional[_Iterable[_Union[WorkflowInfo, _Mapping]]] = ...) -> None: ...
-
-class GetWorkflowJobsRequest(_message.Message):
-    __slots__ = ("workflowUuid",)
-    WORKFLOWUUID_FIELD_NUMBER: _ClassVar[int]
-    workflowUuid: str
-    def __init__(self, workflowUuid: _Optional[str] = ...) -> None: ...
-
-class GetWorkflowJobsResponse(_message.Message):
-    __slots__ = ("jobs",)
-    JOBS_FIELD_NUMBER: _ClassVar[int]
-    jobs: _containers.RepeatedCompositeFieldContainer[WorkflowJob]
-    def __init__(self, jobs: _Optional[_Iterable[_Union[WorkflowJob, _Mapping]]] = ...) -> None: ...
-
-class WorkflowInfo(_message.Message):
-    __slots__ = ("uuid", "status", "totalJobs", "completedJobs", "failedJobs", "canceledJobs", "createdAt", "startedAt", "completedAt", "yamlContent")
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    TOTALJOBS_FIELD_NUMBER: _ClassVar[int]
-    COMPLETEDJOBS_FIELD_NUMBER: _ClassVar[int]
-    FAILEDJOBS_FIELD_NUMBER: _ClassVar[int]
-    CANCELEDJOBS_FIELD_NUMBER: _ClassVar[int]
-    CREATEDAT_FIELD_NUMBER: _ClassVar[int]
-    STARTEDAT_FIELD_NUMBER: _ClassVar[int]
-    COMPLETEDAT_FIELD_NUMBER: _ClassVar[int]
-    YAMLCONTENT_FIELD_NUMBER: _ClassVar[int]
-    uuid: str
-    status: str
-    totalJobs: int
-    completedJobs: int
-    failedJobs: int
-    canceledJobs: int
-    createdAt: Timestamp
-    startedAt: Timestamp
-    completedAt: Timestamp
-    yamlContent: str
-    def __init__(self, uuid: _Optional[str] = ..., status: _Optional[str] = ..., totalJobs: _Optional[int] = ..., completedJobs: _Optional[int] = ..., failedJobs: _Optional[int] = ..., canceledJobs: _Optional[int] = ..., createdAt: _Optional[_Union[Timestamp, _Mapping]] = ..., startedAt: _Optional[_Union[Timestamp, _Mapping]] = ..., completedAt: _Optional[_Union[Timestamp, _Mapping]] = ..., yamlContent: _Optional[str] = ...) -> None: ...
-
-class WorkflowJob(_message.Message):
-    __slots__ = ("jobUuid", "jobName", "status", "dependencies", "startTime", "endTime", "exitCode")
-    JOBUUID_FIELD_NUMBER: _ClassVar[int]
-    JOBNAME_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    DEPENDENCIES_FIELD_NUMBER: _ClassVar[int]
-    STARTTIME_FIELD_NUMBER: _ClassVar[int]
-    ENDTIME_FIELD_NUMBER: _ClassVar[int]
-    EXITCODE_FIELD_NUMBER: _ClassVar[int]
-    jobUuid: str
-    jobName: str
-    status: str
-    dependencies: _containers.RepeatedScalarFieldContainer[str]
-    startTime: Timestamp
-    endTime: Timestamp
-    exitCode: int
-    def __init__(self, jobUuid: _Optional[str] = ..., jobName: _Optional[str] = ..., status: _Optional[str] = ..., dependencies: _Optional[_Iterable[str]] = ..., startTime: _Optional[_Union[Timestamp, _Mapping]] = ..., endTime: _Optional[_Union[Timestamp, _Mapping]] = ..., exitCode: _Optional[int] = ...) -> None: ...
-
 class Timestamp(_message.Message):
     __slots__ = ("seconds", "nanos")
     SECONDS_FIELD_NUMBER: _ClassVar[int]
@@ -980,18 +858,20 @@ class Timestamp(_message.Message):
     def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
 class InstallRuntimeRequest(_message.Message):
-    __slots__ = ("runtimeSpec", "repository", "branch", "path", "forceReinstall")
+    __slots__ = ("runtimeSpec", "repository", "branch", "path", "forceReinstall", "registry_url")
     RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
     REPOSITORY_FIELD_NUMBER: _ClassVar[int]
     BRANCH_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
     FORCEREINSTALL_FIELD_NUMBER: _ClassVar[int]
+    REGISTRY_URL_FIELD_NUMBER: _ClassVar[int]
     runtimeSpec: str
     repository: str
     branch: str
     path: str
     forceReinstall: bool
-    def __init__(self, runtimeSpec: _Optional[str] = ..., repository: _Optional[str] = ..., branch: _Optional[str] = ..., path: _Optional[str] = ..., forceReinstall: bool = ...) -> None: ...
+    registry_url: str
+    def __init__(self, runtimeSpec: _Optional[str] = ..., repository: _Optional[str] = ..., branch: _Optional[str] = ..., path: _Optional[str] = ..., forceReinstall: bool = ..., registry_url: _Optional[str] = ...) -> None: ...
 
 class InstallRuntimeResponse(_message.Message):
     __slots__ = ("buildJobUuid", "runtimeSpec", "status", "message", "repository", "resolvedPath")
