@@ -408,6 +408,184 @@ class JobService:
                 f"Failed to get metrics for job {job_uuid}: {e.details()}"
             )
 
+    def stream_job_telemetry(
+        self, job_uuid: str, event_types: Optional[List[str]] = None
+    ) -> Iterator[Dict[str, Any]]:
+        """Stream live telemetry events for a running job
+
+        Streams unified telemetry including resource metrics and eBPF visibility events
+        (process executions, network connections) in real-time. The stream continues
+        until the job completes or the connection is closed.
+
+        Args:
+            job_uuid: Job UUID or short UUID prefix
+            event_types: Optional list of event types to filter:
+                - "metrics": Resource usage (CPU, memory, I/O, network, GPU)
+                - "exec": Process executions (eBPF execve tracing)
+                - "connect": Network connections (eBPF connect tracing)
+                - "file": File operations (eBPF file tracing)
+                If None or empty, all event types are streamed.
+
+        Yields:
+            Dict[str, Any]: Telemetry event dictionaries containing:
+                - timestamp: Unix timestamp in nanoseconds
+                - job_id: Job UUID
+                - type: Event type ("metrics", "exec", "connect", "file")
+                - data: Event-specific data (metrics, exec, connect, or file)
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist
+
+        Example:
+            >>> # Stream all telemetry events
+            >>> for event in client.jobs.stream_job_telemetry(job_uuid):
+            ...     if event['type'] == 'exec':
+            ...         print(f"EXEC: {event['exec']['binary']}")
+            ...     elif event['type'] == 'connect':
+            ...         conn = event['connect']
+            ...         print(f"NET: {conn['address']}:{conn['port']}")
+
+            >>> # Stream only metrics and exec events
+            >>> for event in client.jobs.stream_job_telemetry(
+            ...     job_uuid, ["metrics", "exec"]
+            ... ):
+            ...     print(event)
+        """
+        request = joblet_pb2.StreamTelemetryRequest(
+            job_uuid=job_uuid,
+            types=event_types or [],
+        )
+
+        try:
+            for event in self.stub.StreamJobTelemetry(request):
+                yield self._parse_telemetry_event(event)
+        except grpc.RpcError as e:
+            raise JobNotFoundError(
+                f"Failed to stream telemetry for job {job_uuid}: {e.details()}"
+            )
+
+    def get_job_telemetry(
+        self,
+        job_uuid: str,
+        event_types: Optional[List[str]] = None,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> Iterator[Dict[str, Any]]:
+        """Get historical telemetry events for a completed job
+
+        Retrieves stored telemetry events including resource metrics and eBPF
+        visibility events from the persistence layer. Useful for post-mortem
+        analysis of job execution.
+
+        Args:
+            job_uuid: Job UUID or short UUID prefix
+            event_types: Optional list of event types to filter:
+                - "metrics": Resource usage (CPU, memory, I/O, network, GPU)
+                - "exec": Process executions (eBPF execve tracing)
+                - "connect": Network connections (eBPF connect tracing)
+                - "file": File operations (eBPF file tracing)
+                If None or empty, all event types are returned.
+            start_time: Start time in Unix nanoseconds (0 or None = beginning)
+            end_time: End time in Unix nanoseconds (0 or None = end of job)
+            limit: Maximum number of events to return (0 or None = no limit)
+
+        Yields:
+            Dict[str, Any]: Telemetry event dictionaries containing:
+                - timestamp: Unix timestamp in nanoseconds
+                - job_id: Job UUID
+                - type: Event type ("metrics", "exec", "connect", "file")
+                - data: Event-specific data (metrics, exec, connect, or file)
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist or telemetry unavailable
+
+        Example:
+            >>> # Get all historical telemetry
+            >>> events = list(client.jobs.get_job_telemetry(job_uuid))
+
+            >>> # Get only exec events
+            >>> for event in client.jobs.get_job_telemetry(job_uuid, ["exec"]):
+            ...     exec_data = event['exec']
+            ...     print(f"PID {exec_data['pid']}: {exec_data['binary']}")
+
+            >>> # Get events with time range and limit
+            >>> for event in client.jobs.get_job_telemetry(
+            ...     job_uuid,
+            ...     start_time=start_ns,
+            ...     end_time=end_ns,
+            ...     limit=100
+            ... ):
+            ...     print(event)
+        """
+        request = joblet_pb2.GetTelemetryRequest(
+            job_uuid=job_uuid,
+            types=event_types or [],
+            start_time=start_time or 0,
+            end_time=end_time or 0,
+            limit=limit or 0,
+        )
+
+        try:
+            for event in self.stub.GetJobTelemetry(request):
+                yield self._parse_telemetry_event(event)
+        except grpc.RpcError as e:
+            raise JobNotFoundError(
+                f"Failed to get telemetry for job {job_uuid}: {e.details()}"
+            )
+
+    def _parse_telemetry_event(self, event) -> Dict[str, Any]:
+        """Parse a TelemetryEvent protobuf message to a dictionary"""
+        result = {
+            "timestamp": event.timestamp,
+            "job_id": event.job_id,
+            "type": event.type,
+        }
+
+        # Parse the oneof data field based on event type
+        if event.HasField("metrics"):
+            metrics = event.metrics
+            result["metrics"] = {
+                "cpu_percent": metrics.cpu_percent,
+                "memory_bytes": metrics.memory_bytes,
+                "memory_limit": metrics.memory_limit,
+                "disk_read_bytes": metrics.disk_read_bytes,
+                "disk_write_bytes": metrics.disk_write_bytes,
+                "net_recv_bytes": metrics.net_recv_bytes,
+                "net_sent_bytes": metrics.net_sent_bytes,
+                "gpu_percent": metrics.gpu_percent,
+                "gpu_memory_bytes": metrics.gpu_memory_bytes,
+            }
+        elif event.HasField("exec"):
+            exec_data = event.exec
+            result["exec"] = {
+                "pid": exec_data.pid,
+                "ppid": exec_data.ppid,
+                "binary": exec_data.binary,
+                "args": list(exec_data.args),
+                "exit_code": exec_data.exit_code,
+            }
+        elif event.HasField("connect"):
+            conn = event.connect
+            result["connect"] = {
+                "pid": conn.pid,
+                "address": conn.address,
+                "port": conn.port,
+                "protocol": conn.protocol,
+                "local_address": conn.local_address,
+                "local_port": conn.local_port,
+            }
+        elif event.HasField("file"):
+            file_data = event.file
+            result["file"] = {
+                "pid": file_data.pid,
+                "path": file_data.path,
+                "operation": file_data.operation,
+                "bytes": file_data.bytes,
+            }
+
+        return result
+
     def list_jobs(self) -> List[Dict[str, Any]]:
         """List all jobs on the server
 
