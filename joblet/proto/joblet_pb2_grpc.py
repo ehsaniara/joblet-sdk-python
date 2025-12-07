@@ -80,6 +80,16 @@ class JobServiceStub(object):
                 request_serializer=joblet__pb2.JobMetricsRequest.SerializeToString,
                 response_deserializer=joblet__pb2.JobMetricsSample.FromString,
                 _registered_method=True)
+        self.StreamJobTelemetry = channel.unary_stream(
+                '/joblet.JobService/StreamJobTelemetry',
+                request_serializer=joblet__pb2.StreamTelemetryRequest.SerializeToString,
+                response_deserializer=joblet__pb2.TelemetryEvent.FromString,
+                _registered_method=True)
+        self.GetJobTelemetry = channel.unary_stream(
+                '/joblet.JobService/GetJobTelemetry',
+                request_serializer=joblet__pb2.GetTelemetryRequest.SerializeToString,
+                response_deserializer=joblet__pb2.TelemetryEvent.FromString,
+                _registered_method=True)
 
 
 class JobServiceServicer(object):
@@ -142,6 +152,21 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StreamJobTelemetry(self, request, context):
+        """Unified telemetry (metrics + eBPF activity events)
+        Stream live telemetry for a running job
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetJobTelemetry(self, request, context):
+        """Get historical telemetry for a completed job
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_JobServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -189,6 +214,16 @@ def add_JobServiceServicer_to_server(servicer, server):
                     servicer.GetJobMetrics,
                     request_deserializer=joblet__pb2.JobMetricsRequest.FromString,
                     response_serializer=joblet__pb2.JobMetricsSample.SerializeToString,
+            ),
+            'StreamJobTelemetry': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamJobTelemetry,
+                    request_deserializer=joblet__pb2.StreamTelemetryRequest.FromString,
+                    response_serializer=joblet__pb2.TelemetryEvent.SerializeToString,
+            ),
+            'GetJobTelemetry': grpc.unary_stream_rpc_method_handler(
+                    servicer.GetJobTelemetry,
+                    request_deserializer=joblet__pb2.GetTelemetryRequest.FromString,
+                    response_serializer=joblet__pb2.TelemetryEvent.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -435,6 +470,60 @@ class JobService(object):
             '/joblet.JobService/GetJobMetrics',
             joblet__pb2.JobMetricsRequest.SerializeToString,
             joblet__pb2.JobMetricsSample.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamJobTelemetry(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/joblet.JobService/StreamJobTelemetry',
+            joblet__pb2.StreamTelemetryRequest.SerializeToString,
+            joblet__pb2.TelemetryEvent.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetJobTelemetry(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/joblet.JobService/GetJobTelemetry',
+            joblet__pb2.GetTelemetryRequest.SerializeToString,
+            joblet__pb2.TelemetryEvent.FromString,
             options,
             channel_credentials,
             insecure,
