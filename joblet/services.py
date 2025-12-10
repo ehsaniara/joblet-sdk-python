@@ -307,164 +307,184 @@ class JobService:
         """
         return self.get_job_logs(job_uuid, include_historical=False)
 
-    def get_job_metrics(self, job_uuid: str) -> Iterator[Dict[str, Any]]:
-        """Stream all metrics for a job
+    def stream_job_metrics(self, job_uuid: str) -> Iterator[Dict[str, Any]]:
+        """Stream live metrics for a running job
 
-        Streams all available metrics for the specified job from the server. The server
-        provides metrics samples collected during job execution, including CPU, memory,
-        I/O, network, and GPU usage (if applicable).
-
-        Note: Proto v2.3.0 simplified the metrics API - the server returns ALL metrics
-        for a job. If you need filtering (e.g., by time range), collect the results
-        and filter client-side.
+        Streams real-time resource usage metrics including CPU, memory, disk I/O,
+        network, and GPU usage (if applicable). The stream continues until the
+        job completes or the connection is closed.
 
         Args:
             job_uuid: Job UUID or short UUID prefix
 
         Yields:
-            Dict[str, Any]: Metric sample dictionaries containing:
+            Dict[str, Any]: Metric event dictionaries containing:
                 - timestamp: Unix timestamp in nanoseconds
-                - cpu_usage: CPU usage percentage
-                - memory_usage: Memory usage in bytes
-                - disk_io: Disk I/O metrics (if available)
-                - network_io: Network I/O metrics (if available)
-                - gpu_metrics: GPU metrics list (if applicable)
+                - job_id: Job UUID
+                - cpu_percent: CPU usage percentage
+                - memory_bytes: Current memory usage in bytes
+                - memory_limit: Memory limit in bytes
+                - disk_read_bytes: Total disk bytes read
+                - disk_write_bytes: Total disk bytes written
+                - net_recv_bytes: Total network bytes received
+                - net_sent_bytes: Total network bytes sent
+                - gpu_percent: GPU utilization percentage (0 if no GPU)
+                - gpu_memory_bytes: GPU memory usage in bytes (0 if no GPU)
+
+        Raises:
+            JobNotFoundError: If the job doesn't exist
+
+        Example:
+            >>> for metric in client.jobs.stream_job_metrics(job_uuid):
+            ...     cpu = metric['cpu_percent']
+            ...     memory_mb = metric['memory_bytes'] / (1024 * 1024)
+            ...     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
+        """
+        request = joblet_pb2.StreamJobMetricsRequest(job_uuid=job_uuid)
+
+        try:
+            for event in self.stub.StreamJobMetrics(request):
+                yield self._parse_metrics_event(event)
+        except grpc.RpcError as e:
+            raise JobNotFoundError(
+                f"Failed to stream metrics for job {job_uuid}: {e.details()}"
+            )
+
+    def get_job_metrics(
+        self,
+        job_uuid: str,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> Iterator[Dict[str, Any]]:
+        """Get historical metrics for a completed job
+
+        Retrieves stored metrics from the persistence layer. Useful for
+        post-mortem analysis of job resource usage.
+
+        Args:
+            job_uuid: Job UUID or short UUID prefix
+            start_time: Start time in Unix nanoseconds (0 or None = beginning)
+            end_time: End time in Unix nanoseconds (0 or None = end of job)
+            limit: Maximum number of events to return (0 or None = no limit)
+
+        Yields:
+            Dict[str, Any]: Metric event dictionaries containing:
+                - timestamp: Unix timestamp in nanoseconds
+                - job_id: Job UUID
+                - cpu_percent: CPU usage percentage
+                - memory_bytes: Current memory usage in bytes
+                - memory_limit: Memory limit in bytes
+                - disk_read_bytes: Total disk bytes read
+                - disk_write_bytes: Total disk bytes written
+                - net_recv_bytes: Total network bytes received
+                - net_sent_bytes: Total network bytes sent
+                - gpu_percent: GPU utilization percentage (0 if no GPU)
+                - gpu_memory_bytes: GPU memory usage in bytes (0 if no GPU)
 
         Raises:
             JobNotFoundError: If the job doesn't exist
 
         Example:
             >>> for metric in client.jobs.get_job_metrics(job_uuid):
-            ...     cpu = metric['cpu_usage']
-            ...     memory_mb = metric['memory_usage'] / (1024 * 1024)
+            ...     cpu = metric['cpu_percent']
+            ...     memory_mb = metric['memory_bytes'] / (1024 * 1024)
             ...     print(f"CPU: {cpu:.2f}%, Memory: {memory_mb:.2f} MB")
         """
-        request = joblet_pb2.JobMetricsRequest(uuid=job_uuid)
+        request = joblet_pb2.GetJobMetricsRequest(
+            job_uuid=job_uuid,
+            start_time=start_time or 0,
+            end_time=end_time or 0,
+            limit=limit or 0,
+        )
 
         try:
-            for sample in self.stub.GetJobMetrics(request):
-                # Convert protobuf message to dict
-                metric_dict = {
-                    "timestamp": sample.timestamp,
-                    "job_id": sample.jobId,
-                    "sample_interval_seconds": sample.sampleIntervalSeconds,
-                }
-
-                # Add CPU metrics
-                if sample.HasField("cpu"):
-                    metric_dict["cpu_usage"] = sample.cpu.usagePercent
-                    metric_dict["cpu_throttle_percent"] = sample.cpu.throttlePercent
-
-                # Add memory metrics
-                if sample.HasField("memory"):
-                    metric_dict["memory_usage"] = sample.memory.current
-                    metric_dict["memory_max"] = sample.memory.max
-                    metric_dict["memory_usage_percent"] = sample.memory.usagePercent
-
-                # Add I/O metrics
-                if sample.HasField("io"):
-                    metric_dict["disk_io"] = {
-                        "read_bytes": sample.io.totalReadBytes,
-                        "write_bytes": sample.io.totalWriteBytes,
-                        "read_ops": sample.io.totalReadOps,
-                        "write_ops": sample.io.totalWriteOps,
-                        "read_bps": sample.io.readBPS,
-                        "write_bps": sample.io.writeBPS,
-                    }
-
-                # Add network metrics
-                if sample.HasField("network"):
-                    metric_dict["network_io"] = {
-                        "rx_bytes": sample.network.totalRxBytes,
-                        "tx_bytes": sample.network.totalTxBytes,
-                        "rx_packets": sample.network.totalRxPackets,
-                        "tx_packets": sample.network.totalTxPackets,
-                        "rx_bps": sample.network.rxBPS,
-                        "tx_bps": sample.network.txBPS,
-                    }
-
-                # Add GPU metrics if available
-                if sample.gpu:
-                    metric_dict["gpu_metrics"] = []
-                    for gpu in sample.gpu:
-                        metric_dict["gpu_metrics"].append(
-                            {
-                                "index": gpu.index,
-                                "uuid": gpu.uuid,
-                                "name": gpu.name,
-                                "utilization": gpu.utilization,
-                                "memory_used": gpu.memoryUsed,
-                                "memory_total": gpu.memoryTotal,
-                                "memory_percent": gpu.memoryPercent,
-                                "temperature": gpu.temperature,
-                                "power_draw": gpu.powerDraw,
-                            }
-                        )
-
-                yield metric_dict
-
+            for event in self.stub.GetJobMetrics(request):
+                yield self._parse_metrics_event(event)
         except grpc.RpcError as e:
             raise JobNotFoundError(
                 f"Failed to get metrics for job {job_uuid}: {e.details()}"
             )
 
-    def stream_job_telemetry(
+    def _parse_metrics_event(self, event) -> Dict[str, Any]:
+        """Parse a JobMetricsEvent protobuf message to a dictionary"""
+        return {
+            "timestamp": event.timestamp,
+            "job_id": event.job_id,
+            "cpu_percent": event.cpu_percent,
+            "memory_bytes": event.memory_bytes,
+            "memory_limit": event.memory_limit,
+            "disk_read_bytes": event.disk_read_bytes,
+            "disk_write_bytes": event.disk_write_bytes,
+            "net_recv_bytes": event.net_recv_bytes,
+            "net_sent_bytes": event.net_sent_bytes,
+            "gpu_percent": event.gpu_percent,
+            "gpu_memory_bytes": event.gpu_memory_bytes,
+        }
+
+    def stream_job_telematics(
         self, job_uuid: str, event_types: Optional[List[str]] = None
     ) -> Iterator[Dict[str, Any]]:
-        """Stream live telemetry events for a running job
+        """Stream live telematics events for a running job
 
-        Streams unified telemetry including resource metrics and eBPF visibility events
-        (process executions, network connections) in real-time. The stream continues
-        until the job completes or the connection is closed.
+        Streams eBPF security events in real-time including process executions,
+        network connections, file operations, and memory events. The stream
+        continues until the job completes or the connection is closed.
 
         Args:
             job_uuid: Job UUID or short UUID prefix
             event_types: Optional list of event types to filter:
-                - "metrics": Resource usage (CPU, memory, I/O, network, GPU)
                 - "exec": Process executions (eBPF execve tracing)
-                - "connect": Network connections (eBPF connect tracing)
+                - "connect": Outgoing network connections (eBPF connect tracing)
+                - "accept": Incoming network connections (eBPF accept tracing)
                 - "file": File operations (eBPF file tracing)
+                - "mmap": Memory mapping events (eBPF mmap tracing)
+                - "mprotect": Memory protection changes (eBPF mprotect tracing)
+                - "socket_data": Socket data transfers (eBPF send/recv tracing)
                 If None or empty, all event types are streamed.
 
         Yields:
-            Dict[str, Any]: Telemetry event dictionaries containing:
+            Dict[str, Any]: Telematics event dictionaries containing:
                 - timestamp: Unix timestamp in nanoseconds
                 - job_id: Job UUID
-                - type: Event type ("metrics", "exec", "connect", "file")
-                - data: Event-specific data (metrics, exec, connect, or file)
+                - type: Event type
+                - data: Event-specific data
 
         Raises:
             JobNotFoundError: If the job doesn't exist
 
         Example:
-            >>> # Stream all telemetry events
-            >>> for event in client.jobs.stream_job_telemetry(job_uuid):
+            >>> # Stream all telematics events
+            >>> for event in client.jobs.stream_job_telematics(job_uuid):
             ...     if event['type'] == 'exec':
             ...         print(f"EXEC: {event['exec']['binary']}")
             ...     elif event['type'] == 'connect':
             ...         conn = event['connect']
-            ...         print(f"NET: {conn['address']}:{conn['port']}")
+            ...         print(f"CONNECT: {conn['dst_addr']}:{conn['dst_port']}")
 
-            >>> # Stream only metrics and exec events
-            >>> for event in client.jobs.stream_job_telemetry(
-            ...     job_uuid, ["metrics", "exec"]
+            >>> # Stream only exec and connect events
+            >>> for event in client.jobs.stream_job_telematics(
+            ...     job_uuid, ["exec", "connect"]
             ... ):
             ...     print(event)
         """
-        request = joblet_pb2.StreamTelemetryRequest(
+        request = joblet_pb2.StreamJobTelematicsRequest(
             job_uuid=job_uuid,
             types=event_types or [],
         )
 
         try:
-            for event in self.stub.StreamJobTelemetry(request):
-                yield self._parse_telemetry_event(event)
+            for event in self.stub.StreamJobTelematics(request):
+                yield self._parse_telematics_event(event)
         except grpc.RpcError as e:
             raise JobNotFoundError(
-                f"Failed to stream telemetry for job {job_uuid}: {e.details()}"
+                f"Failed to stream telematics for job {job_uuid}: {e.details()}"
             )
 
-    def get_job_telemetry(
+    # Backward compatibility alias
+    stream_job_telemetry = stream_job_telematics
+
+    def get_job_telematics(
         self,
         job_uuid: str,
         event_types: Optional[List[str]] = None,
@@ -472,45 +492,47 @@ class JobService:
         end_time: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> Iterator[Dict[str, Any]]:
-        """Get historical telemetry events for a completed job
+        """Get historical telematics events for a completed job
 
-        Retrieves stored telemetry events including resource metrics and eBPF
-        visibility events from the persistence layer. Useful for post-mortem
-        analysis of job execution.
+        Retrieves stored eBPF security events from the persistence layer.
+        Useful for post-mortem analysis of job execution behavior.
 
         Args:
             job_uuid: Job UUID or short UUID prefix
             event_types: Optional list of event types to filter:
-                - "metrics": Resource usage (CPU, memory, I/O, network, GPU)
                 - "exec": Process executions (eBPF execve tracing)
-                - "connect": Network connections (eBPF connect tracing)
+                - "connect": Outgoing network connections (eBPF connect tracing)
+                - "accept": Incoming network connections (eBPF accept tracing)
                 - "file": File operations (eBPF file tracing)
+                - "mmap": Memory mapping events (eBPF mmap tracing)
+                - "mprotect": Memory protection changes (eBPF mprotect tracing)
+                - "socket_data": Socket data transfers (eBPF send/recv tracing)
                 If None or empty, all event types are returned.
             start_time: Start time in Unix nanoseconds (0 or None = beginning)
             end_time: End time in Unix nanoseconds (0 or None = end of job)
             limit: Maximum number of events to return (0 or None = no limit)
 
         Yields:
-            Dict[str, Any]: Telemetry event dictionaries containing:
+            Dict[str, Any]: Telematics event dictionaries containing:
                 - timestamp: Unix timestamp in nanoseconds
                 - job_id: Job UUID
-                - type: Event type ("metrics", "exec", "connect", "file")
-                - data: Event-specific data (metrics, exec, connect, or file)
+                - type: Event type
+                - data: Event-specific data
 
         Raises:
-            JobNotFoundError: If the job doesn't exist or telemetry unavailable
+            JobNotFoundError: If the job doesn't exist or telematics unavailable
 
         Example:
-            >>> # Get all historical telemetry
-            >>> events = list(client.jobs.get_job_telemetry(job_uuid))
+            >>> # Get all historical telematics
+            >>> events = list(client.jobs.get_job_telematics(job_uuid))
 
             >>> # Get only exec events
-            >>> for event in client.jobs.get_job_telemetry(job_uuid, ["exec"]):
+            >>> for event in client.jobs.get_job_telematics(job_uuid, ["exec"]):
             ...     exec_data = event['exec']
             ...     print(f"PID {exec_data['pid']}: {exec_data['binary']}")
 
             >>> # Get events with time range and limit
-            >>> for event in client.jobs.get_job_telemetry(
+            >>> for event in client.jobs.get_job_telematics(
             ...     job_uuid,
             ...     start_time=start_ns,
             ...     end_time=end_ns,
@@ -518,7 +540,7 @@ class JobService:
             ... ):
             ...     print(event)
         """
-        request = joblet_pb2.GetTelemetryRequest(
+        request = joblet_pb2.GetJobTelematicsRequest(
             job_uuid=job_uuid,
             types=event_types or [],
             start_time=start_time or 0,
@@ -527,15 +549,18 @@ class JobService:
         )
 
         try:
-            for event in self.stub.GetJobTelemetry(request):
-                yield self._parse_telemetry_event(event)
+            for event in self.stub.GetJobTelematics(request):
+                yield self._parse_telematics_event(event)
         except grpc.RpcError as e:
             raise JobNotFoundError(
-                f"Failed to get telemetry for job {job_uuid}: {e.details()}"
+                f"Failed to get telematics for job {job_uuid}: {e.details()}"
             )
 
-    def _parse_telemetry_event(self, event) -> Dict[str, Any]:
-        """Parse a TelemetryEvent protobuf message to a dictionary"""
+    # Backward compatibility alias
+    get_job_telemetry = get_job_telematics
+
+    def _parse_telematics_event(self, event) -> Dict[str, Any]:
+        """Parse a TelematicsEvent protobuf message to a dictionary"""
         result = {
             "timestamp": event.timestamp,
             "job_id": event.job_id,
@@ -543,20 +568,7 @@ class JobService:
         }
 
         # Parse the oneof data field based on event type
-        if event.HasField("metrics"):
-            metrics = event.metrics
-            result["metrics"] = {
-                "cpu_percent": metrics.cpu_percent,
-                "memory_bytes": metrics.memory_bytes,
-                "memory_limit": metrics.memory_limit,
-                "disk_read_bytes": metrics.disk_read_bytes,
-                "disk_write_bytes": metrics.disk_write_bytes,
-                "net_recv_bytes": metrics.net_recv_bytes,
-                "net_sent_bytes": metrics.net_sent_bytes,
-                "gpu_percent": metrics.gpu_percent,
-                "gpu_memory_bytes": metrics.gpu_memory_bytes,
-            }
-        elif event.HasField("exec"):
+        if event.HasField("exec"):
             exec_data = event.exec
             result["exec"] = {
                 "pid": exec_data.pid,
@@ -569,11 +581,21 @@ class JobService:
             conn = event.connect
             result["connect"] = {
                 "pid": conn.pid,
-                "address": conn.address,
-                "port": conn.port,
+                "dst_addr": conn.dst_addr,
+                "dst_port": conn.dst_port,
+                "src_addr": conn.src_addr,
+                "src_port": conn.src_port,
                 "protocol": conn.protocol,
-                "local_address": conn.local_address,
-                "local_port": conn.local_port,
+            }
+        elif event.HasField("accept"):
+            acc = event.accept
+            result["accept"] = {
+                "pid": acc.pid,
+                "src_addr": acc.src_addr,
+                "src_port": acc.src_port,
+                "dst_addr": acc.dst_addr,
+                "dst_port": acc.dst_port,
+                "protocol": acc.protocol,
             }
         elif event.HasField("file"):
             file_data = event.file
@@ -582,6 +604,37 @@ class JobService:
                 "path": file_data.path,
                 "operation": file_data.operation,
                 "bytes": file_data.bytes,
+                "flags": file_data.flags,
+            }
+        elif event.HasField("mmap"):
+            mmap_data = event.mmap
+            result["mmap"] = {
+                "pid": mmap_data.pid,
+                "addr": mmap_data.addr,
+                "length": mmap_data.length,
+                "prot": mmap_data.prot,
+                "flags": mmap_data.flags,
+                "file_path": mmap_data.file_path,
+            }
+        elif event.HasField("mprotect"):
+            mprot = event.mprotect
+            result["mprotect"] = {
+                "pid": mprot.pid,
+                "addr": mprot.addr,
+                "length": mprot.length,
+                "prot": mprot.prot,
+            }
+        elif event.HasField("socket_data"):
+            sock = event.socket_data
+            result["socket_data"] = {
+                "pid": sock.pid,
+                "direction": sock.direction,
+                "dst_addr": sock.dst_addr,
+                "dst_port": sock.dst_port,
+                "src_addr": sock.src_addr,
+                "src_port": sock.src_port,
+                "protocol": sock.protocol,
+                "bytes": sock.bytes,
             }
 
         return result

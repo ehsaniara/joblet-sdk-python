@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from . import joblet_pb2 as joblet__pb2
+from . import joblet_pb2 as proto_dot_joblet__pb2
 
 GRPC_GENERATED_VERSION = '1.75.1'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in joblet_pb2_grpc.py depends on'
+        + f' but the generated code in proto/joblet_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -37,58 +37,63 @@ class JobServiceStub(object):
         """
         self.RunJob = channel.unary_unary(
                 '/joblet.JobService/RunJob',
-                request_serializer=joblet__pb2.RunJobRequest.SerializeToString,
-                response_deserializer=joblet__pb2.RunJobResponse.FromString,
+                request_serializer=proto_dot_joblet__pb2.RunJobRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RunJobResponse.FromString,
                 _registered_method=True)
         self.GetJobStatus = channel.unary_unary(
                 '/joblet.JobService/GetJobStatus',
-                request_serializer=joblet__pb2.GetJobStatusReq.SerializeToString,
-                response_deserializer=joblet__pb2.GetJobStatusRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.GetJobStatusReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.GetJobStatusRes.FromString,
                 _registered_method=True)
         self.StopJob = channel.unary_unary(
                 '/joblet.JobService/StopJob',
-                request_serializer=joblet__pb2.StopJobReq.SerializeToString,
-                response_deserializer=joblet__pb2.StopJobRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.StopJobReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.StopJobRes.FromString,
                 _registered_method=True)
         self.CancelJob = channel.unary_unary(
                 '/joblet.JobService/CancelJob',
-                request_serializer=joblet__pb2.CancelJobReq.SerializeToString,
-                response_deserializer=joblet__pb2.CancelJobRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.CancelJobReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.CancelJobRes.FromString,
                 _registered_method=True)
         self.DeleteJob = channel.unary_unary(
                 '/joblet.JobService/DeleteJob',
-                request_serializer=joblet__pb2.DeleteJobReq.SerializeToString,
-                response_deserializer=joblet__pb2.DeleteJobRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.DeleteJobReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.DeleteJobRes.FromString,
                 _registered_method=True)
         self.DeleteAllJobs = channel.unary_unary(
                 '/joblet.JobService/DeleteAllJobs',
-                request_serializer=joblet__pb2.DeleteAllJobsReq.SerializeToString,
-                response_deserializer=joblet__pb2.DeleteAllJobsRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.DeleteAllJobsReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.DeleteAllJobsRes.FromString,
                 _registered_method=True)
         self.GetJobLogs = channel.unary_stream(
                 '/joblet.JobService/GetJobLogs',
-                request_serializer=joblet__pb2.GetJobLogsReq.SerializeToString,
-                response_deserializer=joblet__pb2.DataChunk.FromString,
+                request_serializer=proto_dot_joblet__pb2.GetJobLogsReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.DataChunk.FromString,
                 _registered_method=True)
         self.ListJobs = channel.unary_unary(
                 '/joblet.JobService/ListJobs',
-                request_serializer=joblet__pb2.EmptyRequest.SerializeToString,
-                response_deserializer=joblet__pb2.Jobs.FromString,
+                request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.Jobs.FromString,
+                _registered_method=True)
+        self.StreamJobMetrics = channel.unary_stream(
+                '/joblet.JobService/StreamJobMetrics',
+                request_serializer=proto_dot_joblet__pb2.StreamJobMetricsRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.JobMetricsEvent.FromString,
                 _registered_method=True)
         self.GetJobMetrics = channel.unary_stream(
                 '/joblet.JobService/GetJobMetrics',
-                request_serializer=joblet__pb2.JobMetricsRequest.SerializeToString,
-                response_deserializer=joblet__pb2.JobMetricsSample.FromString,
+                request_serializer=proto_dot_joblet__pb2.GetJobMetricsRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.JobMetricsEvent.FromString,
                 _registered_method=True)
-        self.StreamJobTelemetry = channel.unary_stream(
-                '/joblet.JobService/StreamJobTelemetry',
-                request_serializer=joblet__pb2.StreamTelemetryRequest.SerializeToString,
-                response_deserializer=joblet__pb2.TelemetryEvent.FromString,
+        self.StreamJobTelematics = channel.unary_stream(
+                '/joblet.JobService/StreamJobTelematics',
+                request_serializer=proto_dot_joblet__pb2.StreamJobTelematicsRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.TelematicsEvent.FromString,
                 _registered_method=True)
-        self.GetJobTelemetry = channel.unary_stream(
-                '/joblet.JobService/GetJobTelemetry',
-                request_serializer=joblet__pb2.GetTelemetryRequest.SerializeToString,
-                response_deserializer=joblet__pb2.TelemetryEvent.FromString,
+        self.GetJobTelematics = channel.unary_stream(
+                '/joblet.JobService/GetJobTelematics',
+                request_serializer=proto_dot_joblet__pb2.GetJobTelematicsRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.TelematicsEvent.FromString,
                 _registered_method=True)
 
 
@@ -145,23 +150,31 @@ class JobServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def StreamJobMetrics(self, request, context):
+        """Job Metrics (resource usage from cgroups - sampled every 5s)
+        Stream live metrics for a running job
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetJobMetrics(self, request, context):
-        """Job metrics operations
+        """Get historical metrics for a completed job
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamJobTelemetry(self, request, context):
-        """Unified telemetry (metrics + eBPF activity events)
-        Stream live telemetry for a running job
+    def StreamJobTelematics(self, request, context):
+        """Job Telematics (eBPF security events - event-driven)
+        Stream live telematics events for a running job
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetJobTelemetry(self, request, context):
-        """Get historical telemetry for a completed job
+    def GetJobTelematics(self, request, context):
+        """Get historical telematics events for a completed job
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -172,58 +185,63 @@ def add_JobServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'RunJob': grpc.unary_unary_rpc_method_handler(
                     servicer.RunJob,
-                    request_deserializer=joblet__pb2.RunJobRequest.FromString,
-                    response_serializer=joblet__pb2.RunJobResponse.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RunJobRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RunJobResponse.SerializeToString,
             ),
             'GetJobStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetJobStatus,
-                    request_deserializer=joblet__pb2.GetJobStatusReq.FromString,
-                    response_serializer=joblet__pb2.GetJobStatusRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.GetJobStatusReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.GetJobStatusRes.SerializeToString,
             ),
             'StopJob': grpc.unary_unary_rpc_method_handler(
                     servicer.StopJob,
-                    request_deserializer=joblet__pb2.StopJobReq.FromString,
-                    response_serializer=joblet__pb2.StopJobRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.StopJobReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.StopJobRes.SerializeToString,
             ),
             'CancelJob': grpc.unary_unary_rpc_method_handler(
                     servicer.CancelJob,
-                    request_deserializer=joblet__pb2.CancelJobReq.FromString,
-                    response_serializer=joblet__pb2.CancelJobRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.CancelJobReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.CancelJobRes.SerializeToString,
             ),
             'DeleteJob': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteJob,
-                    request_deserializer=joblet__pb2.DeleteJobReq.FromString,
-                    response_serializer=joblet__pb2.DeleteJobRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.DeleteJobReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.DeleteJobRes.SerializeToString,
             ),
             'DeleteAllJobs': grpc.unary_unary_rpc_method_handler(
                     servicer.DeleteAllJobs,
-                    request_deserializer=joblet__pb2.DeleteAllJobsReq.FromString,
-                    response_serializer=joblet__pb2.DeleteAllJobsRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.DeleteAllJobsReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.DeleteAllJobsRes.SerializeToString,
             ),
             'GetJobLogs': grpc.unary_stream_rpc_method_handler(
                     servicer.GetJobLogs,
-                    request_deserializer=joblet__pb2.GetJobLogsReq.FromString,
-                    response_serializer=joblet__pb2.DataChunk.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.GetJobLogsReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.DataChunk.SerializeToString,
             ),
             'ListJobs': grpc.unary_unary_rpc_method_handler(
                     servicer.ListJobs,
-                    request_deserializer=joblet__pb2.EmptyRequest.FromString,
-                    response_serializer=joblet__pb2.Jobs.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.Jobs.SerializeToString,
+            ),
+            'StreamJobMetrics': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamJobMetrics,
+                    request_deserializer=proto_dot_joblet__pb2.StreamJobMetricsRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.JobMetricsEvent.SerializeToString,
             ),
             'GetJobMetrics': grpc.unary_stream_rpc_method_handler(
                     servicer.GetJobMetrics,
-                    request_deserializer=joblet__pb2.JobMetricsRequest.FromString,
-                    response_serializer=joblet__pb2.JobMetricsSample.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.GetJobMetricsRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.JobMetricsEvent.SerializeToString,
             ),
-            'StreamJobTelemetry': grpc.unary_stream_rpc_method_handler(
-                    servicer.StreamJobTelemetry,
-                    request_deserializer=joblet__pb2.StreamTelemetryRequest.FromString,
-                    response_serializer=joblet__pb2.TelemetryEvent.SerializeToString,
+            'StreamJobTelematics': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamJobTelematics,
+                    request_deserializer=proto_dot_joblet__pb2.StreamJobTelematicsRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.TelematicsEvent.SerializeToString,
             ),
-            'GetJobTelemetry': grpc.unary_stream_rpc_method_handler(
-                    servicer.GetJobTelemetry,
-                    request_deserializer=joblet__pb2.GetTelemetryRequest.FromString,
-                    response_serializer=joblet__pb2.TelemetryEvent.SerializeToString,
+            'GetJobTelematics': grpc.unary_stream_rpc_method_handler(
+                    servicer.GetJobTelematics,
+                    request_deserializer=proto_dot_joblet__pb2.GetJobTelematicsRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.TelematicsEvent.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -252,8 +270,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/RunJob',
-            joblet__pb2.RunJobRequest.SerializeToString,
-            joblet__pb2.RunJobResponse.FromString,
+            proto_dot_joblet__pb2.RunJobRequest.SerializeToString,
+            proto_dot_joblet__pb2.RunJobResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -279,8 +297,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/GetJobStatus',
-            joblet__pb2.GetJobStatusReq.SerializeToString,
-            joblet__pb2.GetJobStatusRes.FromString,
+            proto_dot_joblet__pb2.GetJobStatusReq.SerializeToString,
+            proto_dot_joblet__pb2.GetJobStatusRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -306,8 +324,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/StopJob',
-            joblet__pb2.StopJobReq.SerializeToString,
-            joblet__pb2.StopJobRes.FromString,
+            proto_dot_joblet__pb2.StopJobReq.SerializeToString,
+            proto_dot_joblet__pb2.StopJobRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -333,8 +351,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/CancelJob',
-            joblet__pb2.CancelJobReq.SerializeToString,
-            joblet__pb2.CancelJobRes.FromString,
+            proto_dot_joblet__pb2.CancelJobReq.SerializeToString,
+            proto_dot_joblet__pb2.CancelJobRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -360,8 +378,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/DeleteJob',
-            joblet__pb2.DeleteJobReq.SerializeToString,
-            joblet__pb2.DeleteJobRes.FromString,
+            proto_dot_joblet__pb2.DeleteJobReq.SerializeToString,
+            proto_dot_joblet__pb2.DeleteJobRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -387,8 +405,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/DeleteAllJobs',
-            joblet__pb2.DeleteAllJobsReq.SerializeToString,
-            joblet__pb2.DeleteAllJobsRes.FromString,
+            proto_dot_joblet__pb2.DeleteAllJobsReq.SerializeToString,
+            proto_dot_joblet__pb2.DeleteAllJobsRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -414,8 +432,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/GetJobLogs',
-            joblet__pb2.GetJobLogsReq.SerializeToString,
-            joblet__pb2.DataChunk.FromString,
+            proto_dot_joblet__pb2.GetJobLogsReq.SerializeToString,
+            proto_dot_joblet__pb2.DataChunk.FromString,
             options,
             channel_credentials,
             insecure,
@@ -441,8 +459,35 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/ListJobs',
-            joblet__pb2.EmptyRequest.SerializeToString,
-            joblet__pb2.Jobs.FromString,
+            proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+            proto_dot_joblet__pb2.Jobs.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamJobMetrics(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/joblet.JobService/StreamJobMetrics',
+            proto_dot_joblet__pb2.StreamJobMetricsRequest.SerializeToString,
+            proto_dot_joblet__pb2.JobMetricsEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -468,8 +513,8 @@ class JobService(object):
             request,
             target,
             '/joblet.JobService/GetJobMetrics',
-            joblet__pb2.JobMetricsRequest.SerializeToString,
-            joblet__pb2.JobMetricsSample.FromString,
+            proto_dot_joblet__pb2.GetJobMetricsRequest.SerializeToString,
+            proto_dot_joblet__pb2.JobMetricsEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -481,7 +526,7 @@ class JobService(object):
             _registered_method=True)
 
     @staticmethod
-    def StreamJobTelemetry(request,
+    def StreamJobTelematics(request,
             target,
             options=(),
             channel_credentials=None,
@@ -494,9 +539,9 @@ class JobService(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            '/joblet.JobService/StreamJobTelemetry',
-            joblet__pb2.StreamTelemetryRequest.SerializeToString,
-            joblet__pb2.TelemetryEvent.FromString,
+            '/joblet.JobService/StreamJobTelematics',
+            proto_dot_joblet__pb2.StreamJobTelematicsRequest.SerializeToString,
+            proto_dot_joblet__pb2.TelematicsEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -508,7 +553,7 @@ class JobService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetJobTelemetry(request,
+    def GetJobTelematics(request,
             target,
             options=(),
             channel_credentials=None,
@@ -521,9 +566,9 @@ class JobService(object):
         return grpc.experimental.unary_stream(
             request,
             target,
-            '/joblet.JobService/GetJobTelemetry',
-            joblet__pb2.GetTelemetryRequest.SerializeToString,
-            joblet__pb2.TelemetryEvent.FromString,
+            '/joblet.JobService/GetJobTelematics',
+            proto_dot_joblet__pb2.GetJobTelematicsRequest.SerializeToString,
+            proto_dot_joblet__pb2.TelematicsEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -547,18 +592,18 @@ class NetworkServiceStub(object):
         """
         self.CreateNetwork = channel.unary_unary(
                 '/joblet.NetworkService/CreateNetwork',
-                request_serializer=joblet__pb2.CreateNetworkReq.SerializeToString,
-                response_deserializer=joblet__pb2.CreateNetworkRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.CreateNetworkReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.CreateNetworkRes.FromString,
                 _registered_method=True)
         self.ListNetworks = channel.unary_unary(
                 '/joblet.NetworkService/ListNetworks',
-                request_serializer=joblet__pb2.EmptyRequest.SerializeToString,
-                response_deserializer=joblet__pb2.Networks.FromString,
+                request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.Networks.FromString,
                 _registered_method=True)
         self.RemoveNetwork = channel.unary_unary(
                 '/joblet.NetworkService/RemoveNetwork',
-                request_serializer=joblet__pb2.RemoveNetworkReq.SerializeToString,
-                response_deserializer=joblet__pb2.RemoveNetworkRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.RemoveNetworkReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RemoveNetworkRes.FromString,
                 _registered_method=True)
 
 
@@ -589,18 +634,18 @@ def add_NetworkServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateNetwork': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateNetwork,
-                    request_deserializer=joblet__pb2.CreateNetworkReq.FromString,
-                    response_serializer=joblet__pb2.CreateNetworkRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.CreateNetworkReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.CreateNetworkRes.SerializeToString,
             ),
             'ListNetworks': grpc.unary_unary_rpc_method_handler(
                     servicer.ListNetworks,
-                    request_deserializer=joblet__pb2.EmptyRequest.FromString,
-                    response_serializer=joblet__pb2.Networks.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.Networks.SerializeToString,
             ),
             'RemoveNetwork': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveNetwork,
-                    request_deserializer=joblet__pb2.RemoveNetworkReq.FromString,
-                    response_serializer=joblet__pb2.RemoveNetworkRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RemoveNetworkReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RemoveNetworkRes.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -629,8 +674,8 @@ class NetworkService(object):
             request,
             target,
             '/joblet.NetworkService/CreateNetwork',
-            joblet__pb2.CreateNetworkReq.SerializeToString,
-            joblet__pb2.CreateNetworkRes.FromString,
+            proto_dot_joblet__pb2.CreateNetworkReq.SerializeToString,
+            proto_dot_joblet__pb2.CreateNetworkRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -656,8 +701,8 @@ class NetworkService(object):
             request,
             target,
             '/joblet.NetworkService/ListNetworks',
-            joblet__pb2.EmptyRequest.SerializeToString,
-            joblet__pb2.Networks.FromString,
+            proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+            proto_dot_joblet__pb2.Networks.FromString,
             options,
             channel_credentials,
             insecure,
@@ -683,8 +728,8 @@ class NetworkService(object):
             request,
             target,
             '/joblet.NetworkService/RemoveNetwork',
-            joblet__pb2.RemoveNetworkReq.SerializeToString,
-            joblet__pb2.RemoveNetworkRes.FromString,
+            proto_dot_joblet__pb2.RemoveNetworkReq.SerializeToString,
+            proto_dot_joblet__pb2.RemoveNetworkRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -708,18 +753,18 @@ class VolumeServiceStub(object):
         """
         self.CreateVolume = channel.unary_unary(
                 '/joblet.VolumeService/CreateVolume',
-                request_serializer=joblet__pb2.CreateVolumeReq.SerializeToString,
-                response_deserializer=joblet__pb2.CreateVolumeRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.CreateVolumeReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.CreateVolumeRes.FromString,
                 _registered_method=True)
         self.ListVolumes = channel.unary_unary(
                 '/joblet.VolumeService/ListVolumes',
-                request_serializer=joblet__pb2.EmptyRequest.SerializeToString,
-                response_deserializer=joblet__pb2.Volumes.FromString,
+                request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.Volumes.FromString,
                 _registered_method=True)
         self.RemoveVolume = channel.unary_unary(
                 '/joblet.VolumeService/RemoveVolume',
-                request_serializer=joblet__pb2.RemoveVolumeReq.SerializeToString,
-                response_deserializer=joblet__pb2.RemoveVolumeRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.RemoveVolumeReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RemoveVolumeRes.FromString,
                 _registered_method=True)
 
 
@@ -750,18 +795,18 @@ def add_VolumeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CreateVolume': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateVolume,
-                    request_deserializer=joblet__pb2.CreateVolumeReq.FromString,
-                    response_serializer=joblet__pb2.CreateVolumeRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.CreateVolumeReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.CreateVolumeRes.SerializeToString,
             ),
             'ListVolumes': grpc.unary_unary_rpc_method_handler(
                     servicer.ListVolumes,
-                    request_deserializer=joblet__pb2.EmptyRequest.FromString,
-                    response_serializer=joblet__pb2.Volumes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.Volumes.SerializeToString,
             ),
             'RemoveVolume': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveVolume,
-                    request_deserializer=joblet__pb2.RemoveVolumeReq.FromString,
-                    response_serializer=joblet__pb2.RemoveVolumeRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RemoveVolumeReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RemoveVolumeRes.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -790,8 +835,8 @@ class VolumeService(object):
             request,
             target,
             '/joblet.VolumeService/CreateVolume',
-            joblet__pb2.CreateVolumeReq.SerializeToString,
-            joblet__pb2.CreateVolumeRes.FromString,
+            proto_dot_joblet__pb2.CreateVolumeReq.SerializeToString,
+            proto_dot_joblet__pb2.CreateVolumeRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -817,8 +862,8 @@ class VolumeService(object):
             request,
             target,
             '/joblet.VolumeService/ListVolumes',
-            joblet__pb2.EmptyRequest.SerializeToString,
-            joblet__pb2.Volumes.FromString,
+            proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+            proto_dot_joblet__pb2.Volumes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -844,8 +889,8 @@ class VolumeService(object):
             request,
             target,
             '/joblet.VolumeService/RemoveVolume',
-            joblet__pb2.RemoveVolumeReq.SerializeToString,
-            joblet__pb2.RemoveVolumeRes.FromString,
+            proto_dot_joblet__pb2.RemoveVolumeReq.SerializeToString,
+            proto_dot_joblet__pb2.RemoveVolumeRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -869,13 +914,13 @@ class MonitoringServiceStub(object):
         """
         self.GetSystemStatus = channel.unary_unary(
                 '/joblet.MonitoringService/GetSystemStatus',
-                request_serializer=joblet__pb2.EmptyRequest.SerializeToString,
-                response_deserializer=joblet__pb2.SystemStatusRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.SystemStatusRes.FromString,
                 _registered_method=True)
         self.StreamSystemMetrics = channel.unary_stream(
                 '/joblet.MonitoringService/StreamSystemMetrics',
-                request_serializer=joblet__pb2.StreamMetricsReq.SerializeToString,
-                response_deserializer=joblet__pb2.SystemMetricsRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.StreamMetricsReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.SystemMetricsRes.FromString,
                 _registered_method=True)
 
 
@@ -900,13 +945,13 @@ def add_MonitoringServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetSystemStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.GetSystemStatus,
-                    request_deserializer=joblet__pb2.EmptyRequest.FromString,
-                    response_serializer=joblet__pb2.SystemStatusRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.SystemStatusRes.SerializeToString,
             ),
             'StreamSystemMetrics': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamSystemMetrics,
-                    request_deserializer=joblet__pb2.StreamMetricsReq.FromString,
-                    response_serializer=joblet__pb2.SystemMetricsRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.StreamMetricsReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.SystemMetricsRes.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -935,8 +980,8 @@ class MonitoringService(object):
             request,
             target,
             '/joblet.MonitoringService/GetSystemStatus',
-            joblet__pb2.EmptyRequest.SerializeToString,
-            joblet__pb2.SystemStatusRes.FromString,
+            proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+            proto_dot_joblet__pb2.SystemStatusRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -962,8 +1007,8 @@ class MonitoringService(object):
             request,
             target,
             '/joblet.MonitoringService/StreamSystemMetrics',
-            joblet__pb2.StreamMetricsReq.SerializeToString,
-            joblet__pb2.SystemMetricsRes.FromString,
+            proto_dot_joblet__pb2.StreamMetricsReq.SerializeToString,
+            proto_dot_joblet__pb2.SystemMetricsRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -987,48 +1032,48 @@ class RuntimeServiceStub(object):
         """
         self.ListRuntimes = channel.unary_unary(
                 '/joblet.RuntimeService/ListRuntimes',
-                request_serializer=joblet__pb2.EmptyRequest.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimesRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimesRes.FromString,
                 _registered_method=True)
         self.GetRuntimeInfo = channel.unary_unary(
                 '/joblet.RuntimeService/GetRuntimeInfo',
-                request_serializer=joblet__pb2.RuntimeInfoReq.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimeInfoRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.RuntimeInfoReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimeInfoRes.FromString,
                 _registered_method=True)
         self.TestRuntime = channel.unary_unary(
                 '/joblet.RuntimeService/TestRuntime',
-                request_serializer=joblet__pb2.RuntimeTestReq.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimeTestRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.RuntimeTestReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimeTestRes.FromString,
                 _registered_method=True)
         self.InstallRuntimeFromGithub = channel.unary_unary(
                 '/joblet.RuntimeService/InstallRuntimeFromGithub',
-                request_serializer=joblet__pb2.InstallRuntimeRequest.SerializeToString,
-                response_deserializer=joblet__pb2.InstallRuntimeResponse.FromString,
+                request_serializer=proto_dot_joblet__pb2.InstallRuntimeRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.InstallRuntimeResponse.FromString,
                 _registered_method=True)
         self.InstallRuntimeFromLocal = channel.unary_unary(
                 '/joblet.RuntimeService/InstallRuntimeFromLocal',
-                request_serializer=joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
-                response_deserializer=joblet__pb2.InstallRuntimeResponse.FromString,
+                request_serializer=proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.InstallRuntimeResponse.FromString,
                 _registered_method=True)
         self.StreamingInstallRuntimeFromGithub = channel.unary_stream(
                 '/joblet.RuntimeService/StreamingInstallRuntimeFromGithub',
-                request_serializer=joblet__pb2.InstallRuntimeRequest.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimeInstallationChunk.FromString,
+                request_serializer=proto_dot_joblet__pb2.InstallRuntimeRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimeInstallationChunk.FromString,
                 _registered_method=True)
         self.StreamingInstallRuntimeFromLocal = channel.unary_stream(
                 '/joblet.RuntimeService/StreamingInstallRuntimeFromLocal',
-                request_serializer=joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimeInstallationChunk.FromString,
+                request_serializer=proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimeInstallationChunk.FromString,
                 _registered_method=True)
         self.ValidateRuntimeSpec = channel.unary_unary(
                 '/joblet.RuntimeService/ValidateRuntimeSpec',
-                request_serializer=joblet__pb2.ValidateRuntimeSpecRequest.SerializeToString,
-                response_deserializer=joblet__pb2.ValidateRuntimeSpecResponse.FromString,
+                request_serializer=proto_dot_joblet__pb2.ValidateRuntimeSpecRequest.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.ValidateRuntimeSpecResponse.FromString,
                 _registered_method=True)
         self.RemoveRuntime = channel.unary_unary(
                 '/joblet.RuntimeService/RemoveRuntime',
-                request_serializer=joblet__pb2.RuntimeRemoveReq.SerializeToString,
-                response_deserializer=joblet__pb2.RuntimeRemoveRes.FromString,
+                request_serializer=proto_dot_joblet__pb2.RuntimeRemoveReq.SerializeToString,
+                response_deserializer=proto_dot_joblet__pb2.RuntimeRemoveRes.FromString,
                 _registered_method=True)
 
 
@@ -1095,48 +1140,48 @@ def add_RuntimeServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ListRuntimes': grpc.unary_unary_rpc_method_handler(
                     servicer.ListRuntimes,
-                    request_deserializer=joblet__pb2.EmptyRequest.FromString,
-                    response_serializer=joblet__pb2.RuntimesRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.EmptyRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimesRes.SerializeToString,
             ),
             'GetRuntimeInfo': grpc.unary_unary_rpc_method_handler(
                     servicer.GetRuntimeInfo,
-                    request_deserializer=joblet__pb2.RuntimeInfoReq.FromString,
-                    response_serializer=joblet__pb2.RuntimeInfoRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RuntimeInfoReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimeInfoRes.SerializeToString,
             ),
             'TestRuntime': grpc.unary_unary_rpc_method_handler(
                     servicer.TestRuntime,
-                    request_deserializer=joblet__pb2.RuntimeTestReq.FromString,
-                    response_serializer=joblet__pb2.RuntimeTestRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RuntimeTestReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimeTestRes.SerializeToString,
             ),
             'InstallRuntimeFromGithub': grpc.unary_unary_rpc_method_handler(
                     servicer.InstallRuntimeFromGithub,
-                    request_deserializer=joblet__pb2.InstallRuntimeRequest.FromString,
-                    response_serializer=joblet__pb2.InstallRuntimeResponse.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.InstallRuntimeRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.InstallRuntimeResponse.SerializeToString,
             ),
             'InstallRuntimeFromLocal': grpc.unary_unary_rpc_method_handler(
                     servicer.InstallRuntimeFromLocal,
-                    request_deserializer=joblet__pb2.InstallRuntimeFromLocalRequest.FromString,
-                    response_serializer=joblet__pb2.InstallRuntimeResponse.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.InstallRuntimeResponse.SerializeToString,
             ),
             'StreamingInstallRuntimeFromGithub': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamingInstallRuntimeFromGithub,
-                    request_deserializer=joblet__pb2.InstallRuntimeRequest.FromString,
-                    response_serializer=joblet__pb2.RuntimeInstallationChunk.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.InstallRuntimeRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimeInstallationChunk.SerializeToString,
             ),
             'StreamingInstallRuntimeFromLocal': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamingInstallRuntimeFromLocal,
-                    request_deserializer=joblet__pb2.InstallRuntimeFromLocalRequest.FromString,
-                    response_serializer=joblet__pb2.RuntimeInstallationChunk.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimeInstallationChunk.SerializeToString,
             ),
             'ValidateRuntimeSpec': grpc.unary_unary_rpc_method_handler(
                     servicer.ValidateRuntimeSpec,
-                    request_deserializer=joblet__pb2.ValidateRuntimeSpecRequest.FromString,
-                    response_serializer=joblet__pb2.ValidateRuntimeSpecResponse.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.ValidateRuntimeSpecRequest.FromString,
+                    response_serializer=proto_dot_joblet__pb2.ValidateRuntimeSpecResponse.SerializeToString,
             ),
             'RemoveRuntime': grpc.unary_unary_rpc_method_handler(
                     servicer.RemoveRuntime,
-                    request_deserializer=joblet__pb2.RuntimeRemoveReq.FromString,
-                    response_serializer=joblet__pb2.RuntimeRemoveRes.SerializeToString,
+                    request_deserializer=proto_dot_joblet__pb2.RuntimeRemoveReq.FromString,
+                    response_serializer=proto_dot_joblet__pb2.RuntimeRemoveRes.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1165,8 +1210,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/ListRuntimes',
-            joblet__pb2.EmptyRequest.SerializeToString,
-            joblet__pb2.RuntimesRes.FromString,
+            proto_dot_joblet__pb2.EmptyRequest.SerializeToString,
+            proto_dot_joblet__pb2.RuntimesRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1192,8 +1237,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/GetRuntimeInfo',
-            joblet__pb2.RuntimeInfoReq.SerializeToString,
-            joblet__pb2.RuntimeInfoRes.FromString,
+            proto_dot_joblet__pb2.RuntimeInfoReq.SerializeToString,
+            proto_dot_joblet__pb2.RuntimeInfoRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1219,8 +1264,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/TestRuntime',
-            joblet__pb2.RuntimeTestReq.SerializeToString,
-            joblet__pb2.RuntimeTestRes.FromString,
+            proto_dot_joblet__pb2.RuntimeTestReq.SerializeToString,
+            proto_dot_joblet__pb2.RuntimeTestRes.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1246,8 +1291,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/InstallRuntimeFromGithub',
-            joblet__pb2.InstallRuntimeRequest.SerializeToString,
-            joblet__pb2.InstallRuntimeResponse.FromString,
+            proto_dot_joblet__pb2.InstallRuntimeRequest.SerializeToString,
+            proto_dot_joblet__pb2.InstallRuntimeResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1273,8 +1318,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/InstallRuntimeFromLocal',
-            joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
-            joblet__pb2.InstallRuntimeResponse.FromString,
+            proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
+            proto_dot_joblet__pb2.InstallRuntimeResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1300,8 +1345,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/StreamingInstallRuntimeFromGithub',
-            joblet__pb2.InstallRuntimeRequest.SerializeToString,
-            joblet__pb2.RuntimeInstallationChunk.FromString,
+            proto_dot_joblet__pb2.InstallRuntimeRequest.SerializeToString,
+            proto_dot_joblet__pb2.RuntimeInstallationChunk.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1327,8 +1372,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/StreamingInstallRuntimeFromLocal',
-            joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
-            joblet__pb2.RuntimeInstallationChunk.FromString,
+            proto_dot_joblet__pb2.InstallRuntimeFromLocalRequest.SerializeToString,
+            proto_dot_joblet__pb2.RuntimeInstallationChunk.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1354,8 +1399,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/ValidateRuntimeSpec',
-            joblet__pb2.ValidateRuntimeSpecRequest.SerializeToString,
-            joblet__pb2.ValidateRuntimeSpecResponse.FromString,
+            proto_dot_joblet__pb2.ValidateRuntimeSpecRequest.SerializeToString,
+            proto_dot_joblet__pb2.ValidateRuntimeSpecResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1381,8 +1426,8 @@ class RuntimeService(object):
             request,
             target,
             '/joblet.RuntimeService/RemoveRuntime',
-            joblet__pb2.RuntimeRemoveReq.SerializeToString,
-            joblet__pb2.RuntimeRemoveRes.FromString,
+            proto_dot_joblet__pb2.RuntimeRemoveReq.SerializeToString,
+            proto_dot_joblet__pb2.RuntimeRemoveRes.FromString,
             options,
             channel_credentials,
             insecure,

@@ -104,10 +104,30 @@ for chunk in client.jobs.get_job_logs(job['job_uuid']):
 ### Get Job Metrics
 
 ```python
-# Get all metrics for a job (server streams everything)
+# Stream live metrics for a running job
+for metric in client.jobs.stream_job_metrics(job_uuid):
+    print(f"CPU: {metric['cpu_percent']:.2f}%")
+    print(f"Memory: {metric['memory_bytes'] / 1e9:.2f} GB")
+
+# Get historical metrics for a completed job
 for metric in client.jobs.get_job_metrics(job_uuid):
-    print(f"CPU: {metric['cpu_usage']:.2f}%")
-    print(f"Memory: {metric['memory_usage'] / 1e9:.2f} GB")
+    print(f"CPU: {metric['cpu_percent']:.2f}%")
+```
+
+### Get eBPF Telematics
+
+```python
+# Stream live security events for a running job
+for event in client.jobs.stream_job_telematics(job_uuid, ["exec", "connect"]):
+    if event['type'] == 'exec':
+        print(f"EXEC: {event['exec']['binary']} {event['exec']['args']}")
+    elif event['type'] == 'connect':
+        conn = event['connect']
+        print(f"CONNECT: {conn['dst_addr']}:{conn['dst_port']}")
+
+# Get historical telematics events for a completed job
+for event in client.jobs.get_job_telematics(job_uuid):
+    print(f"Event: {event['type']} at {event['timestamp']}")
 ```
 
 ### Manage Resources
@@ -145,7 +165,12 @@ for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
 - `client.jobs.get_job_status()` - Get job status
 - `client.jobs.get_job_logs()` - **Smart log streaming** (historical + live)
 - `client.jobs.stream_live_logs()` - Live-only log streaming
-- `client.jobs.get_job_metrics()` - Stream all job metrics
+
+### Metrics & Telematics
+- `client.jobs.stream_job_metrics()` - Stream live metrics for running job
+- `client.jobs.get_job_metrics()` - Get historical metrics for completed job
+- `client.jobs.stream_job_telematics()` - Stream live eBPF events (exec, connect, accept, file, mmap, mprotect)
+- `client.jobs.get_job_telematics()` - Get historical eBPF events
 
 ### Resources
 - `client.networks` - Network management
