@@ -191,6 +191,21 @@ def generate_proto_files(version="latest", force=False):
 
             print(f"Fixed imports in {grpc_file.name}")
 
+        # Also fix imports in the proto directory if generated there
+        proto_dir = joblet_dir / "proto"
+        if proto_dir.exists():
+            for grpc_file in proto_dir.glob("*_grpc.py"):
+                with open(grpc_file, "r") as f:
+                    content = f.read()
+
+                # Fix proto import paths for nested proto directory
+                content = content.replace("from proto import", "from . import")
+
+                with open(grpc_file, "w") as f:
+                    f.write(content)
+
+                print(f"Fixed imports in proto/{grpc_file.name}")
+
         # Update generation info file
         generation_info = f'''"""
 Proto Generation Information

@@ -955,371 +955,51 @@ class RuntimeSpecInfo(_message.Message):
     architecture: str
     def __init__(self, language: _Optional[str] = ..., version: _Optional[str] = ..., variants: _Optional[_Iterable[str]] = ..., architecture: _Optional[str] = ...) -> None: ...
 
-class JobMetricsRequest(_message.Message):
-    __slots__ = ("uuid",)
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    uuid: str
-    def __init__(self, uuid: _Optional[str] = ...) -> None: ...
+class StreamJobMetricsRequest(_message.Message):
+    __slots__ = ("job_uuid",)
+    JOB_UUID_FIELD_NUMBER: _ClassVar[int]
+    job_uuid: str
+    def __init__(self, job_uuid: _Optional[str] = ...) -> None: ...
 
-class JobMetricsSummaryRequest(_message.Message):
-    __slots__ = ("uuid", "periodSeconds")
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    PERIODSECONDS_FIELD_NUMBER: _ClassVar[int]
-    uuid: str
-    periodSeconds: int
-    def __init__(self, uuid: _Optional[str] = ..., periodSeconds: _Optional[int] = ...) -> None: ...
+class GetJobMetricsRequest(_message.Message):
+    __slots__ = ("job_uuid", "start_time", "end_time", "limit")
+    JOB_UUID_FIELD_NUMBER: _ClassVar[int]
+    START_TIME_FIELD_NUMBER: _ClassVar[int]
+    END_TIME_FIELD_NUMBER: _ClassVar[int]
+    LIMIT_FIELD_NUMBER: _ClassVar[int]
+    job_uuid: str
+    start_time: int
+    end_time: int
+    limit: int
+    def __init__(self, job_uuid: _Optional[str] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ...) -> None: ...
 
-class JobMetricsSummaryResponse(_message.Message):
-    __slots__ = ("cpu", "memory", "io", "network")
-    CPU_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_FIELD_NUMBER: _ClassVar[int]
-    IO_FIELD_NUMBER: _ClassVar[int]
-    NETWORK_FIELD_NUMBER: _ClassVar[int]
-    cpu: JobMetricsAggregate
-    memory: JobMetricsAggregate
-    io: JobMetricsAggregate
-    network: JobMetricsAggregate
-    def __init__(self, cpu: _Optional[_Union[JobMetricsAggregate, _Mapping]] = ..., memory: _Optional[_Union[JobMetricsAggregate, _Mapping]] = ..., io: _Optional[_Union[JobMetricsAggregate, _Mapping]] = ..., network: _Optional[_Union[JobMetricsAggregate, _Mapping]] = ...) -> None: ...
-
-class JobMetricsSample(_message.Message):
-    __slots__ = ("jobId", "timestamp", "sampleIntervalSeconds", "cpu", "memory", "io", "network", "process", "gpu", "cgroupPath", "limits", "gpuAllocation")
-    JOBID_FIELD_NUMBER: _ClassVar[int]
+class JobMetricsEvent(_message.Message):
+    __slots__ = ("timestamp", "job_id", "cpu_percent", "memory_bytes", "memory_limit", "disk_read_bytes", "disk_write_bytes", "net_recv_bytes", "net_sent_bytes", "gpu_percent", "gpu_memory_bytes")
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    SAMPLEINTERVALSECONDS_FIELD_NUMBER: _ClassVar[int]
-    CPU_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_FIELD_NUMBER: _ClassVar[int]
-    IO_FIELD_NUMBER: _ClassVar[int]
-    NETWORK_FIELD_NUMBER: _ClassVar[int]
-    PROCESS_FIELD_NUMBER: _ClassVar[int]
-    GPU_FIELD_NUMBER: _ClassVar[int]
-    CGROUPPATH_FIELD_NUMBER: _ClassVar[int]
-    LIMITS_FIELD_NUMBER: _ClassVar[int]
-    GPUALLOCATION_FIELD_NUMBER: _ClassVar[int]
-    jobId: str
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    CPU_PERCENT_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_BYTES_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_LIMIT_FIELD_NUMBER: _ClassVar[int]
+    DISK_READ_BYTES_FIELD_NUMBER: _ClassVar[int]
+    DISK_WRITE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    NET_RECV_BYTES_FIELD_NUMBER: _ClassVar[int]
+    NET_SENT_BYTES_FIELD_NUMBER: _ClassVar[int]
+    GPU_PERCENT_FIELD_NUMBER: _ClassVar[int]
+    GPU_MEMORY_BYTES_FIELD_NUMBER: _ClassVar[int]
     timestamp: int
-    sampleIntervalSeconds: int
-    cpu: JobCPUMetrics
-    memory: JobMemoryMetrics
-    io: JobIOMetrics
-    network: JobNetworkMetrics
-    process: JobProcessMetrics
-    gpu: _containers.RepeatedCompositeFieldContainer[JobGPUMetrics]
-    cgroupPath: str
-    limits: JobResourceLimits
-    gpuAllocation: _containers.RepeatedScalarFieldContainer[int]
-    def __init__(self, jobId: _Optional[str] = ..., timestamp: _Optional[int] = ..., sampleIntervalSeconds: _Optional[int] = ..., cpu: _Optional[_Union[JobCPUMetrics, _Mapping]] = ..., memory: _Optional[_Union[JobMemoryMetrics, _Mapping]] = ..., io: _Optional[_Union[JobIOMetrics, _Mapping]] = ..., network: _Optional[_Union[JobNetworkMetrics, _Mapping]] = ..., process: _Optional[_Union[JobProcessMetrics, _Mapping]] = ..., gpu: _Optional[_Iterable[_Union[JobGPUMetrics, _Mapping]]] = ..., cgroupPath: _Optional[str] = ..., limits: _Optional[_Union[JobResourceLimits, _Mapping]] = ..., gpuAllocation: _Optional[_Iterable[int]] = ...) -> None: ...
+    job_id: str
+    cpu_percent: float
+    memory_bytes: int
+    memory_limit: int
+    disk_read_bytes: int
+    disk_write_bytes: int
+    net_recv_bytes: int
+    net_sent_bytes: int
+    gpu_percent: float
+    gpu_memory_bytes: int
+    def __init__(self, timestamp: _Optional[int] = ..., job_id: _Optional[str] = ..., cpu_percent: _Optional[float] = ..., memory_bytes: _Optional[int] = ..., memory_limit: _Optional[int] = ..., disk_read_bytes: _Optional[int] = ..., disk_write_bytes: _Optional[int] = ..., net_recv_bytes: _Optional[int] = ..., net_sent_bytes: _Optional[int] = ..., gpu_percent: _Optional[float] = ..., gpu_memory_bytes: _Optional[int] = ...) -> None: ...
 
-class JobResourceLimits(_message.Message):
-    __slots__ = ("cpu", "memory", "io")
-    CPU_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_FIELD_NUMBER: _ClassVar[int]
-    IO_FIELD_NUMBER: _ClassVar[int]
-    cpu: int
-    memory: int
-    io: int
-    def __init__(self, cpu: _Optional[int] = ..., memory: _Optional[int] = ..., io: _Optional[int] = ...) -> None: ...
-
-class JobCPUMetrics(_message.Message):
-    __slots__ = ("usageUsec", "userUsec", "systemUsec", "nrPeriods", "nrThrottled", "throttledUsec", "usagePercent", "throttlePercent", "pressureSome10", "pressureSome60", "pressureSome300", "pressureFull10", "pressureFull60", "pressureFull300")
-    USAGEUSEC_FIELD_NUMBER: _ClassVar[int]
-    USERUSEC_FIELD_NUMBER: _ClassVar[int]
-    SYSTEMUSEC_FIELD_NUMBER: _ClassVar[int]
-    NRPERIODS_FIELD_NUMBER: _ClassVar[int]
-    NRTHROTTLED_FIELD_NUMBER: _ClassVar[int]
-    THROTTLEDUSEC_FIELD_NUMBER: _ClassVar[int]
-    USAGEPERCENT_FIELD_NUMBER: _ClassVar[int]
-    THROTTLEPERCENT_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME10_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME60_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME300_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL10_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL60_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL300_FIELD_NUMBER: _ClassVar[int]
-    usageUsec: int
-    userUsec: int
-    systemUsec: int
-    nrPeriods: int
-    nrThrottled: int
-    throttledUsec: int
-    usagePercent: float
-    throttlePercent: float
-    pressureSome10: float
-    pressureSome60: float
-    pressureSome300: float
-    pressureFull10: float
-    pressureFull60: float
-    pressureFull300: float
-    def __init__(self, usageUsec: _Optional[int] = ..., userUsec: _Optional[int] = ..., systemUsec: _Optional[int] = ..., nrPeriods: _Optional[int] = ..., nrThrottled: _Optional[int] = ..., throttledUsec: _Optional[int] = ..., usagePercent: _Optional[float] = ..., throttlePercent: _Optional[float] = ..., pressureSome10: _Optional[float] = ..., pressureSome60: _Optional[float] = ..., pressureSome300: _Optional[float] = ..., pressureFull10: _Optional[float] = ..., pressureFull60: _Optional[float] = ..., pressureFull300: _Optional[float] = ...) -> None: ...
-
-class JobMemoryMetrics(_message.Message):
-    __slots__ = ("current", "max", "usagePercent", "anon", "file", "kernelStack", "slab", "sock", "shmem", "fileMapped", "fileDirty", "fileWriteback", "pgFault", "pgMajFault", "oomEvents", "oomKill", "pressureSome10", "pressureSome60", "pressureSome300", "pressureFull10", "pressureFull60", "pressureFull300")
-    CURRENT_FIELD_NUMBER: _ClassVar[int]
-    MAX_FIELD_NUMBER: _ClassVar[int]
-    USAGEPERCENT_FIELD_NUMBER: _ClassVar[int]
-    ANON_FIELD_NUMBER: _ClassVar[int]
-    FILE_FIELD_NUMBER: _ClassVar[int]
-    KERNELSTACK_FIELD_NUMBER: _ClassVar[int]
-    SLAB_FIELD_NUMBER: _ClassVar[int]
-    SOCK_FIELD_NUMBER: _ClassVar[int]
-    SHMEM_FIELD_NUMBER: _ClassVar[int]
-    FILEMAPPED_FIELD_NUMBER: _ClassVar[int]
-    FILEDIRTY_FIELD_NUMBER: _ClassVar[int]
-    FILEWRITEBACK_FIELD_NUMBER: _ClassVar[int]
-    PGFAULT_FIELD_NUMBER: _ClassVar[int]
-    PGMAJFAULT_FIELD_NUMBER: _ClassVar[int]
-    OOMEVENTS_FIELD_NUMBER: _ClassVar[int]
-    OOMKILL_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME10_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME60_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME300_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL10_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL60_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL300_FIELD_NUMBER: _ClassVar[int]
-    current: int
-    max: int
-    usagePercent: float
-    anon: int
-    file: int
-    kernelStack: int
-    slab: int
-    sock: int
-    shmem: int
-    fileMapped: int
-    fileDirty: int
-    fileWriteback: int
-    pgFault: int
-    pgMajFault: int
-    oomEvents: int
-    oomKill: int
-    pressureSome10: float
-    pressureSome60: float
-    pressureSome300: float
-    pressureFull10: float
-    pressureFull60: float
-    pressureFull300: float
-    def __init__(self, current: _Optional[int] = ..., max: _Optional[int] = ..., usagePercent: _Optional[float] = ..., anon: _Optional[int] = ..., file: _Optional[int] = ..., kernelStack: _Optional[int] = ..., slab: _Optional[int] = ..., sock: _Optional[int] = ..., shmem: _Optional[int] = ..., fileMapped: _Optional[int] = ..., fileDirty: _Optional[int] = ..., fileWriteback: _Optional[int] = ..., pgFault: _Optional[int] = ..., pgMajFault: _Optional[int] = ..., oomEvents: _Optional[int] = ..., oomKill: _Optional[int] = ..., pressureSome10: _Optional[float] = ..., pressureSome60: _Optional[float] = ..., pressureSome300: _Optional[float] = ..., pressureFull10: _Optional[float] = ..., pressureFull60: _Optional[float] = ..., pressureFull300: _Optional[float] = ...) -> None: ...
-
-class JobIOMetrics(_message.Message):
-    __slots__ = ("devices", "totalReadBytes", "totalWriteBytes", "totalReadOps", "totalWriteOps", "totalDiscardBytes", "totalDiscardOps", "readBPS", "writeBPS", "readIOPS", "writeIOPS", "pressureSome10", "pressureSome60", "pressureSome300", "pressureFull10", "pressureFull60", "pressureFull300")
-    class DevicesEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: DeviceIOMetrics
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[DeviceIOMetrics, _Mapping]] = ...) -> None: ...
-    DEVICES_FIELD_NUMBER: _ClassVar[int]
-    TOTALREADBYTES_FIELD_NUMBER: _ClassVar[int]
-    TOTALWRITEBYTES_FIELD_NUMBER: _ClassVar[int]
-    TOTALREADOPS_FIELD_NUMBER: _ClassVar[int]
-    TOTALWRITEOPS_FIELD_NUMBER: _ClassVar[int]
-    TOTALDISCARDBYTES_FIELD_NUMBER: _ClassVar[int]
-    TOTALDISCARDOPS_FIELD_NUMBER: _ClassVar[int]
-    READBPS_FIELD_NUMBER: _ClassVar[int]
-    WRITEBPS_FIELD_NUMBER: _ClassVar[int]
-    READIOPS_FIELD_NUMBER: _ClassVar[int]
-    WRITEIOPS_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME10_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME60_FIELD_NUMBER: _ClassVar[int]
-    PRESSURESOME300_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL10_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL60_FIELD_NUMBER: _ClassVar[int]
-    PRESSUREFULL300_FIELD_NUMBER: _ClassVar[int]
-    devices: _containers.MessageMap[str, DeviceIOMetrics]
-    totalReadBytes: int
-    totalWriteBytes: int
-    totalReadOps: int
-    totalWriteOps: int
-    totalDiscardBytes: int
-    totalDiscardOps: int
-    readBPS: float
-    writeBPS: float
-    readIOPS: float
-    writeIOPS: float
-    pressureSome10: float
-    pressureSome60: float
-    pressureSome300: float
-    pressureFull10: float
-    pressureFull60: float
-    pressureFull300: float
-    def __init__(self, devices: _Optional[_Mapping[str, DeviceIOMetrics]] = ..., totalReadBytes: _Optional[int] = ..., totalWriteBytes: _Optional[int] = ..., totalReadOps: _Optional[int] = ..., totalWriteOps: _Optional[int] = ..., totalDiscardBytes: _Optional[int] = ..., totalDiscardOps: _Optional[int] = ..., readBPS: _Optional[float] = ..., writeBPS: _Optional[float] = ..., readIOPS: _Optional[float] = ..., writeIOPS: _Optional[float] = ..., pressureSome10: _Optional[float] = ..., pressureSome60: _Optional[float] = ..., pressureSome300: _Optional[float] = ..., pressureFull10: _Optional[float] = ..., pressureFull60: _Optional[float] = ..., pressureFull300: _Optional[float] = ...) -> None: ...
-
-class DeviceIOMetrics(_message.Message):
-    __slots__ = ("device", "readBytes", "writeBytes", "readOps", "writeOps", "discardBytes", "discardOps")
-    DEVICE_FIELD_NUMBER: _ClassVar[int]
-    READBYTES_FIELD_NUMBER: _ClassVar[int]
-    WRITEBYTES_FIELD_NUMBER: _ClassVar[int]
-    READOPS_FIELD_NUMBER: _ClassVar[int]
-    WRITEOPS_FIELD_NUMBER: _ClassVar[int]
-    DISCARDBYTES_FIELD_NUMBER: _ClassVar[int]
-    DISCARDOPS_FIELD_NUMBER: _ClassVar[int]
-    device: str
-    readBytes: int
-    writeBytes: int
-    readOps: int
-    writeOps: int
-    discardBytes: int
-    discardOps: int
-    def __init__(self, device: _Optional[str] = ..., readBytes: _Optional[int] = ..., writeBytes: _Optional[int] = ..., readOps: _Optional[int] = ..., writeOps: _Optional[int] = ..., discardBytes: _Optional[int] = ..., discardOps: _Optional[int] = ...) -> None: ...
-
-class JobNetworkMetrics(_message.Message):
-    __slots__ = ("interfaces", "totalRxBytes", "totalTxBytes", "totalRxPackets", "totalTxPackets", "totalRxErrors", "totalTxErrors", "totalRxDropped", "totalTxDropped", "rxBPS", "txBPS")
-    class InterfacesEntry(_message.Message):
-        __slots__ = ("key", "value")
-        KEY_FIELD_NUMBER: _ClassVar[int]
-        VALUE_FIELD_NUMBER: _ClassVar[int]
-        key: str
-        value: NetworkInterfaceMetrics
-        def __init__(self, key: _Optional[str] = ..., value: _Optional[_Union[NetworkInterfaceMetrics, _Mapping]] = ...) -> None: ...
-    INTERFACES_FIELD_NUMBER: _ClassVar[int]
-    TOTALRXBYTES_FIELD_NUMBER: _ClassVar[int]
-    TOTALTXBYTES_FIELD_NUMBER: _ClassVar[int]
-    TOTALRXPACKETS_FIELD_NUMBER: _ClassVar[int]
-    TOTALTXPACKETS_FIELD_NUMBER: _ClassVar[int]
-    TOTALRXERRORS_FIELD_NUMBER: _ClassVar[int]
-    TOTALTXERRORS_FIELD_NUMBER: _ClassVar[int]
-    TOTALRXDROPPED_FIELD_NUMBER: _ClassVar[int]
-    TOTALTXDROPPED_FIELD_NUMBER: _ClassVar[int]
-    RXBPS_FIELD_NUMBER: _ClassVar[int]
-    TXBPS_FIELD_NUMBER: _ClassVar[int]
-    interfaces: _containers.MessageMap[str, NetworkInterfaceMetrics]
-    totalRxBytes: int
-    totalTxBytes: int
-    totalRxPackets: int
-    totalTxPackets: int
-    totalRxErrors: int
-    totalTxErrors: int
-    totalRxDropped: int
-    totalTxDropped: int
-    rxBPS: float
-    txBPS: float
-    def __init__(self, interfaces: _Optional[_Mapping[str, NetworkInterfaceMetrics]] = ..., totalRxBytes: _Optional[int] = ..., totalTxBytes: _Optional[int] = ..., totalRxPackets: _Optional[int] = ..., totalTxPackets: _Optional[int] = ..., totalRxErrors: _Optional[int] = ..., totalTxErrors: _Optional[int] = ..., totalRxDropped: _Optional[int] = ..., totalTxDropped: _Optional[int] = ..., rxBPS: _Optional[float] = ..., txBPS: _Optional[float] = ...) -> None: ...
-
-class NetworkInterfaceMetrics(_message.Message):
-    __slots__ = ("interface", "rxBytes", "txBytes", "rxPackets", "txPackets", "rxErrors", "txErrors", "rxDropped", "txDropped")
-    INTERFACE_FIELD_NUMBER: _ClassVar[int]
-    RXBYTES_FIELD_NUMBER: _ClassVar[int]
-    TXBYTES_FIELD_NUMBER: _ClassVar[int]
-    RXPACKETS_FIELD_NUMBER: _ClassVar[int]
-    TXPACKETS_FIELD_NUMBER: _ClassVar[int]
-    RXERRORS_FIELD_NUMBER: _ClassVar[int]
-    TXERRORS_FIELD_NUMBER: _ClassVar[int]
-    RXDROPPED_FIELD_NUMBER: _ClassVar[int]
-    TXDROPPED_FIELD_NUMBER: _ClassVar[int]
-    interface: str
-    rxBytes: int
-    txBytes: int
-    rxPackets: int
-    txPackets: int
-    rxErrors: int
-    txErrors: int
-    rxDropped: int
-    txDropped: int
-    def __init__(self, interface: _Optional[str] = ..., rxBytes: _Optional[int] = ..., txBytes: _Optional[int] = ..., rxPackets: _Optional[int] = ..., txPackets: _Optional[int] = ..., rxErrors: _Optional[int] = ..., txErrors: _Optional[int] = ..., rxDropped: _Optional[int] = ..., txDropped: _Optional[int] = ...) -> None: ...
-
-class JobProcessMetrics(_message.Message):
-    __slots__ = ("current", "max", "events", "threads", "running", "sleeping", "stopped", "zombie", "openFDs", "maxFDs")
-    CURRENT_FIELD_NUMBER: _ClassVar[int]
-    MAX_FIELD_NUMBER: _ClassVar[int]
-    EVENTS_FIELD_NUMBER: _ClassVar[int]
-    THREADS_FIELD_NUMBER: _ClassVar[int]
-    RUNNING_FIELD_NUMBER: _ClassVar[int]
-    SLEEPING_FIELD_NUMBER: _ClassVar[int]
-    STOPPED_FIELD_NUMBER: _ClassVar[int]
-    ZOMBIE_FIELD_NUMBER: _ClassVar[int]
-    OPENFDS_FIELD_NUMBER: _ClassVar[int]
-    MAXFDS_FIELD_NUMBER: _ClassVar[int]
-    current: int
-    max: int
-    events: int
-    threads: int
-    running: int
-    sleeping: int
-    stopped: int
-    zombie: int
-    openFDs: int
-    maxFDs: int
-    def __init__(self, current: _Optional[int] = ..., max: _Optional[int] = ..., events: _Optional[int] = ..., threads: _Optional[int] = ..., running: _Optional[int] = ..., sleeping: _Optional[int] = ..., stopped: _Optional[int] = ..., zombie: _Optional[int] = ..., openFDs: _Optional[int] = ..., maxFDs: _Optional[int] = ...) -> None: ...
-
-class JobGPUMetrics(_message.Message):
-    __slots__ = ("index", "uuid", "name", "computeCapability", "driverVersion", "utilization", "memoryUsed", "memoryTotal", "memoryFree", "memoryPercent", "encoderUtil", "decoderUtil", "smClock", "memoryClock", "pcieThroughputRx", "pcieThroughputTx", "temperature", "temperatureMemory", "powerDraw", "powerLimit", "fanSpeed", "eccErrorsSingle", "eccErrorsDouble", "xidErrors", "retiredPages", "throttleReasons", "processesCount", "processesMemory", "computeMode")
-    INDEX_FIELD_NUMBER: _ClassVar[int]
-    UUID_FIELD_NUMBER: _ClassVar[int]
-    NAME_FIELD_NUMBER: _ClassVar[int]
-    COMPUTECAPABILITY_FIELD_NUMBER: _ClassVar[int]
-    DRIVERVERSION_FIELD_NUMBER: _ClassVar[int]
-    UTILIZATION_FIELD_NUMBER: _ClassVar[int]
-    MEMORYUSED_FIELD_NUMBER: _ClassVar[int]
-    MEMORYTOTAL_FIELD_NUMBER: _ClassVar[int]
-    MEMORYFREE_FIELD_NUMBER: _ClassVar[int]
-    MEMORYPERCENT_FIELD_NUMBER: _ClassVar[int]
-    ENCODERUTIL_FIELD_NUMBER: _ClassVar[int]
-    DECODERUTIL_FIELD_NUMBER: _ClassVar[int]
-    SMCLOCK_FIELD_NUMBER: _ClassVar[int]
-    MEMORYCLOCK_FIELD_NUMBER: _ClassVar[int]
-    PCIETHROUGHPUTRX_FIELD_NUMBER: _ClassVar[int]
-    PCIETHROUGHPUTTX_FIELD_NUMBER: _ClassVar[int]
-    TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
-    TEMPERATUREMEMORY_FIELD_NUMBER: _ClassVar[int]
-    POWERDRAW_FIELD_NUMBER: _ClassVar[int]
-    POWERLIMIT_FIELD_NUMBER: _ClassVar[int]
-    FANSPEED_FIELD_NUMBER: _ClassVar[int]
-    ECCERRORSSINGLE_FIELD_NUMBER: _ClassVar[int]
-    ECCERRORSDOUBLE_FIELD_NUMBER: _ClassVar[int]
-    XIDERRORS_FIELD_NUMBER: _ClassVar[int]
-    RETIREDPAGES_FIELD_NUMBER: _ClassVar[int]
-    THROTTLEREASONS_FIELD_NUMBER: _ClassVar[int]
-    PROCESSESCOUNT_FIELD_NUMBER: _ClassVar[int]
-    PROCESSESMEMORY_FIELD_NUMBER: _ClassVar[int]
-    COMPUTEMODE_FIELD_NUMBER: _ClassVar[int]
-    index: int
-    uuid: str
-    name: str
-    computeCapability: str
-    driverVersion: str
-    utilization: float
-    memoryUsed: int
-    memoryTotal: int
-    memoryFree: int
-    memoryPercent: float
-    encoderUtil: float
-    decoderUtil: float
-    smClock: int
-    memoryClock: int
-    pcieThroughputRx: float
-    pcieThroughputTx: float
-    temperature: float
-    temperatureMemory: float
-    powerDraw: float
-    powerLimit: float
-    fanSpeed: float
-    eccErrorsSingle: int
-    eccErrorsDouble: int
-    xidErrors: int
-    retiredPages: int
-    throttleReasons: int
-    processesCount: int
-    processesMemory: int
-    computeMode: str
-    def __init__(self, index: _Optional[int] = ..., uuid: _Optional[str] = ..., name: _Optional[str] = ..., computeCapability: _Optional[str] = ..., driverVersion: _Optional[str] = ..., utilization: _Optional[float] = ..., memoryUsed: _Optional[int] = ..., memoryTotal: _Optional[int] = ..., memoryFree: _Optional[int] = ..., memoryPercent: _Optional[float] = ..., encoderUtil: _Optional[float] = ..., decoderUtil: _Optional[float] = ..., smClock: _Optional[int] = ..., memoryClock: _Optional[int] = ..., pcieThroughputRx: _Optional[float] = ..., pcieThroughputTx: _Optional[float] = ..., temperature: _Optional[float] = ..., temperatureMemory: _Optional[float] = ..., powerDraw: _Optional[float] = ..., powerLimit: _Optional[float] = ..., fanSpeed: _Optional[float] = ..., eccErrorsSingle: _Optional[int] = ..., eccErrorsDouble: _Optional[int] = ..., xidErrors: _Optional[int] = ..., retiredPages: _Optional[int] = ..., throttleReasons: _Optional[int] = ..., processesCount: _Optional[int] = ..., processesMemory: _Optional[int] = ..., computeMode: _Optional[str] = ...) -> None: ...
-
-class JobMetricsAggregate(_message.Message):
-    __slots__ = ("min", "max", "avg", "p50", "p95", "p99")
-    MIN_FIELD_NUMBER: _ClassVar[int]
-    MAX_FIELD_NUMBER: _ClassVar[int]
-    AVG_FIELD_NUMBER: _ClassVar[int]
-    P50_FIELD_NUMBER: _ClassVar[int]
-    P95_FIELD_NUMBER: _ClassVar[int]
-    P99_FIELD_NUMBER: _ClassVar[int]
-    min: float
-    max: float
-    avg: float
-    p50: float
-    p95: float
-    p99: float
-    def __init__(self, min: _Optional[float] = ..., max: _Optional[float] = ..., avg: _Optional[float] = ..., p50: _Optional[float] = ..., p95: _Optional[float] = ..., p99: _Optional[float] = ...) -> None: ...
-
-class StreamTelemetryRequest(_message.Message):
+class StreamJobTelematicsRequest(_message.Message):
     __slots__ = ("job_uuid", "types")
     JOB_UUID_FIELD_NUMBER: _ClassVar[int]
     TYPES_FIELD_NUMBER: _ClassVar[int]
@@ -1327,7 +1007,7 @@ class StreamTelemetryRequest(_message.Message):
     types: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, job_uuid: _Optional[str] = ..., types: _Optional[_Iterable[str]] = ...) -> None: ...
 
-class GetTelemetryRequest(_message.Message):
+class GetJobTelematicsRequest(_message.Message):
     __slots__ = ("job_uuid", "types", "start_time", "end_time", "limit")
     JOB_UUID_FIELD_NUMBER: _ClassVar[int]
     TYPES_FIELD_NUMBER: _ClassVar[int]
@@ -1341,84 +1021,134 @@ class GetTelemetryRequest(_message.Message):
     limit: int
     def __init__(self, job_uuid: _Optional[str] = ..., types: _Optional[_Iterable[str]] = ..., start_time: _Optional[int] = ..., end_time: _Optional[int] = ..., limit: _Optional[int] = ...) -> None: ...
 
-class TelemetryEvent(_message.Message):
-    __slots__ = ("timestamp", "job_id", "type", "metrics", "exec", "connect", "file")
+class TelematicsEvent(_message.Message):
+    __slots__ = ("timestamp", "job_id", "type", "exec", "connect", "accept", "file", "mmap", "mprotect", "socket_data")
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
-    METRICS_FIELD_NUMBER: _ClassVar[int]
     EXEC_FIELD_NUMBER: _ClassVar[int]
     CONNECT_FIELD_NUMBER: _ClassVar[int]
+    ACCEPT_FIELD_NUMBER: _ClassVar[int]
     FILE_FIELD_NUMBER: _ClassVar[int]
+    MMAP_FIELD_NUMBER: _ClassVar[int]
+    MPROTECT_FIELD_NUMBER: _ClassVar[int]
+    SOCKET_DATA_FIELD_NUMBER: _ClassVar[int]
     timestamp: int
     job_id: str
     type: str
-    metrics: TelemetryMetricsData
-    exec: TelemetryExecData
-    connect: TelemetryConnectData
-    file: TelemetryFileData
-    def __init__(self, timestamp: _Optional[int] = ..., job_id: _Optional[str] = ..., type: _Optional[str] = ..., metrics: _Optional[_Union[TelemetryMetricsData, _Mapping]] = ..., exec: _Optional[_Union[TelemetryExecData, _Mapping]] = ..., connect: _Optional[_Union[TelemetryConnectData, _Mapping]] = ..., file: _Optional[_Union[TelemetryFileData, _Mapping]] = ...) -> None: ...
+    exec: TelematicsExecData
+    connect: TelematicsConnectData
+    accept: TelematicsAcceptData
+    file: TelematicsFileData
+    mmap: TelematicsMmapData
+    mprotect: TelematicsMprotectData
+    socket_data: TelematicsSocketDataData
+    def __init__(self, timestamp: _Optional[int] = ..., job_id: _Optional[str] = ..., type: _Optional[str] = ..., exec: _Optional[_Union[TelematicsExecData, _Mapping]] = ..., connect: _Optional[_Union[TelematicsConnectData, _Mapping]] = ..., accept: _Optional[_Union[TelematicsAcceptData, _Mapping]] = ..., file: _Optional[_Union[TelematicsFileData, _Mapping]] = ..., mmap: _Optional[_Union[TelematicsMmapData, _Mapping]] = ..., mprotect: _Optional[_Union[TelematicsMprotectData, _Mapping]] = ..., socket_data: _Optional[_Union[TelematicsSocketDataData, _Mapping]] = ...) -> None: ...
 
-class TelemetryMetricsData(_message.Message):
-    __slots__ = ("cpu_percent", "memory_bytes", "memory_limit", "disk_read_bytes", "disk_write_bytes", "net_recv_bytes", "net_sent_bytes", "gpu_percent", "gpu_memory_bytes")
-    CPU_PERCENT_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_BYTES_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_LIMIT_FIELD_NUMBER: _ClassVar[int]
-    DISK_READ_BYTES_FIELD_NUMBER: _ClassVar[int]
-    DISK_WRITE_BYTES_FIELD_NUMBER: _ClassVar[int]
-    NET_RECV_BYTES_FIELD_NUMBER: _ClassVar[int]
-    NET_SENT_BYTES_FIELD_NUMBER: _ClassVar[int]
-    GPU_PERCENT_FIELD_NUMBER: _ClassVar[int]
-    GPU_MEMORY_BYTES_FIELD_NUMBER: _ClassVar[int]
-    cpu_percent: float
-    memory_bytes: int
-    memory_limit: int
-    disk_read_bytes: int
-    disk_write_bytes: int
-    net_recv_bytes: int
-    net_sent_bytes: int
-    gpu_percent: float
-    gpu_memory_bytes: int
-    def __init__(self, cpu_percent: _Optional[float] = ..., memory_bytes: _Optional[int] = ..., memory_limit: _Optional[int] = ..., disk_read_bytes: _Optional[int] = ..., disk_write_bytes: _Optional[int] = ..., net_recv_bytes: _Optional[int] = ..., net_sent_bytes: _Optional[int] = ..., gpu_percent: _Optional[float] = ..., gpu_memory_bytes: _Optional[int] = ...) -> None: ...
-
-class TelemetryExecData(_message.Message):
-    __slots__ = ("pid", "binary", "args", "exit_code", "ppid")
+class TelematicsExecData(_message.Message):
+    __slots__ = ("pid", "ppid", "binary", "args", "exit_code")
     PID_FIELD_NUMBER: _ClassVar[int]
+    PPID_FIELD_NUMBER: _ClassVar[int]
     BINARY_FIELD_NUMBER: _ClassVar[int]
     ARGS_FIELD_NUMBER: _ClassVar[int]
     EXIT_CODE_FIELD_NUMBER: _ClassVar[int]
-    PPID_FIELD_NUMBER: _ClassVar[int]
     pid: int
+    ppid: int
     binary: str
     args: _containers.RepeatedScalarFieldContainer[str]
     exit_code: int
-    ppid: int
-    def __init__(self, pid: _Optional[int] = ..., binary: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., exit_code: _Optional[int] = ..., ppid: _Optional[int] = ...) -> None: ...
+    def __init__(self, pid: _Optional[int] = ..., ppid: _Optional[int] = ..., binary: _Optional[str] = ..., args: _Optional[_Iterable[str]] = ..., exit_code: _Optional[int] = ...) -> None: ...
 
-class TelemetryConnectData(_message.Message):
-    __slots__ = ("pid", "address", "port", "protocol", "local_address", "local_port")
+class TelematicsConnectData(_message.Message):
+    __slots__ = ("pid", "dst_addr", "dst_port", "protocol", "src_addr", "src_port")
     PID_FIELD_NUMBER: _ClassVar[int]
-    ADDRESS_FIELD_NUMBER: _ClassVar[int]
-    PORT_FIELD_NUMBER: _ClassVar[int]
+    DST_ADDR_FIELD_NUMBER: _ClassVar[int]
+    DST_PORT_FIELD_NUMBER: _ClassVar[int]
     PROTOCOL_FIELD_NUMBER: _ClassVar[int]
-    LOCAL_ADDRESS_FIELD_NUMBER: _ClassVar[int]
-    LOCAL_PORT_FIELD_NUMBER: _ClassVar[int]
+    SRC_ADDR_FIELD_NUMBER: _ClassVar[int]
+    SRC_PORT_FIELD_NUMBER: _ClassVar[int]
     pid: int
-    address: str
-    port: int
+    dst_addr: str
+    dst_port: int
     protocol: str
-    local_address: str
-    local_port: int
-    def __init__(self, pid: _Optional[int] = ..., address: _Optional[str] = ..., port: _Optional[int] = ..., protocol: _Optional[str] = ..., local_address: _Optional[str] = ..., local_port: _Optional[int] = ...) -> None: ...
+    src_addr: str
+    src_port: int
+    def __init__(self, pid: _Optional[int] = ..., dst_addr: _Optional[str] = ..., dst_port: _Optional[int] = ..., protocol: _Optional[str] = ..., src_addr: _Optional[str] = ..., src_port: _Optional[int] = ...) -> None: ...
 
-class TelemetryFileData(_message.Message):
-    __slots__ = ("pid", "path", "operation", "bytes")
+class TelematicsAcceptData(_message.Message):
+    __slots__ = ("pid", "src_addr", "src_port", "dst_addr", "dst_port", "protocol")
+    PID_FIELD_NUMBER: _ClassVar[int]
+    SRC_ADDR_FIELD_NUMBER: _ClassVar[int]
+    SRC_PORT_FIELD_NUMBER: _ClassVar[int]
+    DST_ADDR_FIELD_NUMBER: _ClassVar[int]
+    DST_PORT_FIELD_NUMBER: _ClassVar[int]
+    PROTOCOL_FIELD_NUMBER: _ClassVar[int]
+    pid: int
+    src_addr: str
+    src_port: int
+    dst_addr: str
+    dst_port: int
+    protocol: str
+    def __init__(self, pid: _Optional[int] = ..., src_addr: _Optional[str] = ..., src_port: _Optional[int] = ..., dst_addr: _Optional[str] = ..., dst_port: _Optional[int] = ..., protocol: _Optional[str] = ...) -> None: ...
+
+class TelematicsFileData(_message.Message):
+    __slots__ = ("pid", "path", "operation", "bytes", "flags")
     PID_FIELD_NUMBER: _ClassVar[int]
     PATH_FIELD_NUMBER: _ClassVar[int]
     OPERATION_FIELD_NUMBER: _ClassVar[int]
     BYTES_FIELD_NUMBER: _ClassVar[int]
+    FLAGS_FIELD_NUMBER: _ClassVar[int]
     pid: int
     path: str
     operation: str
     bytes: int
-    def __init__(self, pid: _Optional[int] = ..., path: _Optional[str] = ..., operation: _Optional[str] = ..., bytes: _Optional[int] = ...) -> None: ...
+    flags: int
+    def __init__(self, pid: _Optional[int] = ..., path: _Optional[str] = ..., operation: _Optional[str] = ..., bytes: _Optional[int] = ..., flags: _Optional[int] = ...) -> None: ...
+
+class TelematicsMmapData(_message.Message):
+    __slots__ = ("pid", "addr", "length", "prot", "flags", "file_path")
+    PID_FIELD_NUMBER: _ClassVar[int]
+    ADDR_FIELD_NUMBER: _ClassVar[int]
+    LENGTH_FIELD_NUMBER: _ClassVar[int]
+    PROT_FIELD_NUMBER: _ClassVar[int]
+    FLAGS_FIELD_NUMBER: _ClassVar[int]
+    FILE_PATH_FIELD_NUMBER: _ClassVar[int]
+    pid: int
+    addr: int
+    length: int
+    prot: int
+    flags: int
+    file_path: str
+    def __init__(self, pid: _Optional[int] = ..., addr: _Optional[int] = ..., length: _Optional[int] = ..., prot: _Optional[int] = ..., flags: _Optional[int] = ..., file_path: _Optional[str] = ...) -> None: ...
+
+class TelematicsMprotectData(_message.Message):
+    __slots__ = ("pid", "addr", "length", "prot")
+    PID_FIELD_NUMBER: _ClassVar[int]
+    ADDR_FIELD_NUMBER: _ClassVar[int]
+    LENGTH_FIELD_NUMBER: _ClassVar[int]
+    PROT_FIELD_NUMBER: _ClassVar[int]
+    pid: int
+    addr: int
+    length: int
+    prot: int
+    def __init__(self, pid: _Optional[int] = ..., addr: _Optional[int] = ..., length: _Optional[int] = ..., prot: _Optional[int] = ...) -> None: ...
+
+class TelematicsSocketDataData(_message.Message):
+    __slots__ = ("pid", "direction", "dst_addr", "dst_port", "src_addr", "src_port", "protocol", "bytes")
+    PID_FIELD_NUMBER: _ClassVar[int]
+    DIRECTION_FIELD_NUMBER: _ClassVar[int]
+    DST_ADDR_FIELD_NUMBER: _ClassVar[int]
+    DST_PORT_FIELD_NUMBER: _ClassVar[int]
+    SRC_ADDR_FIELD_NUMBER: _ClassVar[int]
+    SRC_PORT_FIELD_NUMBER: _ClassVar[int]
+    PROTOCOL_FIELD_NUMBER: _ClassVar[int]
+    BYTES_FIELD_NUMBER: _ClassVar[int]
+    pid: int
+    direction: str
+    dst_addr: str
+    dst_port: int
+    src_addr: str
+    src_port: int
+    protocol: str
+    bytes: int
+    def __init__(self, pid: _Optional[int] = ..., direction: _Optional[str] = ..., dst_addr: _Optional[str] = ..., dst_port: _Optional[int] = ..., src_addr: _Optional[str] = ..., src_port: _Optional[int] = ..., protocol: _Optional[str] = ..., bytes: _Optional[int] = ...) -> None: ...
