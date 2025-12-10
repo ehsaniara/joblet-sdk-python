@@ -60,6 +60,15 @@ from .exceptions import (
     VolumeError,
 )
 
+# Helper utilities for file uploads
+from .helpers import (
+    create_directory,
+    upload_bytes,
+    upload_directory,
+    upload_file,
+    upload_string,
+)
+
 # Service classes - accessed through client properties
 from .services import (
     JobService,
@@ -79,6 +88,12 @@ __all__ = [
     "VolumeService",
     "MonitoringService",
     "RuntimeService",
+    # Helper utilities
+    "upload_file",
+    "upload_directory",
+    "upload_string",
+    "upload_bytes",
+    "create_directory",
     # Exception hierarchy for error handling
     "JobletException",
     "ConnectionError",

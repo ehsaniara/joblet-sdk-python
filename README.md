@@ -246,15 +246,19 @@ make clean
 
 ## Examples
 
-See the `examples/` directory for more detailed usage examples:
-- `01_basic_usage.py` - Simple job execution and management
-- `02_advanced_features.py` - Resource limits, environment variables, GPU support
-- `03_streaming_logs.py` - Real-time log streaming
-- `04_historical_logs_metrics.py` - Query historical logs and metrics
-- `05_smart_log_streaming.py` - Intelligent log streaming (historical + live)
-- `06_long_running_job_demo.py` - Long-running job with complete log retrieval
+See the `examples/` directory for hands-on examples:
 
-For detailed documentation, see [examples/README.md](examples/README.md)
+| Example | Description |
+|---------|-------------|
+| [01_basic_usage](examples/01_basic_usage/) | Running jobs, checking status, getting logs |
+| [02_advanced_features](examples/02_advanced_features/) | Resource limits, GPUs, networks, volumes |
+| [03_streaming_logs](examples/03_streaming_logs/) | Real-time log streaming |
+| [04_historical_logs_metrics](examples/04_historical_logs_metrics/) | Logs and metrics from completed jobs |
+| [05_smart_log_streaming](examples/05_smart_log_streaming/) | Automatic historical + live log handling |
+| [06_long_running_job](examples/06_long_running_job/) | Managing long-duration jobs |
+| [07_file_uploads_and_dependencies](examples/07_file_uploads_and_dependencies/) | File uploads and Python dependencies |
+
+Each example has its own README with detailed explanations.
 
 ## Related Projects
 
