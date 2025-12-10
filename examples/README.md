@@ -1,77 +1,35 @@
 # Joblet SDK Examples
 
-This directory contains example scripts demonstrating how to use the Joblet SDK.
+Hands-on examples demonstrating the Joblet Python SDK.
 
 ## Prerequisites
 
 1. Joblet server running (default: `localhost:50051`)
 2. Python 3.9+ with joblet-sdk-python installed
-3. Configuration file at `~/.rnx/rnx-config.yml` (see Configuration section below)
+3. Configuration file at `~/.rnx/rnx-config.yml`
 
 ## Examples
 
-### 01_basic_usage.py
-Demonstrates fundamental Joblet operations:
-- Running simple jobs
-- Checking job status
-- Getting job logs
-- Canceling jobs
-- Cleaning up jobs
+| Example | Description |
+|---------|-------------|
+| [01_basic_usage](01_basic_usage/) | Running jobs, checking status, getting logs |
+| [02_advanced_features](02_advanced_features/) | Resource limits, GPUs, networks, volumes |
+| [03_streaming_logs](03_streaming_logs/) | Real-time log streaming |
+| [04_historical_logs_metrics](04_historical_logs_metrics/) | Logs and metrics from completed jobs |
+| [05_smart_log_streaming](05_smart_log_streaming/) | Automatic historical + live log handling |
+| [06_long_running_job](06_long_running_job/) | Managing long-duration jobs |
+| [07_file_uploads_and_dependencies](07_file_uploads_and_dependencies/) | File uploads and Python dependencies |
+
+## Quick Start
 
 ```bash
-python examples/01_basic_usage.py
+# Install SDK
+pip install -e ..
+
+# Run an example
+cd 01_basic_usage
+python main.py
 ```
-
-### 02_advanced_features.py
-Shows advanced Joblet features:
-- Resource limits (CPU, memory)
-- Environment variables
-- File uploads
-- Scheduled jobs
-- GPU resource allocation
-
-```bash
-python examples/02_advanced_features.py
-```
-
-### 03_streaming_logs.py
-Demonstrates real-time log streaming:
-- Streaming logs from running jobs
-- Concurrent status monitoring
-- Thread-based log handling
-
-```bash
-python examples/03_streaming_logs.py
-```
-
-### 04_historical_logs_metrics.py
-Shows how to retrieve job logs and metrics (proto v2.3.0):
-- Getting all logs for completed jobs
-- Getting all metrics for completed jobs
-- Client-side filtering and statistics
-- Demonstrates simplified streaming API
-
-```bash
-python examples/04_historical_logs_metrics.py
-```
-
-**Note**: Proto v2.3.0 simplified the API - the server streams ALL logs/metrics for a job, and clients filter results as needed.
-
-### 05_smart_log_streaming.py
-Demonstrates intelligent log streaming that works like `rnx job log`:
-- Automatic historical + live log handling
-- Seamless access to logs from any job (running or completed)
-- Reconnecting to running jobs with full history
-- Live-only streaming option
-
-```bash
-python examples/05_smart_log_streaming.py
-```
-
-**Key Feature**: `client.jobs.get_job_logs()` automatically provides complete log history:
-1. Server handles historical data internally via IPC
-2. Streams both historical and live logs in unified response
-3. Works transparently for both completed and running jobs
 
 ## Configuration
 
@@ -81,8 +39,7 @@ Create `~/.rnx/rnx-config.yml`:
 version: "3.0"
 nodes:
   default:
-    address: "localhost:50051"  # Required: Joblet service endpoint
-    nodeId: "local-dev"  # Optional: node identifier
+    address: "localhost:50051"
     cert: |
       -----BEGIN CERTIFICATE-----
       [Your client certificate]
@@ -98,6 +55,7 @@ nodes:
 ```
 
 Or connect with explicit parameters:
+
 ```python
 with JobletClient(
     host="localhost",
@@ -106,43 +64,18 @@ with JobletClient(
     client_cert_path="/path/to/client.pem",
     client_key_path="/path/to/client-key.pem"
 ) as client:
-    # Your code here
     pass
 ```
-
-## Quick Start
-
-1. Ensure Joblet service is running (Linux systemd service):
-```bash
-# Check Joblet service status (listens on port 50051)
-sudo systemctl status joblet
-
-# View service logs if needed
-sudo journalctl -u joblet -f
-```
-
-2. Run an example:
-```bash
-# Install the SDK if not already installed
-pip install -e ..
-
-# Run basic example
-python 01_basic_usage.py
-```
-
-**Note**: Joblet is a Linux-native service that runs as a systemd service with embedded persistence.
-See the [Joblet Installation Guide](https://github.com/ehsaniara/joblet/blob/main/docs/INSTALLATION.md)
-for server setup and [Quick Start](https://github.com/ehsaniara/joblet/blob/main/docs/QUICKSTART.md)
-for getting started.
 
 ## Common Patterns
 
 ### Error Handling
+
 ```python
 from joblet import JobletClient, JobNotFoundError, ConnectionError
 
 try:
-    with JobletClient(host="localhost", port=50051) as client:
+    with JobletClient() as client:
         job = client.jobs.run_job(name="test", command="echo", args=["hello"])
 except ConnectionError as e:
     print(f"Failed to connect: {e}")
@@ -150,11 +83,11 @@ except JobNotFoundError as e:
     print(f"Job not found: {e}")
 ```
 
-### Waiting for Job Completion
+### Wait for Completion
+
 ```python
 import time
 
-# Manual polling
 while True:
     status = client.jobs.get_job_status(job_uuid)
     if status["status"] in ["COMPLETED", "FAILED", "STOPPED"]:
@@ -162,9 +95,9 @@ while True:
     time.sleep(1)
 ```
 
-### Resource Management
+### Resource Cleanup
+
 ```python
-# Always clean up jobs when done
 try:
     job = client.jobs.run_job(...)
     # Do work
@@ -172,8 +105,12 @@ finally:
     client.jobs.delete_job(job["job_uuid"])
 ```
 
-## Notes
+## Service Status
 
-- All examples use `localhost:50051` as the default server
-- Modify the host and port in the examples to match your setup
-- Some features (like GPU) require appropriate hardware and drivers
+```bash
+# Check Joblet service (Linux systemd)
+sudo systemctl status joblet
+
+# View service logs
+sudo journalctl -u joblet -f
+```

@@ -92,6 +92,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 exclude = [
     "proto/",
+    "examples/",
     "joblet_pb2\\.py",
     "joblet_pb2_grpc\\.py",
     ".*_pb2\\.pyi",
