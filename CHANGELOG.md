@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.0] - 2025-12-05
+## [2.4.0] - 2025-12-21
+
+### Added
+- Updated proto files to joblet-proto v2.5.5
+- New runtime build API with OverlayFS-based isolation:
+  - `build_runtime()` - Build a runtime from YAML specification with streaming progress
+  - `validate_runtime_yaml()` - Validate a runtime YAML specification without building
+- Runtime build uses OverlayFS-based chroot isolation ensuring host system is never modified
+- Support for 14-phase build pipeline with real-time progress streaming
+
+### Changed
+- Runtime builds now use OverlayFS isolation instead of direct host installation
+- Build process streams progress events (phase, log, result) for real-time feedback
+
+## [2.3.0] - 2025-12-05
 
 ### Added
 - Updated proto files to joblet-proto v2.5.0
@@ -14,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `GetJobTelemetry` - Query historical telemetry
   - `TelemetryEvent`, `TelemetryMetricsData`, `TelemetryExecData`, `TelemetryConnectData`, `TelemetryFileData` messages
 
-## [3.0.0] - 2025-12-04
+## [2.2.0] - 2025-12-04
 
 ### Breaking Changes
 - Removed workflow functionality (run_workflow, get_workflow_status, list_workflows, get_workflow_jobs)
@@ -25,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation to remove workflow references
 - Cleaned up docstrings in services.py and client.py
 
-## [2.0.0] - 2025-10-13
+## [2.1.0] - 2025-10-13
 
 ### Added
 - Smart log streaming in `get_job_logs()` - automatically fetches historical + live logs (like `rnx job log`)
@@ -46,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better inline examples showing real-world usage patterns
 - Updated examples README with smart log streaming usage
 
-## [1.1.5] - Previous Release
+## [2.0.0] - Previous Release
 
 ### Added
 - Initial Python SDK for Joblet

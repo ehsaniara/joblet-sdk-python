@@ -234,43 +234,109 @@ class DataChunk(_message.Message):
     payload: bytes
     def __init__(self, payload: _Optional[bytes] = ...) -> None: ...
 
-class RuntimeInstallationChunk(_message.Message):
-    __slots__ = ("progress", "log", "result")
-    PROGRESS_FIELD_NUMBER: _ClassVar[int]
+class BuildRuntimeRequest(_message.Message):
+    __slots__ = ("yaml_content", "dry_run", "verbose", "force_rebuild")
+    YAML_CONTENT_FIELD_NUMBER: _ClassVar[int]
+    DRY_RUN_FIELD_NUMBER: _ClassVar[int]
+    VERBOSE_FIELD_NUMBER: _ClassVar[int]
+    FORCE_REBUILD_FIELD_NUMBER: _ClassVar[int]
+    yaml_content: str
+    dry_run: bool
+    verbose: bool
+    force_rebuild: bool
+    def __init__(self, yaml_content: _Optional[str] = ..., dry_run: bool = ..., verbose: bool = ..., force_rebuild: bool = ...) -> None: ...
+
+class BuildRuntimeProgress(_message.Message):
+    __slots__ = ("phase", "log", "result")
+    PHASE_FIELD_NUMBER: _ClassVar[int]
     LOG_FIELD_NUMBER: _ClassVar[int]
     RESULT_FIELD_NUMBER: _ClassVar[int]
-    progress: RuntimeInstallationProgress
-    log: RuntimeInstallationLog
-    result: RuntimeInstallationResult
-    def __init__(self, progress: _Optional[_Union[RuntimeInstallationProgress, _Mapping]] = ..., log: _Optional[_Union[RuntimeInstallationLog, _Mapping]] = ..., result: _Optional[_Union[RuntimeInstallationResult, _Mapping]] = ...) -> None: ...
+    phase: BuildPhaseProgress
+    log: BuildLogLine
+    result: BuildResult
+    def __init__(self, phase: _Optional[_Union[BuildPhaseProgress, _Mapping]] = ..., log: _Optional[_Union[BuildLogLine, _Mapping]] = ..., result: _Optional[_Union[BuildResult, _Mapping]] = ...) -> None: ...
 
-class RuntimeInstallationProgress(_message.Message):
-    __slots__ = ("message", "step", "total_steps")
+class BuildPhaseProgress(_message.Message):
+    __slots__ = ("phase_number", "total_phases", "phase_name", "message")
+    PHASE_NUMBER_FIELD_NUMBER: _ClassVar[int]
+    TOTAL_PHASES_FIELD_NUMBER: _ClassVar[int]
+    PHASE_NAME_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    STEP_FIELD_NUMBER: _ClassVar[int]
-    TOTAL_STEPS_FIELD_NUMBER: _ClassVar[int]
+    phase_number: int
+    total_phases: int
+    phase_name: str
     message: str
-    step: int
-    total_steps: int
-    def __init__(self, message: _Optional[str] = ..., step: _Optional[int] = ..., total_steps: _Optional[int] = ...) -> None: ...
+    def __init__(self, phase_number: _Optional[int] = ..., total_phases: _Optional[int] = ..., phase_name: _Optional[str] = ..., message: _Optional[str] = ...) -> None: ...
 
-class RuntimeInstallationLog(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: bytes
-    def __init__(self, data: _Optional[bytes] = ...) -> None: ...
+class BuildLogLine(_message.Message):
+    __slots__ = ("level", "message", "timestamp")
+    LEVEL_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    level: str
+    message: str
+    timestamp: int
+    def __init__(self, level: _Optional[str] = ..., message: _Optional[str] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
-class RuntimeInstallationResult(_message.Message):
-    __slots__ = ("success", "message", "runtime_spec", "install_path")
+class BuildResult(_message.Message):
+    __slots__ = ("success", "message", "runtime_name", "runtime_version", "install_path", "size_bytes", "build_duration_ms")
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    RUNTIME_SPEC_FIELD_NUMBER: _ClassVar[int]
+    RUNTIME_NAME_FIELD_NUMBER: _ClassVar[int]
+    RUNTIME_VERSION_FIELD_NUMBER: _ClassVar[int]
     INSTALL_PATH_FIELD_NUMBER: _ClassVar[int]
+    SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
+    BUILD_DURATION_MS_FIELD_NUMBER: _ClassVar[int]
     success: bool
     message: str
-    runtime_spec: str
+    runtime_name: str
+    runtime_version: str
     install_path: str
-    def __init__(self, success: bool = ..., message: _Optional[str] = ..., runtime_spec: _Optional[str] = ..., install_path: _Optional[str] = ...) -> None: ...
+    size_bytes: int
+    build_duration_ms: int
+    def __init__(self, success: bool = ..., message: _Optional[str] = ..., runtime_name: _Optional[str] = ..., runtime_version: _Optional[str] = ..., install_path: _Optional[str] = ..., size_bytes: _Optional[int] = ..., build_duration_ms: _Optional[int] = ...) -> None: ...
+
+class ValidateRuntimeYAMLRequest(_message.Message):
+    __slots__ = ("yaml_content",)
+    YAML_CONTENT_FIELD_NUMBER: _ClassVar[int]
+    yaml_content: str
+    def __init__(self, yaml_content: _Optional[str] = ...) -> None: ...
+
+class ValidateRuntimeYAMLResponse(_message.Message):
+    __slots__ = ("valid", "message", "errors", "warnings", "spec_info")
+    VALID_FIELD_NUMBER: _ClassVar[int]
+    MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    ERRORS_FIELD_NUMBER: _ClassVar[int]
+    WARNINGS_FIELD_NUMBER: _ClassVar[int]
+    SPEC_INFO_FIELD_NUMBER: _ClassVar[int]
+    valid: bool
+    message: str
+    errors: _containers.RepeatedScalarFieldContainer[str]
+    warnings: _containers.RepeatedScalarFieldContainer[str]
+    spec_info: RuntimeYAMLInfo
+    def __init__(self, valid: bool = ..., message: _Optional[str] = ..., errors: _Optional[_Iterable[str]] = ..., warnings: _Optional[_Iterable[str]] = ..., spec_info: _Optional[_Union[RuntimeYAMLInfo, _Mapping]] = ...) -> None: ...
+
+class RuntimeYAMLInfo(_message.Message):
+    __slots__ = ("name", "version", "language", "language_version", "description", "pip_packages", "npm_packages", "has_hooks", "requires_gpu")
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    VERSION_FIELD_NUMBER: _ClassVar[int]
+    LANGUAGE_FIELD_NUMBER: _ClassVar[int]
+    LANGUAGE_VERSION_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    PIP_PACKAGES_FIELD_NUMBER: _ClassVar[int]
+    NPM_PACKAGES_FIELD_NUMBER: _ClassVar[int]
+    HAS_HOOKS_FIELD_NUMBER: _ClassVar[int]
+    REQUIRES_GPU_FIELD_NUMBER: _ClassVar[int]
+    name: str
+    version: str
+    language: str
+    language_version: str
+    description: str
+    pip_packages: _containers.RepeatedScalarFieldContainer[str]
+    npm_packages: _containers.RepeatedScalarFieldContainer[str]
+    has_hooks: bool
+    requires_gpu: bool
+    def __init__(self, name: _Optional[str] = ..., version: _Optional[str] = ..., language: _Optional[str] = ..., language_version: _Optional[str] = ..., description: _Optional[str] = ..., pip_packages: _Optional[_Iterable[str]] = ..., npm_packages: _Optional[_Iterable[str]] = ..., has_hooks: bool = ..., requires_gpu: bool = ...) -> None: ...
 
 class CreateNetworkReq(_message.Message):
     __slots__ = ("name", "cidr")
@@ -857,76 +923,6 @@ class Timestamp(_message.Message):
     nanos: int
     def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
-class InstallRuntimeRequest(_message.Message):
-    __slots__ = ("runtimeSpec", "repository", "branch", "path", "forceReinstall", "registry_url")
-    RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
-    REPOSITORY_FIELD_NUMBER: _ClassVar[int]
-    BRANCH_FIELD_NUMBER: _ClassVar[int]
-    PATH_FIELD_NUMBER: _ClassVar[int]
-    FORCEREINSTALL_FIELD_NUMBER: _ClassVar[int]
-    REGISTRY_URL_FIELD_NUMBER: _ClassVar[int]
-    runtimeSpec: str
-    repository: str
-    branch: str
-    path: str
-    forceReinstall: bool
-    registry_url: str
-    def __init__(self, runtimeSpec: _Optional[str] = ..., repository: _Optional[str] = ..., branch: _Optional[str] = ..., path: _Optional[str] = ..., forceReinstall: bool = ..., registry_url: _Optional[str] = ...) -> None: ...
-
-class InstallRuntimeResponse(_message.Message):
-    __slots__ = ("buildJobUuid", "runtimeSpec", "status", "message", "repository", "resolvedPath")
-    BUILDJOBUUID_FIELD_NUMBER: _ClassVar[int]
-    RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
-    STATUS_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    REPOSITORY_FIELD_NUMBER: _ClassVar[int]
-    RESOLVEDPATH_FIELD_NUMBER: _ClassVar[int]
-    buildJobUuid: str
-    runtimeSpec: str
-    status: str
-    message: str
-    repository: str
-    resolvedPath: str
-    def __init__(self, buildJobUuid: _Optional[str] = ..., runtimeSpec: _Optional[str] = ..., status: _Optional[str] = ..., message: _Optional[str] = ..., repository: _Optional[str] = ..., resolvedPath: _Optional[str] = ...) -> None: ...
-
-class InstallRuntimeFromLocalRequest(_message.Message):
-    __slots__ = ("runtimeSpec", "files", "forceReinstall")
-    RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
-    FILES_FIELD_NUMBER: _ClassVar[int]
-    FORCEREINSTALL_FIELD_NUMBER: _ClassVar[int]
-    runtimeSpec: str
-    files: _containers.RepeatedCompositeFieldContainer[RuntimeFile]
-    forceReinstall: bool
-    def __init__(self, runtimeSpec: _Optional[str] = ..., files: _Optional[_Iterable[_Union[RuntimeFile, _Mapping]]] = ..., forceReinstall: bool = ...) -> None: ...
-
-class RuntimeFile(_message.Message):
-    __slots__ = ("path", "content", "executable")
-    PATH_FIELD_NUMBER: _ClassVar[int]
-    CONTENT_FIELD_NUMBER: _ClassVar[int]
-    EXECUTABLE_FIELD_NUMBER: _ClassVar[int]
-    path: str
-    content: bytes
-    executable: bool
-    def __init__(self, path: _Optional[str] = ..., content: _Optional[bytes] = ..., executable: bool = ...) -> None: ...
-
-class ValidateRuntimeSpecRequest(_message.Message):
-    __slots__ = ("runtimeSpec",)
-    RUNTIMESPEC_FIELD_NUMBER: _ClassVar[int]
-    runtimeSpec: str
-    def __init__(self, runtimeSpec: _Optional[str] = ...) -> None: ...
-
-class ValidateRuntimeSpecResponse(_message.Message):
-    __slots__ = ("valid", "message", "normalizedSpec", "specInfo")
-    VALID_FIELD_NUMBER: _ClassVar[int]
-    MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    NORMALIZEDSPEC_FIELD_NUMBER: _ClassVar[int]
-    SPECINFO_FIELD_NUMBER: _ClassVar[int]
-    valid: bool
-    message: str
-    normalizedSpec: str
-    specInfo: RuntimeSpecInfo
-    def __init__(self, valid: bool = ..., message: _Optional[str] = ..., normalizedSpec: _Optional[str] = ..., specInfo: _Optional[_Union[RuntimeSpecInfo, _Mapping]] = ...) -> None: ...
-
 class RuntimeRemoveReq(_message.Message):
     __slots__ = ("runtime",)
     RUNTIME_FIELD_NUMBER: _ClassVar[int]
@@ -942,18 +938,6 @@ class RuntimeRemoveRes(_message.Message):
     message: str
     freedSpaceBytes: int
     def __init__(self, success: bool = ..., message: _Optional[str] = ..., freedSpaceBytes: _Optional[int] = ...) -> None: ...
-
-class RuntimeSpecInfo(_message.Message):
-    __slots__ = ("language", "version", "variants", "architecture")
-    LANGUAGE_FIELD_NUMBER: _ClassVar[int]
-    VERSION_FIELD_NUMBER: _ClassVar[int]
-    VARIANTS_FIELD_NUMBER: _ClassVar[int]
-    ARCHITECTURE_FIELD_NUMBER: _ClassVar[int]
-    language: str
-    version: str
-    variants: _containers.RepeatedScalarFieldContainer[str]
-    architecture: str
-    def __init__(self, language: _Optional[str] = ..., version: _Optional[str] = ..., variants: _Optional[_Iterable[str]] = ..., architecture: _Optional[str] = ...) -> None: ...
 
 class StreamJobMetricsRequest(_message.Message):
     __slots__ = ("job_uuid",)

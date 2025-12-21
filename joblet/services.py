@@ -1278,155 +1278,6 @@ class RuntimeService:
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to test runtime: {e.details()}")
 
-    def install_runtime_from_github(
-        self,
-        runtime_spec: str,
-        repository: str,
-        branch: Optional[str] = None,
-        path: Optional[str] = None,
-        force_reinstall: bool = False,
-        stream: bool = False,
-    ):
-        """Install runtime from GitHub repository
-
-        Args:
-            runtime_spec: Runtime specification
-            repository: GitHub repository
-            branch: Optional branch
-            path: Optional path in repository
-            force_reinstall: Force reinstallation
-            stream: Stream installation progress
-
-        Returns:
-            Installation response or stream iterator
-        """
-        request = joblet_pb2.InstallRuntimeRequest(
-            runtimeSpec=runtime_spec,
-            repository=repository,
-            branch=branch or "",
-            path=path or "",
-            forceReinstall=force_reinstall,
-        )
-
-        try:
-            if stream:
-                return self._stream_runtime_installation(
-                    self.stub.StreamingInstallRuntimeFromGithub(request)
-                )
-            else:
-                response = self.stub.InstallRuntimeFromGithub(request)
-                return {
-                    "build_job_uuid": response.buildJobUuid,
-                    "runtime_spec": response.runtimeSpec,
-                    "status": response.status,
-                    "message": response.message,
-                    "repository": response.repository,
-                    "resolved_path": response.resolvedPath,
-                }
-        except grpc.RpcError as e:
-            raise RuntimeError(f"Failed to install runtime: {e.details()}")
-
-    def install_runtime_from_local(
-        self,
-        runtime_spec: str,
-        files: List[Dict[str, Any]],
-        force_reinstall: bool = False,
-        stream: bool = False,
-    ):
-        """Install runtime from local files
-
-        Args:
-            runtime_spec: Runtime specification
-            files: List of file dictionaries
-            force_reinstall: Force reinstallation
-            stream: Stream installation progress
-
-        Returns:
-            Installation response or stream iterator
-        """
-        request = joblet_pb2.InstallRuntimeFromLocalRequest(
-            runtimeSpec=runtime_spec, forceReinstall=force_reinstall
-        )
-
-        for file_info in files:
-            runtime_file = joblet_pb2.RuntimeFile(
-                path=file_info.get("path", ""),
-                content=file_info.get("content", b""),
-                executable=file_info.get("executable", False),
-            )
-            request.files.append(runtime_file)
-
-        try:
-            if stream:
-                return self._stream_runtime_installation(
-                    self.stub.StreamingInstallRuntimeFromLocal(request)
-                )
-            else:
-                response = self.stub.InstallRuntimeFromLocal(request)
-                return {
-                    "build_job_uuid": response.buildJobUuid,
-                    "runtime_spec": response.runtimeSpec,
-                    "status": response.status,
-                    "message": response.message,
-                }
-        except grpc.RpcError as e:
-            raise RuntimeError(f"Failed to install runtime: {e.details()}")
-
-    def _stream_runtime_installation(self, stream_response):
-        """Stream runtime installation progress"""
-        for chunk in stream_response:
-            if chunk.HasField("progress"):
-                progress = chunk.progress
-                yield {
-                    "type": "progress",
-                    "message": progress.message,
-                    "step": progress.step,
-                    "total_steps": progress.total_steps,
-                }
-            elif chunk.HasField("log"):
-                log = chunk.log
-                yield {"type": "log", "data": log.data}
-            elif chunk.HasField("result"):
-                result = chunk.result
-                yield {
-                    "type": "result",
-                    "success": result.success,
-                    "message": result.message,
-                    "runtime_spec": result.runtime_spec,
-                    "install_path": result.install_path,
-                }
-
-    def validate_runtime_spec(self, runtime_spec: str) -> Dict[str, Any]:
-        """Validate runtime specification
-
-        Args:
-            runtime_spec: Runtime specification to validate
-
-        Returns:
-            Validation result dictionary
-        """
-        request = joblet_pb2.ValidateRuntimeSpecRequest(runtimeSpec=runtime_spec)
-
-        try:
-            response = self.stub.ValidateRuntimeSpec(request)
-            result = {
-                "valid": response.valid,
-                "message": response.message,
-                "normalized_spec": response.normalizedSpec,
-            }
-
-            if response.HasField("specInfo"):
-                result["spec_info"] = {
-                    "language": response.specInfo.language,
-                    "version": response.specInfo.version,
-                    "variants": list(response.specInfo.variants),
-                    "architecture": response.specInfo.architecture,
-                }
-
-            return result
-        except grpc.RpcError as e:
-            raise ValidationError(f"Failed to validate runtime spec: {e.details()}")
-
     def remove_runtime(self, runtime: str) -> Dict[str, Any]:
         """Remove a runtime
 
@@ -1447,6 +1298,137 @@ class RuntimeService:
             }
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to remove runtime: {e.details()}")
+
+    def build_runtime(
+        self,
+        yaml_content: str,
+        dry_run: bool = False,
+        verbose: bool = False,
+        force_rebuild: bool = False,
+    ):
+        """Build a runtime from YAML specification
+
+        The build process uses OverlayFS-based isolation to ensure the host system
+        is never modified. System packages are installed in an isolated chroot,
+        and only the resulting binaries/libraries are copied to the runtime directory.
+
+        Args:
+            yaml_content: YAML specification content (runtime.yaml)
+            dry_run: If True, validate only without building
+            verbose: If True, include detailed logs
+            force_rebuild: If True, rebuild even if runtime exists
+
+        Yields:
+            Build progress events:
+            - phase: Current build phase (1-14)
+            - log: Build log lines
+            - result: Final build result
+
+        Example:
+            ```python
+            yaml_content = '''
+            name: python-3.11-ml
+            version: "1.0.0"
+            language: python
+            base_packages:
+              - python3.11
+              - python3.11-venv
+            pip_packages:
+              - numpy
+              - pandas
+            '''
+
+            for event in client.runtimes.build_runtime(yaml_content, verbose=True):
+                if "phase" in event:
+                    phase_num = event['phase_number']
+                    total = event['total_phases']
+                    name = event['phase_name']
+                    print(f"Phase {phase_num}/{total}: {name}")
+                elif "log" in event:
+                    print(event['log']['message'])
+                elif "result" in event:
+                    if event['result']['success']:
+                        print(f"Runtime built: {event['result']['runtime_path']}")
+            ```
+        """
+        request = joblet_pb2.BuildRuntimeRequest(
+            yaml_content=yaml_content,
+            dry_run=dry_run,
+            verbose=verbose,
+            force_rebuild=force_rebuild,
+        )
+
+        try:
+            for progress in self.stub.BuildRuntime(request):
+                if progress.HasField("phase"):
+                    yield {
+                        "phase": {
+                            "phase_number": progress.phase.phase_number,
+                            "total_phases": progress.phase.total_phases,
+                            "phase_name": progress.phase.phase_name,
+                            "message": progress.phase.message,
+                        }
+                    }
+                elif progress.HasField("log"):
+                    yield {
+                        "log": {
+                            "level": progress.log.level,
+                            "message": progress.log.message,
+                            "timestamp": progress.log.timestamp,
+                        }
+                    }
+                elif progress.HasField("result"):
+                    yield {
+                        "result": {
+                            "success": progress.result.success,
+                            "message": progress.result.message,
+                            "runtime_name": progress.result.runtime_name,
+                            "runtime_version": progress.result.runtime_version,
+                            "runtime_path": progress.result.runtime_path,
+                            "build_duration_seconds": (
+                                progress.result.build_duration_seconds
+                            ),
+                        }
+                    }
+        except grpc.RpcError as e:
+            raise RuntimeError(f"Failed to build runtime: {e.details()}")
+
+    def validate_runtime_yaml(self, yaml_content: str) -> Dict[str, Any]:
+        """Validate a runtime YAML specification without building
+
+        Args:
+            yaml_content: YAML specification content to validate
+
+        Returns:
+            Validation result dictionary with:
+            - valid: Whether the YAML is valid
+            - message: Validation message
+            - parsed_spec: Parsed specification details (if valid)
+            - errors: List of validation errors (if invalid)
+        """
+        request = joblet_pb2.ValidateRuntimeYAMLRequest(yaml_content=yaml_content)
+
+        try:
+            response = self.stub.ValidateRuntimeYAML(request)
+            result = {
+                "valid": response.valid,
+                "message": response.message,
+            }
+
+            if response.valid and response.HasField("parsed_spec"):
+                result["parsed_spec"] = {
+                    "name": response.parsed_spec.name,
+                    "version": response.parsed_spec.version,
+                    "language": response.parsed_spec.language,
+                    "description": response.parsed_spec.description,
+                }
+
+            if not response.valid:
+                result["errors"] = list(response.errors)
+
+            return result
+        except grpc.RpcError as e:
+            raise ValidationError(f"Failed to validate runtime YAML: {e.details()}")
 
 
 __all__ = [
