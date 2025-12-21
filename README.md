@@ -178,7 +178,51 @@ for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
 - `client.monitoring` - System monitoring
 - `client.runtimes` - Runtime environments
 
+### Runtimes
+- `client.runtimes.list_runtimes()` - List available runtimes
+- `client.runtimes.get_runtime_info()` - Get runtime details
+- `client.runtimes.build_runtime()` - Build runtime from YAML (with OverlayFS isolation)
+- `client.runtimes.validate_runtime_yaml()` - Validate runtime YAML without building
+- `client.runtimes.remove_runtime()` - Remove a runtime
+
 For complete API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+
+## Building Runtimes
+
+Build custom runtimes with isolated package installation:
+
+```python
+# Define a runtime specification
+yaml_content = '''
+name: python-3.11-ml
+version: "1.0.0"
+language: python
+description: Python 3.11 with ML packages
+base_packages:
+  - python3.11
+  - python3.11-venv
+pip_packages:
+  - numpy
+  - pandas
+  - scikit-learn
+'''
+
+# Build with streaming progress
+for event in client.runtimes.build_runtime(yaml_content, verbose=True):
+    if "phase" in event:
+        phase = event["phase"]
+        print(f"[{phase['phase_number']}/{phase['total_phases']}] {phase['phase_name']}")
+    elif "log" in event:
+        print(event["log"]["message"])
+    elif "result" in event:
+        result = event["result"]
+        if result["success"]:
+            print(f"Runtime built: {result['runtime_path']}")
+        else:
+            print(f"Build failed: {result['message']}")
+```
+
+**Note:** Runtime builds use OverlayFS-based chroot isolation, ensuring the host system is never modified during package installation. See [Joblet Runtime Documentation](https://github.com/ehsaniara/joblet/blob/main/docs/RUNTIME_DESIGN.md) for details.
 
 ## Development
 
