@@ -40,7 +40,7 @@ For more examples and detailed documentation, see:
 Repository: https://github.com/ehsaniara/joblet-proto
 """
 
-__version__ = "3.1.0"
+__version__ = "2.4.1"
 __author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
@@ -61,13 +61,7 @@ from .exceptions import (
 )
 
 # Helper utilities for file uploads
-from .helpers import (
-    create_directory,
-    upload_bytes,
-    upload_directory,
-    upload_file,
-    upload_string,
-)
+from .helpers import create_directory, upload, upload_bytes, upload_string
 
 # Service classes - accessed through client properties
 from .services import (
@@ -89,8 +83,7 @@ __all__ = [
     "MonitoringService",
     "RuntimeService",
     # Helper utilities
-    "upload_file",
-    "upload_directory",
+    "upload",
     "upload_string",
     "upload_bytes",
     "create_directory",

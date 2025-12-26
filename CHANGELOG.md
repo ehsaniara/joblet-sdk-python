@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2025-12-26
+
+### Changed
+- Unified `upload()` function that auto-detects files vs directories
+- `upload()` now always returns `List[Dict]` for consistent usage with spread operator
+
+### Removed
+- `upload_file()` - use `upload()` instead
+- `upload_directory()` - use `upload()` instead
+
+### Migration Guide
+```python
+# Before (v2.4.0)
+from joblet import upload_file, upload_directory
+uploads=[
+    upload_file("./script.py"),
+    upload_directory("./data", exclude=["*.pyc"])
+]
+
+# After (v2.4.1)
+from joblet import upload
+uploads=[
+    *upload("./script.py"),
+    *upload("./data", exclude=["*.pyc"])
+]
+```
+
 ## [2.4.0] - 2025-12-21
 
 ### Added
