@@ -22,10 +22,9 @@ python main.py
 
 ```python
 from joblet import (
-    upload_file,        # Upload local file
+    upload,             # Upload file or directory (auto-detects)
     upload_string,      # Create file from string
     upload_bytes,       # Create file from bytes
-    upload_directory,   # Upload entire directory
     create_directory,   # Create empty directory
 )
 ```
@@ -65,7 +64,9 @@ job = client.jobs.run_job(
 )
 ```
 
-### Upload Local Files
+### Upload Local Files and Directories
+
+The `upload()` function auto-detects files vs directories:
 
 ```python
 job = client.jobs.run_job(
@@ -73,9 +74,9 @@ job = client.jobs.run_job(
     args=["train.py"],
     runtime="python-3.11-ml",
     uploads=[
-        upload_file("./train.py"),
-        upload_file("./model.pkl", "models/model.pkl"),
-        upload_directory("./data", exclude=["*.pyc", "__pycache__"])
+        *upload("./train.py"),                              # file
+        *upload("./model.pkl", "models/model.pkl"),         # file with remote path
+        *upload("./data", exclude=["*.pyc", "__pycache__"]) # directory
     ]
 )
 ```
@@ -187,7 +188,7 @@ job = client.jobs.run_job(
 ## Best Practices
 
 1. **Small scripts**: Use `upload_string()` - no disk I/O
-2. **Local files**: Use `upload_file()` with proper paths
+2. **Local files/dirs**: Use `upload()` - auto-detects type
 3. **Common packages**: Use pre-built runtimes
 4. **Custom packages**: Cache in volumes for fast reuse
 5. **One-time installs**: `pip install --user` in wrapper script
