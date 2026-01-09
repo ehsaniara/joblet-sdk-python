@@ -107,8 +107,8 @@ def example_get_job_metrics():
         print("\n   Sample metrics:")
         for metric in all_metrics[:5]:
             timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
-            cpu = metric.get("cpu_usage", 0)
-            memory = metric.get("memory_usage", 0) / (1024 * 1024)  # Convert to MB
+            cpu = metric.get("cpu_percent", 0)
+            memory = metric.get("memory_bytes", 0) / (1024 * 1024)  # Convert to MB
 
             print(
                 f"   [{timestamp.strftime('%H:%M:%S')}] "
@@ -120,9 +120,9 @@ def example_get_job_metrics():
 
         # Calculate statistics (client-side)
         if all_metrics:
-            cpu_values = [m.get("cpu_usage", 0) for m in all_metrics]
+            cpu_values = [m.get("cpu_percent", 0) for m in all_metrics]
             memory_values = [
-                m.get("memory_usage", 0) / (1024 * 1024) for m in all_metrics
+                m.get("memory_bytes", 0) / (1024 * 1024) for m in all_metrics
             ]
 
             print("\n4. Statistics (calculated client-side):")
@@ -186,7 +186,7 @@ def example_client_side_filtering():
         print("\n   Last 5 samples (client-side filter):")
         for metric in last_5:
             timestamp = datetime.fromtimestamp(metric["timestamp"] / 1e9)
-            cpu = metric.get("cpu_usage", 0)
+            cpu = metric.get("cpu_percent", 0)
             print(f"      [{timestamp.strftime('%H:%M:%S')}] CPU: {cpu:6.2f}%")
 
         # Example: Filter by time range (client-side)

@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import grpc
 import pytest
 
-from joblet.exceptions import JobNotFoundError
+from joblet.exceptions import JobNotFoundError, JobOperationError
 from joblet.services import JobService
 
 
@@ -139,7 +139,7 @@ class TestJobService:
         grpc_error.details = lambda: "Job execution failed"
         mock_stub.RunJob.side_effect = grpc_error
 
-        with pytest.raises(JobNotFoundError, match="Failed to run job"):
+        with pytest.raises(JobOperationError, match="Failed to run job"):
             job_service.run_job(command="echo", args=["hello"])
 
     def test_get_job_status_success(self, job_service):
@@ -250,7 +250,7 @@ class TestJobService:
         grpc_error.details = lambda: "Job not found"
         mock_stub.CancelJob.side_effect = grpc_error
 
-        with pytest.raises(JobNotFoundError) as exc_info:
+        with pytest.raises(JobOperationError) as exc_info:
             job_service.cancel_job("non-existent-job")
 
         assert "Failed to cancel job" in str(exc_info.value)

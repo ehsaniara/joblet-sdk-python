@@ -1,5 +1,6 @@
 """Service classes for Joblet SDK"""
 
+import warnings
 from datetime import datetime
 from typing import Any, Dict, Iterator, List, Optional
 
@@ -7,6 +8,7 @@ import grpc
 
 from .exceptions import (
     JobNotFoundError,
+    JobOperationError,
     NetworkError,
     RuntimeNotFoundError,
     ValidationError,
@@ -64,7 +66,15 @@ class JobService:
 
         Returns:
             Job response dictionary
+
+        Raises:
+            ValidationError: If command is empty or invalid
+            JobOperationError: If job creation fails
         """
+        # Validate required fields
+        if not command or not command.strip():
+            raise ValidationError("command is required and cannot be empty")
+
         request = joblet_pb2.RunJobRequest(
             command=command,
             args=args or [],
@@ -112,7 +122,7 @@ class JobService:
                 "scheduled_time": response.scheduledTime,
             }
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to run job: {e.details()}")
+            raise JobOperationError(f"Failed to run job: {e.details()}")
 
     def get_job_status(self, job_uuid: str) -> Dict[str, Any]:
         """Get job status
@@ -122,7 +132,14 @@ class JobService:
 
         Returns:
             Job status dictionary
+
+        Raises:
+            ValidationError: If job_uuid is empty
+            JobNotFoundError: If job not found
         """
+        if not job_uuid or not job_uuid.strip():
+            raise ValidationError("job_uuid is required")
+
         request = joblet_pb2.GetJobStatusReq(uuid=job_uuid)
 
         try:
@@ -164,7 +181,14 @@ class JobService:
 
         Returns:
             Stop response dictionary
+
+        Raises:
+            ValidationError: If job_uuid is empty
+            JobOperationError: If stop operation fails
         """
+        if not job_uuid or not job_uuid.strip():
+            raise ValidationError("job_uuid is required")
+
         request = joblet_pb2.StopJobReq(uuid=job_uuid)
 
         try:
@@ -176,7 +200,7 @@ class JobService:
                 "exit_code": response.exitCode,
             }
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to stop job {job_uuid}: {e.details()}")
+            raise JobOperationError(f"Failed to stop job {job_uuid}: {e.details()}")
 
     def cancel_job(self, job_uuid: str) -> Dict[str, Any]:
         """Cancel a scheduled job
@@ -193,8 +217,12 @@ class JobService:
             Cancel response dictionary with uuid, status
 
         Raises:
-            JobNotFoundError: If job not found or not scheduled
+            ValidationError: If job_uuid is empty
+            JobOperationError: If job not found or not scheduled
         """
+        if not job_uuid or not job_uuid.strip():
+            raise ValidationError("job_uuid is required")
+
         request = joblet_pb2.CancelJobReq(uuid=job_uuid)
 
         try:
@@ -204,7 +232,7 @@ class JobService:
                 "status": response.status,
             }
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to cancel job {job_uuid}: {e.details()}")
+            raise JobOperationError(f"Failed to cancel job {job_uuid}: {e.details()}")
 
     def delete_job(self, job_uuid: str) -> Dict[str, Any]:
         """Delete a job
@@ -214,7 +242,14 @@ class JobService:
 
         Returns:
             Delete response dictionary
+
+        Raises:
+            ValidationError: If job_uuid is empty
+            JobOperationError: If delete operation fails
         """
+        if not job_uuid or not job_uuid.strip():
+            raise ValidationError("job_uuid is required")
+
         request = joblet_pb2.DeleteJobReq(uuid=job_uuid)
 
         try:
@@ -225,13 +260,16 @@ class JobService:
                 "message": response.message,
             }
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to delete job {job_uuid}: {e.details()}")
+            raise JobOperationError(f"Failed to delete job {job_uuid}: {e.details()}")
 
     def delete_all_jobs(self) -> Dict[str, Any]:
         """Delete all non-running jobs
 
         Returns:
             Delete response dictionary
+
+        Raises:
+            JobOperationError: If delete operation fails
         """
         request = joblet_pb2.DeleteAllJobsReq()
 
@@ -244,7 +282,7 @@ class JobService:
                 "skipped_count": response.skipped_count,
             }
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to delete all jobs: {e.details()}")
+            raise JobOperationError(f"Failed to delete all jobs: {e.details()}")
 
     def get_job_logs(
         self, job_uuid: str, include_historical: bool = True
@@ -268,6 +306,7 @@ class JobService:
             bytes: Log chunks from both historical and live sources
 
         Raises:
+            ValidationError: If job_uuid is empty
             JobNotFoundError: If the job doesn't exist
 
         Example:
@@ -275,6 +314,18 @@ class JobService:
             >>> for chunk in client.jobs.get_job_logs(job_uuid):
             ...     print(chunk.decode('utf-8'), end='')
         """
+        if not job_uuid or not job_uuid.strip():
+            raise ValidationError("job_uuid is required")
+
+        # Emit deprecation warning for include_historical parameter
+        if not include_historical:
+            warnings.warn(
+                "The 'include_historical' parameter is deprecated and has no effect. "
+                "Server always includes historical logs automatically.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         # Stream logs from joblet service (includes both historical and live)
         request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
 
@@ -655,7 +706,7 @@ class JobService:
                 - exit_code: Exit code (if completed)
 
         Raises:
-            JobNotFoundError: If unable to retrieve job list
+            JobOperationError: If unable to retrieve job list
 
         Example:
             >>> jobs = client.jobs.list_jobs()
@@ -694,7 +745,7 @@ class JobService:
                 )
             return jobs
         except grpc.RpcError as e:
-            raise JobNotFoundError(f"Failed to list jobs: {e.details()}")
+            raise JobOperationError(f"Failed to list jobs: {e.details()}")
 
     @staticmethod
     def _timestamp_to_datetime(timestamp: Any) -> Optional[datetime]:

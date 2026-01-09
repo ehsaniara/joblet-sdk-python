@@ -7,10 +7,14 @@ class JobletException(Exception):
     pass
 
 
-class ConnectionError(JobletException):
+class JobletConnectionError(JobletException):
     """Can't connect to server."""
 
     pass
+
+
+# Backward compatibility alias (deprecated)
+ConnectionError = JobletConnectionError
 
 
 class AuthenticationError(JobletException):
@@ -21,6 +25,12 @@ class AuthenticationError(JobletException):
 
 class JobNotFoundError(JobletException):
     """Job not found."""
+
+    pass
+
+
+class JobOperationError(JobletException):
+    """Job operation failed (run, stop, delete, etc.)."""
 
     pass
 
@@ -49,7 +59,11 @@ class ValidationError(JobletException):
     pass
 
 
-class TimeoutError(JobletException):
+class JobletTimeoutError(JobletException):
     """Operation timed out."""
 
     pass
+
+
+# Backward compatibility alias (deprecated)
+TimeoutError = JobletTimeoutError

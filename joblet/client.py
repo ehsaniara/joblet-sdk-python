@@ -1,12 +1,11 @@
 """Joblet client for running jobs on a server."""
 
-import os
 from typing import Any, Dict, Optional
 
 import grpc
 
 from .config import ConfigLoader
-from .exceptions import ConnectionError
+from .exceptions import JobletConnectionError
 from .services import (
     JobService,
     MonitoringService,
@@ -14,9 +13,6 @@ from .services import (
     RuntimeService,
     VolumeService,
 )
-
-# Debug: Check gRPC environment setup
-_grpc_debug = os.environ.get("JOBLET_DEBUG_GRPC", False)
 
 
 class JobletClient:
@@ -181,7 +177,7 @@ class JobletClient:
         except (FileNotFoundError, ValueError) as e:
             raise e
         except Exception as e:
-            raise ConnectionError(f"Can't connect to {target}: {e}")
+            raise JobletConnectionError(f"Can't connect to {target}: {e}")
 
     def close(self) -> None:
         """
@@ -249,7 +245,7 @@ class JobletClient:
         """
         if not self._job_service:
             if self._channel is None:
-                raise ConnectionError("Client is not connected to server")
+                raise JobletConnectionError("Client is not connected to server")
             self._job_service = JobService(self._channel)
         return self._job_service
 
@@ -276,7 +272,7 @@ class JobletClient:
         """
         if not self._network_service:
             if self._channel is None:
-                raise ConnectionError("Client is not connected to server")
+                raise JobletConnectionError("Client is not connected to server")
             self._network_service = NetworkService(self._channel)
         return self._network_service
 
@@ -304,7 +300,7 @@ class JobletClient:
         """
         if not self._volume_service:
             if self._channel is None:
-                raise ConnectionError("Client is not connected to server")
+                raise JobletConnectionError("Client is not connected to server")
             self._volume_service = VolumeService(self._channel)
         return self._volume_service
 
@@ -332,7 +328,7 @@ class JobletClient:
         """
         if not self._monitoring_service:
             if self._channel is None:
-                raise ConnectionError("Client is not connected to server")
+                raise JobletConnectionError("Client is not connected to server")
             self._monitoring_service = MonitoringService(self._channel)
         return self._monitoring_service
 
@@ -364,7 +360,7 @@ class JobletClient:
         """
         if not self._runtime_service:
             if self._channel is None:
-                raise ConnectionError("Client is not connected to server")
+                raise JobletConnectionError("Client is not connected to server")
             self._runtime_service = RuntimeService(self._channel)
         return self._runtime_service
 

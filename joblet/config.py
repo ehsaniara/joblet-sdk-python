@@ -11,9 +11,10 @@ connection details and mTLS certificates.
 """
 
 import os
+import stat
 import tempfile
 from pathlib import Path
-from typing import Dict, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 import yaml
 
@@ -39,7 +40,7 @@ class ConfigLoader:
             self.config_path = self.DEFAULT_CONFIG_PATH
 
         self.config: Optional[Dict] = None
-        self._temp_files: list[str] = []
+        self._temp_files: List[str] = []
 
     def load(self) -> bool:
         """
@@ -159,21 +160,26 @@ class ConfigLoader:
             ca_temp = tempfile.NamedTemporaryFile(mode="w", suffix=".pem", delete=False)
             ca_temp.write(node_config["ca"])
             ca_temp.close()
+            # Set restrictive permissions (owner read/write only)
+            os.chmod(ca_temp.name, stat.S_IRUSR | stat.S_IWUSR)
             ca_cert_path = ca_temp.name
             self._temp_files.append(ca_cert_path)
 
         if not ca_cert_path:
             return None
 
-        # Create temp files for client cert and key
+        # Create temp files for client cert and key with restrictive permissions
         cert_temp = tempfile.NamedTemporaryFile(mode="w", suffix=".pem", delete=False)
         cert_temp.write(cert_content)
         cert_temp.close()
+        os.chmod(cert_temp.name, stat.S_IRUSR | stat.S_IWUSR)
         self._temp_files.append(cert_temp.name)
 
         key_temp = tempfile.NamedTemporaryFile(mode="w", suffix=".pem", delete=False)
         key_temp.write(key_content)
         key_temp.close()
+        # Private key should be even more restrictive (owner read only)
+        os.chmod(key_temp.name, stat.S_IRUSR)
         self._temp_files.append(key_temp.name)
 
         return ca_cert_path, cert_temp.name, key_temp.name
