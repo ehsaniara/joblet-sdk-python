@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-01-09
+
+### Added
+
+- New `JobOperationError` exception for job operation failures (run, stop, cancel, delete, list)
+- New `JobletConnectionError` exception (replaces shadowed `ConnectionError`)
+- New `JobletTimeoutError` exception (replaces shadowed `TimeoutError`)
+- Input validation for `command` parameter in `run_job()`
+- Input validation for `job_uuid` parameter in `get_job_status()`, `stop_job()`, `cancel_job()`, `delete_job()`,
+  `get_job_logs()`
+- Deprecation warning when using `include_historical=False` in `get_job_logs()`
+- Added `__all__` export list to `helpers.py`
+
+### Changed
+
+- `run_job()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+- `stop_job()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+- `cancel_job()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+- `delete_job()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+- `delete_all_jobs()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+- `list_jobs()` now raises `JobOperationError` instead of `JobNotFoundError` on failure
+
+### Deprecated
+
+- `ConnectionError` alias (use `JobletConnectionError` instead)
+- `TimeoutError` alias (use `JobletTimeoutError` instead)
+- `include_historical` parameter in `get_job_logs()` (server always includes historical logs)
+
 ## [2.4.1] - 2025-12-26
 
 ### Changed

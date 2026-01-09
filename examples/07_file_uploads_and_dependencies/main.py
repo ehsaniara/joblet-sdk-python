@@ -272,7 +272,7 @@ def cached_dependencies_example(client):
     try:
         # Create the packages volume if it doesn't exist
         try:
-            client.volumes.create_volume(name=volume_name, size_mb=500)
+            client.volumes.create_volume(name=volume_name, size="500MB")
             print(f"Created volume: {volume_name}")
         except Exception:
             print(f"Volume {volume_name} already exists")

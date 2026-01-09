@@ -190,8 +190,8 @@ def volume_example(client):
         print(f"✓ Found {len(volumes)} existing volumes")
 
         # Create a volume
-        volume = client.volumes.create_volume(name="test-data", size_mb=100)
-        print(f"✓ Created volume: {volume['name']} ({volume.get('size_mb', 'N/A')}MB)")
+        volume = client.volumes.create_volume(name="test-data", size="100MB")
+        print(f"✓ Created volume: {volume['name']} ({volume.get('size', 'N/A')})")
 
         # Run a job that uses the volume
         job = client.jobs.run_job(

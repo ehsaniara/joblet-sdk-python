@@ -40,7 +40,7 @@ For more examples and detailed documentation, see:
 Repository: https://github.com/ehsaniara/joblet-proto
 """
 
-__version__ = "2.4.1"
+__version__ = "2.5.0"
 __author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
@@ -48,14 +48,17 @@ __license__ = "MIT"
 from .client import JobletClient
 
 # Exception classes - for proper error handling
+from .exceptions import ConnectionError  # Deprecated alias for JobletConnectionError
+from .exceptions import TimeoutError  # Deprecated alias for JobletTimeoutError
 from .exceptions import (
     AuthenticationError,
-    ConnectionError,
+    JobletConnectionError,
     JobletException,
+    JobletTimeoutError,
     JobNotFoundError,
+    JobOperationError,
     NetworkError,
     RuntimeNotFoundError,
-    TimeoutError,
     ValidationError,
     VolumeError,
 )
@@ -89,12 +92,16 @@ __all__ = [
     "create_directory",
     # Exception hierarchy for error handling
     "JobletException",
-    "ConnectionError",
+    "JobletConnectionError",
+    "JobletTimeoutError",
     "AuthenticationError",
     "JobNotFoundError",
+    "JobOperationError",
     "RuntimeNotFoundError",
     "NetworkError",
     "VolumeError",
     "ValidationError",
+    # Deprecated aliases (kept for backward compatibility)
+    "ConnectionError",
     "TimeoutError",
 ]
