@@ -47,6 +47,9 @@ __license__ = "MIT"
 # Main client class - the primary entry point
 from .client import JobletClient
 
+# Configuration constants
+from .config import DEFAULT_PORT
+
 # Exception classes - for proper error handling
 from .exceptions import ConnectionError  # Deprecated alias for JobletConnectionError
 from .exceptions import TimeoutError  # Deprecated alias for JobletTimeoutError
@@ -75,6 +78,17 @@ from .services import (
     VolumeService,
 )
 
+# Type definitions for API responses
+from .types import (
+    JobListItem,
+    JobResponse,
+    JobStatusResponse,
+    MetricsEvent,
+    SystemMetrics,
+    SystemStatus,
+    TelematicsEvent,
+)
+
 # Public API - these classes/functions are available when importing the package
 __all__ = [
     # Main client
@@ -90,6 +104,16 @@ __all__ = [
     "upload_string",
     "upload_bytes",
     "create_directory",
+    # Configuration constants
+    "DEFAULT_PORT",
+    # Type definitions for API responses
+    "JobResponse",
+    "JobStatusResponse",
+    "JobListItem",
+    "MetricsEvent",
+    "TelematicsEvent",
+    "SystemStatus",
+    "SystemMetrics",
     # Exception hierarchy for error handling
     "JobletException",
     "JobletConnectionError",
