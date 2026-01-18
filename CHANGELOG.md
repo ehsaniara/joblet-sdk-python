@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2025-01-18
+
+### Added
+
+- **Environment variable support for certificates**: Set `JOBLET_CA_CERT`, `JOBLET_CLIENT_CERT`, `JOBLET_CLIENT_KEY` environment variables with certificate content (PEM format)
+- **AWS Secrets Manager support**: Load certificates from AWS Secrets Manager using `aws_secret_name` (single JSON secret) or `aws_secret_prefix` (separate secrets)
+- **AWS Parameter Store (SSM) support**: Load certificates from AWS Parameter Store using `aws_ssm_prefix`
+- New optional dependency group `[aws]` for AWS integration: `pip install joblet-sdk-python[aws]`
+- `EnvironmentCertProvider`, `AWSSecretsManagerProvider`, `AWSParameterStoreProvider` classes for advanced use cases
+- Environment variable constants: `ENV_CA_CERT`, `ENV_CLIENT_CERT`, `ENV_CLIENT_KEY`, `ENV_HOST`, `ENV_PORT`
+- `COMPATIBILITY.md` documenting version compatibility between SDK, joblet-proto, and Joblet server
+
+### Changed
+
+- Certificate loading now checks multiple sources in order: explicit paths → AWS Secrets Manager → AWS Parameter Store → environment variables → config file
+- Moved `grpcio-tools` from runtime to dev dependencies (reduces install size for end users)
+- Improved error messages to list all available certificate sources
+- Synced dependency versions between `pyproject.toml` and `requirements.txt`
+
+### Fixed
+
+- grpcio minimum version now correctly set to `>=1.75.1` to match generated proto files
+
 ## [2.5.0] - 2025-01-09
 
 ### Added

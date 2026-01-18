@@ -32,6 +32,104 @@ with JobletClient(
 
 ## Configuration
 
+The SDK supports multiple certificate sources (checked in order):
+
+1. **Explicit file paths** - Direct paths to certificate files
+2. **AWS Secrets Manager** - Certificates stored in AWS Secrets Manager
+3. **AWS Parameter Store** - Certificates stored in AWS SSM Parameter Store
+4. **Environment variables** - Certificate content in environment variables
+5. **Config file** - Traditional YAML configuration file
+
+### Option 1: Direct File Paths (VM/On-premise)
+
+```python
+from joblet import JobletClient
+
+client = JobletClient(
+    host="joblet-server.example.com",
+    port=50051,
+    ca_cert_path="/path/to/ca.pem",
+    client_cert_path="/path/to/client.pem",
+    client_key_path="/path/to/client.key"
+)
+```
+
+### Option 2: AWS Secrets Manager
+
+```bash
+pip install joblet-sdk-python[aws]
+```
+
+```python
+# Single secret containing JSON with ca/cert/key fields
+client = JobletClient(
+    host="joblet-server.example.com",
+    port=50051,
+    aws_secret_name="joblet/certs",
+    aws_region="us-east-1"
+)
+
+# Or separate secrets (joblet/ca, joblet/cert, joblet/key)
+client = JobletClient(
+    host="joblet-server.example.com",
+    port=50051,
+    aws_secret_prefix="joblet/",
+    aws_region="us-east-1"
+)
+```
+
+**Secret format (JSON):**
+```json
+{
+    "ca": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "cert": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----",
+    "host": "joblet-server.example.com",
+    "port": 50051
+}
+```
+
+### Option 3: AWS Parameter Store (SSM)
+
+```python
+client = JobletClient(
+    host="joblet-server.example.com",
+    port=50051,
+    aws_ssm_prefix="/joblet/certs",
+    aws_region="us-east-1"
+)
+```
+
+**Required parameters (SecureString recommended):**
+- `/joblet/certs/ca` - CA certificate
+- `/joblet/certs/cert` - Client certificate
+- `/joblet/certs/key` - Client private key
+- `/joblet/certs/host` - Server hostname (optional)
+- `/joblet/certs/port` - Server port (optional)
+
+### Option 4: Environment Variables
+
+```bash
+export JOBLET_HOST="joblet-server.example.com"
+export JOBLET_PORT="50051"
+export JOBLET_CA_CERT="-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----"
+export JOBLET_CLIENT_CERT="-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----"
+export JOBLET_CLIENT_KEY="-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----"
+```
+
+```python
+# SDK automatically reads from environment variables
+client = JobletClient()
+```
+
+### Option 5: Config File
+
 Create `~/.rnx/rnx-config.yml`:
 
 ```yaml
@@ -186,6 +284,8 @@ for metrics in client.monitoring.stream_system_metrics(interval_seconds=5):
 - `client.runtimes.remove_runtime()` - Remove a runtime
 
 For complete API documentation, see [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
+
+For version compatibility information, see [COMPATIBILITY.md](COMPATIBILITY.md)
 
 ## Building Runtimes
 
