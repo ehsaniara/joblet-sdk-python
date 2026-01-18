@@ -7,6 +7,7 @@ from typing import Any, Dict, Iterator, List, Optional, cast
 import grpc
 
 from .exceptions import (
+    JobletConnectionError,
     JobNotFoundError,
     JobOperationError,
     NetworkError,
@@ -793,7 +794,16 @@ class NetworkService:
 
         Returns:
             Network creation response
+
+        Raises:
+            ValidationError: If name or cidr is empty
+            NetworkError: If network creation fails
         """
+        if not name or not name.strip():
+            raise ValidationError("network name is required and cannot be empty")
+        if not cidr or not cidr.strip():
+            raise ValidationError("CIDR is required (e.g., '10.0.0.0/24')")
+
         request = joblet_pb2.CreateNetworkReq(name=name, cidr=cidr)
 
         try:
@@ -804,7 +814,7 @@ class NetworkService:
                 "bridge": response.bridge,
             }
         except grpc.RpcError as e:
-            raise NetworkError(f"Failed to create network: {e.details()}")
+            raise NetworkError(f"Failed to create network '{name}': {e.details()}")
 
     def list_networks(self) -> List[NetworkListItem]:
         """List all networks
@@ -838,14 +848,21 @@ class NetworkService:
 
         Returns:
             Removal response
+
+        Raises:
+            ValidationError: If name is empty
+            NetworkError: If removal fails
         """
+        if not name or not name.strip():
+            raise ValidationError("network name is required")
+
         request = joblet_pb2.RemoveNetworkReq(name=name)
 
         try:
             response = self.stub.RemoveNetwork(request)
             return {"success": response.success, "message": response.message}
         except grpc.RpcError as e:
-            raise NetworkError(f"Failed to remove network: {e.details()}")
+            raise NetworkError(f"Failed to remove network '{name}': {e.details()}")
 
 
 class VolumeService:
@@ -866,7 +883,20 @@ class VolumeService:
 
         Returns:
             Volume creation response
+
+        Raises:
+            ValidationError: If name or size is empty, or volume_type is invalid
+            VolumeError: If volume creation fails
         """
+        if not name or not name.strip():
+            raise ValidationError("volume name is required and cannot be empty")
+        if not size or not size.strip():
+            raise ValidationError("volume size is required (e.g., '1GB', '500MB')")
+        if volume_type not in ("filesystem", "memory"):
+            raise ValidationError(
+                f"invalid volume_type '{volume_type}': must be 'filesystem' or 'memory'"
+            )
+
         request = joblet_pb2.CreateVolumeReq(name=name, size=size, type=volume_type)
 
         try:
@@ -878,7 +908,7 @@ class VolumeService:
                 "path": response.path,
             }
         except grpc.RpcError as e:
-            raise VolumeError(f"Failed to create volume: {e.details()}")
+            raise VolumeError(f"Failed to create volume '{name}': {e.details()}")
 
     def list_volumes(self) -> List[VolumeListItem]:
         """List all volumes
@@ -914,14 +944,21 @@ class VolumeService:
 
         Returns:
             Removal response
+
+        Raises:
+            ValidationError: If name is empty
+            VolumeError: If removal fails
         """
+        if not name or not name.strip():
+            raise ValidationError("volume name is required")
+
         request = joblet_pb2.RemoveVolumeReq(name=name)
 
         try:
             response = self.stub.RemoveVolume(request)
             return {"success": response.success, "message": response.message}
         except grpc.RpcError as e:
-            raise VolumeError(f"Failed to remove volume: {e.details()}")
+            raise VolumeError(f"Failed to remove volume '{name}': {e.details()}")
 
 
 class MonitoringService:
@@ -948,7 +985,7 @@ class MonitoringService:
                 - gpu: GPU information (if available)
 
         Raises:
-            RuntimeError: If unable to retrieve system status
+            JobletConnectionError: If unable to retrieve system status
 
         Example:
             >>> status = client.monitoring.get_system_status()
@@ -962,7 +999,7 @@ class MonitoringService:
             response = self.stub.GetSystemStatus(request)
             return self._parse_system_status(response)
         except grpc.RpcError as e:
-            raise RuntimeError(f"Failed to get system status: {e.details()}")
+            raise JobletConnectionError(f"Failed to get system status: {e.details()}")
 
     def stream_system_metrics(
         self, interval_seconds: int = 5, metric_types: Optional[List[str]] = None
@@ -981,7 +1018,7 @@ class MonitoringService:
                 network, and process information at each interval
 
         Raises:
-            RuntimeError: If unable to stream metrics
+            JobletConnectionError: If unable to stream metrics
 
         Example:
             >>> metrics_stream = client.monitoring.stream_system_metrics(
@@ -1002,7 +1039,7 @@ class MonitoringService:
             for metrics in self.stub.StreamSystemMetrics(request):
                 yield self._parse_system_metrics(metrics)
         except grpc.RpcError as e:
-            raise RuntimeError(f"Failed to stream metrics: {e.details()}")
+            raise JobletConnectionError(f"Failed to stream metrics: {e.details()}")
 
     def _parse_system_status(self, response: Any) -> SystemStatus:
         """Parse system status response"""

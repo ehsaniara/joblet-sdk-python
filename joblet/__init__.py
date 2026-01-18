@@ -40,15 +40,25 @@ For more examples and detailed documentation, see:
 Repository: https://github.com/ehsaniara/joblet-proto
 """
 
-__version__ = "2.5.0"
+__version__ = "2.5.1"
 __author__ = "Jay Ehsaniara"
 __license__ = "MIT"
 
 # Main client class - the primary entry point
 from .client import JobletClient
 
-# Configuration constants
-from .config import DEFAULT_PORT
+# Configuration constants and certificate providers
+from .config import (
+    DEFAULT_PORT,
+    ENV_CA_CERT,
+    ENV_CLIENT_CERT,
+    ENV_CLIENT_KEY,
+    ENV_HOST,
+    ENV_PORT,
+    AWSParameterStoreProvider,
+    AWSSecretsManagerProvider,
+    EnvironmentCertProvider,
+)
 
 # Exception classes - for proper error handling
 from .exceptions import ConnectionError  # Deprecated alias for JobletConnectionError
@@ -106,6 +116,16 @@ __all__ = [
     "create_directory",
     # Configuration constants
     "DEFAULT_PORT",
+    # Environment variable names for certificate configuration
+    "ENV_CA_CERT",
+    "ENV_CLIENT_CERT",
+    "ENV_CLIENT_KEY",
+    "ENV_HOST",
+    "ENV_PORT",
+    # Certificate providers (for advanced use cases)
+    "EnvironmentCertProvider",
+    "AWSSecretsManagerProvider",
+    "AWSParameterStoreProvider",
     # Type definitions for API responses
     "JobResponse",
     "JobStatusResponse",

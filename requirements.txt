@@ -1,5 +1,8 @@
-grpcio>=1.60.0
-grpcio-tools>=1.60.0
+# Runtime dependencies (also in pyproject.toml)
+# Note: grpcio version must match GRPC_GENERATED_VERSION in joblet/proto/joblet_pb2_grpc.py
+grpcio>=1.75.1
 protobuf>=4.25.0
-typing-extensions>=4.8.0
 pyyaml>=6.0
+
+# Development only (install with: pip install -e .[dev])
+# grpcio-tools>=1.75.1  # For proto generation
