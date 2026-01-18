@@ -2,7 +2,7 @@
 
 import warnings
 from datetime import datetime
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, cast
 
 import grpc
 
@@ -15,6 +15,29 @@ from .exceptions import (
     VolumeError,
 )
 from .proto import joblet_pb2, joblet_pb2_grpc
+from .types import (
+    BuildProgress,
+    CancelJobResponse,
+    DeleteAllJobsResponse,
+    DeleteJobResponse,
+    JobListItem,
+    JobResponse,
+    JobStatusResponse,
+    MetricsEvent,
+    NetworkListItem,
+    NetworkResponse,
+    RemoveResponse,
+    RuntimeInfo,
+    RuntimeRemoveResult,
+    RuntimeTestResult,
+    StopJobResponse,
+    SystemMetrics,
+    SystemStatus,
+    TelematicsEvent,
+    ValidationResult,
+    VolumeListItem,
+    VolumeResponse,
+)
 
 
 class JobService:
@@ -42,7 +65,7 @@ class JobService:
         uploads: Optional[List[Dict[str, Any]]] = None,
         gpu_count: Optional[int] = None,
         gpu_memory_mb: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> JobResponse:
         """Run a new job
 
         Args:
@@ -124,7 +147,7 @@ class JobService:
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to run job: {e.details()}")
 
-    def get_job_status(self, job_uuid: str) -> Dict[str, Any]:
+    def get_job_status(self, job_uuid: str) -> JobStatusResponse:
         """Get job status
 
         Args:
@@ -173,7 +196,7 @@ class JobService:
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")
 
-    def stop_job(self, job_uuid: str) -> Dict[str, Any]:
+    def stop_job(self, job_uuid: str) -> StopJobResponse:
         """Stop a running job
 
         Args:
@@ -202,7 +225,7 @@ class JobService:
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to stop job {job_uuid}: {e.details()}")
 
-    def cancel_job(self, job_uuid: str) -> Dict[str, Any]:
+    def cancel_job(self, job_uuid: str) -> CancelJobResponse:
         """Cancel a scheduled job
 
         This is specifically for jobs in SCHEDULED status. It will:
@@ -234,7 +257,7 @@ class JobService:
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to cancel job {job_uuid}: {e.details()}")
 
-    def delete_job(self, job_uuid: str) -> Dict[str, Any]:
+    def delete_job(self, job_uuid: str) -> DeleteJobResponse:
         """Delete a job
 
         Args:
@@ -262,7 +285,7 @@ class JobService:
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to delete job {job_uuid}: {e.details()}")
 
-    def delete_all_jobs(self) -> Dict[str, Any]:
+    def delete_all_jobs(self) -> DeleteAllJobsResponse:
         """Delete all non-running jobs
 
         Returns:
@@ -358,7 +381,7 @@ class JobService:
         """
         return self.get_job_logs(job_uuid, include_historical=False)
 
-    def stream_job_metrics(self, job_uuid: str) -> Iterator[Dict[str, Any]]:
+    def stream_job_metrics(self, job_uuid: str) -> Iterator[MetricsEvent]:
         """Stream live metrics for a running job
 
         Streams real-time resource usage metrics including CPU, memory, disk I/O,
@@ -407,7 +430,7 @@ class JobService:
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> Iterator[Dict[str, Any]]:
+    ) -> Iterator[MetricsEvent]:
         """Get historical metrics for a completed job
 
         Retrieves stored metrics from the persistence layer. Useful for
@@ -457,7 +480,7 @@ class JobService:
                 f"Failed to get metrics for job {job_uuid}: {e.details()}"
             )
 
-    def _parse_metrics_event(self, event) -> Dict[str, Any]:
+    def _parse_metrics_event(self, event: Any) -> MetricsEvent:
         """Parse a JobMetricsEvent protobuf message to a dictionary"""
         return {
             "timestamp": event.timestamp,
@@ -475,7 +498,7 @@ class JobService:
 
     def stream_job_telematics(
         self, job_uuid: str, event_types: Optional[List[str]] = None
-    ) -> Iterator[Dict[str, Any]]:
+    ) -> Iterator[TelematicsEvent]:
         """Stream live telematics events for a running job
 
         Streams eBPF security events in real-time including process executions,
@@ -542,7 +565,7 @@ class JobService:
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> Iterator[Dict[str, Any]]:
+    ) -> Iterator[TelematicsEvent]:
         """Get historical telematics events for a completed job
 
         Retrieves stored eBPF security events from the persistence layer.
@@ -610,7 +633,7 @@ class JobService:
     # Backward compatibility alias
     get_job_telemetry = get_job_telematics
 
-    def _parse_telematics_event(self, event) -> Dict[str, Any]:
+    def _parse_telematics_event(self, event: Any) -> TelematicsEvent:
         """Parse a TelematicsEvent protobuf message to a dictionary"""
         result = {
             "timestamp": event.timestamp,
@@ -688,9 +711,9 @@ class JobService:
                 "bytes": sock.bytes,
             }
 
-        return result
+        return cast(TelematicsEvent, result)
 
-    def list_jobs(self) -> List[Dict[str, Any]]:
+    def list_jobs(self) -> List[JobListItem]:
         """List all jobs on the server
 
         Retrieves a list of all jobs including their status, resource usage,
@@ -743,7 +766,7 @@ class JobService:
                         "node_id": job.nodeId,
                     }
                 )
-            return jobs
+            return cast(List[JobListItem], jobs)
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to list jobs: {e.details()}")
 
@@ -761,7 +784,7 @@ class NetworkService:
     def __init__(self, channel: grpc.Channel):
         self.stub = joblet_pb2_grpc.NetworkServiceStub(channel)
 
-    def create_network(self, name: str, cidr: str) -> Dict[str, Any]:
+    def create_network(self, name: str, cidr: str) -> NetworkResponse:
         """Create a new network
 
         Args:
@@ -783,7 +806,7 @@ class NetworkService:
         except grpc.RpcError as e:
             raise NetworkError(f"Failed to create network: {e.details()}")
 
-    def list_networks(self) -> List[Dict[str, Any]]:
+    def list_networks(self) -> List[NetworkListItem]:
         """List all networks
 
         Returns:
@@ -803,11 +826,11 @@ class NetworkService:
                         "job_count": network.jobCount,
                     }
                 )
-            return networks
+            return cast(List[NetworkListItem], networks)
         except grpc.RpcError as e:
             raise NetworkError(f"Failed to list networks: {e.details()}")
 
-    def remove_network(self, name: str) -> Dict[str, Any]:
+    def remove_network(self, name: str) -> RemoveResponse:
         """Remove a network
 
         Args:
@@ -833,7 +856,7 @@ class VolumeService:
 
     def create_volume(
         self, name: str, size: str, volume_type: str = "filesystem"
-    ) -> Dict[str, Any]:
+    ) -> VolumeResponse:
         """Create a new volume
 
         Args:
@@ -857,7 +880,7 @@ class VolumeService:
         except grpc.RpcError as e:
             raise VolumeError(f"Failed to create volume: {e.details()}")
 
-    def list_volumes(self) -> List[Dict[str, Any]]:
+    def list_volumes(self) -> List[VolumeListItem]:
         """List all volumes
 
         Returns:
@@ -879,11 +902,11 @@ class VolumeService:
                         "job_count": volume.jobCount,
                     }
                 )
-            return volumes
+            return cast(List[VolumeListItem], volumes)
         except grpc.RpcError as e:
             raise VolumeError(f"Failed to list volumes: {e.details()}")
 
-    def remove_volume(self, name: str) -> Dict[str, Any]:
+    def remove_volume(self, name: str) -> RemoveResponse:
         """Remove a volume
 
         Args:
@@ -907,7 +930,7 @@ class MonitoringService:
     def __init__(self, channel: grpc.Channel):
         self.stub = joblet_pb2_grpc.MonitoringServiceStub(channel)
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> SystemStatus:
         """Get comprehensive system status and resource availability
 
         Retrieves current system health information including CPU, memory,
@@ -943,7 +966,7 @@ class MonitoringService:
 
     def stream_system_metrics(
         self, interval_seconds: int = 5, metric_types: Optional[List[str]] = None
-    ) -> Iterator[Dict[str, Any]]:
+    ) -> Iterator[SystemMetrics]:
         """Stream real-time system metrics at regular intervals
 
         Continuously streams system performance metrics, useful for
@@ -981,7 +1004,7 @@ class MonitoringService:
         except grpc.RpcError as e:
             raise RuntimeError(f"Failed to stream metrics: {e.details()}")
 
-    def _parse_system_status(self, response) -> Dict[str, Any]:
+    def _parse_system_status(self, response: Any) -> SystemStatus:
         """Parse system status response"""
         result = {"timestamp": response.timestamp, "available": response.available}
 
@@ -1008,9 +1031,9 @@ class MonitoringService:
                 response.server_version
             )
 
-        return result
+        return cast(SystemStatus, result)
 
-    def _parse_system_metrics(self, response) -> Dict[str, Any]:
+    def _parse_system_metrics(self, response: Any) -> SystemMetrics:
         """Parse system metrics response"""
         result = {"timestamp": response.timestamp}
 
@@ -1033,7 +1056,7 @@ class MonitoringService:
         if response.HasField("cloud"):
             result["cloud"] = self._parse_cloud_info(response.cloud)
 
-        return result
+        return cast(SystemMetrics, result)
 
     @staticmethod
     def _parse_host_info(host) -> Dict[str, Any]:
@@ -1237,7 +1260,7 @@ class RuntimeService:
     def __init__(self, channel: grpc.Channel):
         self.stub = joblet_pb2_grpc.RuntimeServiceStub(channel)
 
-    def list_runtimes(self) -> List[Dict[str, Any]]:
+    def list_runtimes(self) -> List[RuntimeInfo]:
         """List all available runtimes
 
         Returns:
@@ -1267,11 +1290,11 @@ class RuntimeService:
 
                 runtimes.append(runtime_dict)
 
-            return runtimes
+            return cast(List[RuntimeInfo], runtimes)
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to list runtimes: {e.details()}")
 
-    def get_runtime_info(self, runtime: str) -> Dict[str, Any]:
+    def get_runtime_info(self, runtime: str) -> RuntimeInfo:
         """Get runtime information
 
         Args:
@@ -1303,11 +1326,11 @@ class RuntimeService:
                     "gpu": response.runtime.requirements.gpu,
                 }
 
-            return runtime_info
+            return cast(RuntimeInfo, runtime_info)
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to get runtime info: {e.details()}")
 
-    def test_runtime(self, runtime: str) -> Dict[str, Any]:
+    def test_runtime(self, runtime: str) -> RuntimeTestResult:
         """Test a runtime
 
         Args:
@@ -1329,7 +1352,7 @@ class RuntimeService:
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to test runtime: {e.details()}")
 
-    def remove_runtime(self, runtime: str) -> Dict[str, Any]:
+    def remove_runtime(self, runtime: str) -> RuntimeRemoveResult:
         """Remove a runtime
 
         Args:
@@ -1356,7 +1379,7 @@ class RuntimeService:
         dry_run: bool = False,
         verbose: bool = False,
         force_rebuild: bool = False,
-    ):
+    ) -> Iterator[BuildProgress]:
         """Build a runtime from YAML specification
 
         The build process uses OverlayFS-based isolation to ensure the host system
@@ -1444,7 +1467,7 @@ class RuntimeService:
         except grpc.RpcError as e:
             raise RuntimeError(f"Failed to build runtime: {e.details()}")
 
-    def validate_runtime_yaml(self, yaml_content: str) -> Dict[str, Any]:
+    def validate_runtime_yaml(self, yaml_content: str) -> ValidationResult:
         """Validate a runtime YAML specification without building
 
         Args:
@@ -1477,7 +1500,7 @@ class RuntimeService:
             if not response.valid:
                 result["errors"] = list(response.errors)
 
-            return result
+            return cast(ValidationResult, result)
         except grpc.RpcError as e:
             raise ValidationError(f"Failed to validate runtime YAML: {e.details()}")
 

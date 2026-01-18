@@ -127,10 +127,15 @@ class JobletClient:
             # Merge with user options
             all_options = default_options + list(self._options.items())
 
-            # Load certificates
-            assert self.ca_cert_path is not None
-            assert self.client_cert_path is not None
-            assert self.client_key_path is not None
+            # Load certificates - validate paths are set
+            # These should always be set after __init__ validation, but we check
+            # defensively since assertions can be disabled with -O flag
+            if self.ca_cert_path is None:
+                raise ValueError("ca_cert_path must be set before connecting")
+            if self.client_cert_path is None:
+                raise ValueError("client_cert_path must be set before connecting")
+            if self.client_key_path is None:
+                raise ValueError("client_key_path must be set before connecting")
 
             try:
                 with open(self.ca_cert_path, "rb") as f:

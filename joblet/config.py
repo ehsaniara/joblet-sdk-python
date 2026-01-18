@@ -18,6 +18,9 @@ from typing import Dict, List, Optional, Tuple, cast
 
 import yaml
 
+# Default gRPC port for Joblet server
+DEFAULT_PORT = 50051
+
 
 class ConfigLoader:
     """Handles loading and parsing Joblet configuration files."""
@@ -103,7 +106,7 @@ class ConfigLoader:
             try:
                 port = int(port_str)
             except ValueError:
-                port = 50051
+                port = DEFAULT_PORT
         else:
             host = address
             port = 50051
