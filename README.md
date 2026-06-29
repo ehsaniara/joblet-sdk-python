@@ -8,6 +8,19 @@ The official Python SDK for [Joblet](https://github.com/ehsaniara/joblet) - a di
 pip install joblet-sdk-python
 ```
 
+## Compatibility
+
+Match the SDK's **proto major** to your Joblet server — proto v1.x and v2.x do
+**not** interoperate.
+
+| Python SDK                    | joblet-proto | Joblet server (= RNX) |
+|-------------------------------|--------------|-----------------------|
+| **v2.0.1 – v2.5.1** (current) | **v2.x**     | v5.0.2 – v5.6.11      |
+| v1.0.7 – v1.1.5               | v1.x         | v4.5.0 – v5.0.1       |
+
+Latest stack: SDK **v2.5.2** (proto v2.5.9) ↔ Joblet/RNX **v5.6.11**. See
+[COMPATIBILITY.md](COMPATIBILITY.md) for the full matrix and feature floors.
+
 ## Quick Start
 
 ```python
@@ -388,6 +401,32 @@ make proto
 make clean
 ```
 
+### Releasing
+
+The git tag / PyPI release is the authoritative version (see
+[COMPATIBILITY.md](COMPATIBILITY.md)). Before tagging a release:
+
+1. **Unit + packaging gates** — `make lint && make test && make test-package`.
+2. **Live smoke test (required).** The unit suite mocks gRPC, so it can't prove
+   the generated proto stubs actually round-trip on the wire. Run the smoke test
+   once against a real Joblet server whose proto major matches the stubs in
+   `joblet/_proto_generation_info.py`:
+
+   ```bash
+   export JOBLET_HOST=... JOBLET_PORT=... \
+          JOBLET_CA_CERT=... JOBLET_CLIENT_CERT=... JOBLET_CLIENT_KEY=...
+   python scripts/smoke_test.py
+   # or: python scripts/smoke_test.py --config rnx-config.yml --node default
+   ```
+
+   It exits non-zero on any failure and cleans up everything it creates. The
+   `timeout='3s'` check specifically verifies the proto v2.5.9 `timeout` field —
+   so run it against a **v5.6.x** server when releasing a v2.5.x SDK.
+3. **Bump the version** — `joblet/__init__.__version__`, the
+   `version → joblet-proto` table in `COMPATIBILITY.md`, and `PROTO_TAG` in
+   `joblet/_proto_generation_info.py` if the stubs were regenerated.
+4. **Tag** — `git tag vX.Y.Z && git push --tags` (triggers the PyPI publish).
+
 ## Examples
 
 See the `examples/` directory for hands-on examples:
@@ -395,7 +434,7 @@ See the `examples/` directory for hands-on examples:
 | Example | Description |
 |---------|-------------|
 | [01_basic_usage](examples/01_basic_usage/) | Running jobs, checking status, getting logs |
-| [02_advanced_features](examples/02_advanced_features/) | Resource limits, GPUs, networks, volumes |
+| [02_advanced_features](examples/02_advanced_features/) | Resource limits, execution timeout, GPUs, networks, volumes |
 | [03_streaming_logs](examples/03_streaming_logs/) | Real-time log streaming |
 | [04_historical_logs_metrics](examples/04_historical_logs_metrics/) | Logs and metrics from completed jobs |
 | [05_smart_log_streaming](examples/05_smart_log_streaming/) | Automatic historical + live log handling |

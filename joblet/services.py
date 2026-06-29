@@ -66,6 +66,7 @@ class JobService:
         uploads: Optional[List[Dict[str, Any]]] = None,
         gpu_count: Optional[int] = None,
         gpu_memory_mb: Optional[int] = None,
+        timeout: Optional[str] = None,
     ) -> JobResponse:
         """Run a new job
 
@@ -87,6 +88,8 @@ class JobService:
             uploads: Files to upload
             gpu_count: Number of GPUs to allocate
             gpu_memory_mb: Minimum GPU memory required in MB
+            timeout: Job execution timeout (e.g. "30s", "5m", "1h"); empty uses
+                the server's global config
 
         Returns:
             Job response dictionary
@@ -99,23 +102,25 @@ class JobService:
         if not command or not command.strip():
             raise ValidationError("command is required and cannot be empty")
 
+        # NOTE: proto v2.5.x dropped the RunJobRequest.name field; the `name`
+        # parameter is kept for backward compatibility but is no longer sent.
         request = joblet_pb2.RunJobRequest(
             command=command,
             args=args or [],
-            name=name or "",
-            maxCpu=max_cpu or 0,
-            cpuCores=cpu_cores or "",
-            maxMemory=max_memory or 0,
-            maxIobps=max_iobps or 0,
+            max_cpu=max_cpu or 0,
+            cpu_cores=cpu_cores or "",
+            max_memory=max_memory or 0,
+            max_io_bps=max_iobps or 0,
             schedule=schedule or "",
             network=network or "",
             volumes=volumes or [],
             runtime=runtime or "",
-            workDir=work_dir or "",
+            work_dir=work_dir or "",
             environment=environment or {},
             secret_environment=secret_environment or {},
             gpu_count=gpu_count or 0,
             gpu_memory_mb=gpu_memory_mb or 0,
+            timeout=timeout or "",
         )
 
         # Add file uploads if provided
@@ -125,25 +130,25 @@ class JobService:
                     path=upload.get("path", ""),
                     content=upload.get("content", b""),
                     mode=upload.get("mode", 0o644),
-                    isDirectory=upload.get("is_directory", False),
+                    is_directory=upload.get("is_directory", False),
                 )
                 request.uploads.append(file_upload)
 
         try:
             response = self.stub.RunJob(request)
             return {
-                "job_uuid": response.jobUuid,
+                "job_uuid": response.job_uuid,
                 "status": response.status,
                 "command": response.command,
                 "args": list(response.args),
-                "max_cpu": response.maxCpu,
-                "cpu_cores": response.cpuCores,
-                "max_memory": response.maxMemory,
-                "max_iobps": response.maxIobps,
-                "start_time": response.startTime,
-                "end_time": response.endTime,
-                "exit_code": response.exitCode,
-                "scheduled_time": response.scheduledTime,
+                "max_cpu": response.max_cpu,
+                "cpu_cores": response.cpu_cores,
+                "max_memory": response.max_memory,
+                "max_iobps": response.max_io_bps,
+                "start_time": response.start_time,
+                "end_time": response.end_time,
+                "exit_code": response.exit_code,
+                "scheduled_time": response.scheduled_time,
             }
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to run job: {e.details()}")
@@ -164,7 +169,7 @@ class JobService:
         if not job_uuid or not job_uuid.strip():
             raise ValidationError("job_uuid is required")
 
-        request = joblet_pb2.GetJobStatusReq(uuid=job_uuid)
+        request = joblet_pb2.GetJobStatusRequest(uuid=job_uuid)
 
         try:
             response = self.stub.GetJobStatus(request)
@@ -173,26 +178,26 @@ class JobService:
                 "name": response.name,
                 "command": response.command,
                 "args": list(response.args),
-                "max_cpu": response.maxCPU,
-                "cpu_cores": response.cpuCores,
-                "max_memory": response.maxMemory,
-                "max_iobps": response.maxIOBPS,
+                "max_cpu": response.max_cpu,
+                "cpu_cores": response.cpu_cores,
+                "max_memory": response.max_memory,
+                "max_iobps": response.max_io_bps,
                 "status": response.status,
-                "start_time": response.startTime,
-                "end_time": response.endTime,
-                "exit_code": response.exitCode,
-                "scheduled_time": response.scheduledTime,
+                "start_time": response.start_time,
+                "end_time": response.end_time,
+                "exit_code": response.exit_code,
+                "scheduled_time": response.scheduled_time,
                 "environment": dict(response.environment),
                 "secret_environment": dict(response.secret_environment),
                 "network": response.network,
                 "volumes": list(response.volumes),
                 "runtime": response.runtime,
-                "work_dir": response.workDir,
+                "work_dir": response.work_dir,
                 "uploads": list(response.uploads),
                 "gpu_indices": list(response.gpu_indices),
                 "gpu_count": response.gpu_count,
                 "gpu_memory_mb": response.gpu_memory_mb,
-                "node_id": response.nodeId,
+                "node_id": response.node_id,
             }
         except grpc.RpcError as e:
             raise JobNotFoundError(f"Job {job_uuid} not found: {e.details()}")
@@ -213,15 +218,15 @@ class JobService:
         if not job_uuid or not job_uuid.strip():
             raise ValidationError("job_uuid is required")
 
-        request = joblet_pb2.StopJobReq(uuid=job_uuid)
+        request = joblet_pb2.StopJobRequest(uuid=job_uuid)
 
         try:
             response = self.stub.StopJob(request)
             return {
                 "uuid": response.uuid,
                 "status": response.status,
-                "end_time": response.endTime,
-                "exit_code": response.exitCode,
+                "end_time": response.end_time,
+                "exit_code": response.exit_code,
             }
         except grpc.RpcError as e:
             raise JobOperationError(f"Failed to stop job {job_uuid}: {e.details()}")
@@ -247,7 +252,7 @@ class JobService:
         if not job_uuid or not job_uuid.strip():
             raise ValidationError("job_uuid is required")
 
-        request = joblet_pb2.CancelJobReq(uuid=job_uuid)
+        request = joblet_pb2.CancelJobRequest(uuid=job_uuid)
 
         try:
             response = self.stub.CancelJob(request)
@@ -274,7 +279,7 @@ class JobService:
         if not job_uuid or not job_uuid.strip():
             raise ValidationError("job_uuid is required")
 
-        request = joblet_pb2.DeleteJobReq(uuid=job_uuid)
+        request = joblet_pb2.DeleteJobRequest(uuid=job_uuid)
 
         try:
             response = self.stub.DeleteJob(request)
@@ -295,7 +300,7 @@ class JobService:
         Raises:
             JobOperationError: If delete operation fails
         """
-        request = joblet_pb2.DeleteAllJobsReq()
+        request = joblet_pb2.DeleteAllJobsRequest()
 
         try:
             response = self.stub.DeleteAllJobs(request)
@@ -351,7 +356,7 @@ class JobService:
             )
 
         # Stream logs from joblet service (includes both historical and live)
-        request = joblet_pb2.GetJobLogsReq(uuid=job_uuid)
+        request = joblet_pb2.GetJobLogsRequest(uuid=job_uuid)
 
         try:
             for chunk in self.stub.GetJobLogs(request):
@@ -485,7 +490,7 @@ class JobService:
         """Parse a JobMetricsEvent protobuf message to a dictionary"""
         return {
             "timestamp": event.timestamp,
-            "job_id": event.job_id,
+            "job_id": event.job_uuid,
             "cpu_percent": event.cpu_percent,
             "memory_bytes": event.memory_bytes,
             "memory_limit": event.memory_limit,
@@ -638,7 +643,7 @@ class JobService:
         """Parse a TelematicsEvent protobuf message to a dictionary"""
         result = {
             "timestamp": event.timestamp,
-            "job_id": event.job_id,
+            "job_id": event.job_uuid,
             "type": event.type,
         }
 
@@ -749,22 +754,22 @@ class JobService:
                         "name": job.name,
                         "command": job.command,
                         "args": list(job.args),
-                        "max_cpu": job.maxCPU,
-                        "cpu_cores": job.cpuCores,
-                        "max_memory": job.maxMemory,
-                        "max_iobps": job.maxIOBPS,
+                        "max_cpu": job.max_cpu,
+                        "cpu_cores": job.cpu_cores,
+                        "max_memory": job.max_memory,
+                        "max_iobps": job.max_io_bps,
                         "status": job.status,
-                        "start_time": job.startTime,
-                        "end_time": job.endTime,
-                        "exit_code": job.exitCode,
-                        "scheduled_time": job.scheduledTime,
+                        "start_time": job.start_time,
+                        "end_time": job.end_time,
+                        "exit_code": job.exit_code,
+                        "scheduled_time": job.scheduled_time,
                         "runtime": job.runtime,
                         "environment": dict(job.environment),
                         "secret_environment": dict(job.secret_environment),
                         "gpu_indices": list(job.gpu_indices),
                         "gpu_count": job.gpu_count,
                         "gpu_memory_mb": job.gpu_memory_mb,
-                        "node_id": job.nodeId,
+                        "node_id": job.node_id,
                     }
                 )
             return cast(List[JobListItem], jobs)
@@ -804,7 +809,7 @@ class NetworkService:
         if not cidr or not cidr.strip():
             raise ValidationError("CIDR is required (e.g., '10.0.0.0/24')")
 
-        request = joblet_pb2.CreateNetworkReq(name=name, cidr=cidr)
+        request = joblet_pb2.CreateNetworkRequest(name=name, cidr=cidr)
 
         try:
             response = self.stub.CreateNetwork(request)
@@ -833,7 +838,7 @@ class NetworkService:
                         "name": network.name,
                         "cidr": network.cidr,
                         "bridge": network.bridge,
-                        "job_count": network.jobCount,
+                        "job_count": network.job_count,
                     }
                 )
             return cast(List[NetworkListItem], networks)
@@ -856,7 +861,7 @@ class NetworkService:
         if not name or not name.strip():
             raise ValidationError("network name is required")
 
-        request = joblet_pb2.RemoveNetworkReq(name=name)
+        request = joblet_pb2.RemoveNetworkRequest(name=name)
 
         try:
             response = self.stub.RemoveNetwork(request)
@@ -897,7 +902,7 @@ class VolumeService:
                 f"invalid volume_type '{volume_type}': must be 'filesystem' or 'memory'"
             )
 
-        request = joblet_pb2.CreateVolumeReq(name=name, size=size, type=volume_type)
+        request = joblet_pb2.CreateVolumeRequest(name=name, size=size, type=volume_type)
 
         try:
             response = self.stub.CreateVolume(request)
@@ -928,8 +933,8 @@ class VolumeService:
                         "size": volume.size,
                         "type": volume.type,
                         "path": volume.path,
-                        "created_time": volume.createdTime,
-                        "job_count": volume.jobCount,
+                        "created_time": volume.created_time,
+                        "job_count": volume.job_count,
                     }
                 )
             return cast(List[VolumeListItem], volumes)
@@ -952,7 +957,7 @@ class VolumeService:
         if not name or not name.strip():
             raise ValidationError("volume name is required")
 
-        request = joblet_pb2.RemoveVolumeReq(name=name)
+        request = joblet_pb2.RemoveVolumeRequest(name=name)
 
         try:
             response = self.stub.RemoveVolume(request)
@@ -1031,8 +1036,8 @@ class MonitoringService:
             ...     if cpu > 90:
             ...         break  # Stop monitoring if CPU too high
         """
-        request = joblet_pb2.StreamMetricsReq(
-            intervalSeconds=interval_seconds, metricTypes=metric_types or []
+        request = joblet_pb2.StreamMetricsRequest(
+            interval_seconds=interval_seconds, metric_types=metric_types or []
         )
 
         try:
@@ -1101,19 +1106,13 @@ class MonitoringService:
         return {
             "hostname": host.hostname,
             "os": host.os,
-            "platform": host.platform,
-            "platform_family": host.platformFamily,
-            "platform_version": host.platformVersion,
-            "kernel_version": host.kernelVersion,
-            "kernel_arch": host.kernelArch,
+            "kernel_version": host.kernel_version,
             "architecture": host.architecture,
-            "cpu_count": host.cpuCount,
-            "total_memory": host.totalMemory,
-            "boot_time": host.bootTime,
+            "boot_time": host.boot_time,
             "uptime": host.uptime,
-            "node_id": host.nodeId,
-            "server_ips": list(host.serverIPs),
-            "mac_addresses": list(host.macAddresses),
+            "node_id": host.node_id,
+            "server_ips": list(host.server_ips),
+            "mac_addresses": list(host.mac_addresses),
         }
 
     @staticmethod
@@ -1121,30 +1120,30 @@ class MonitoringService:
         """Parse CPU metrics"""
         return {
             "cores": cpu.cores,
-            "usage_percent": cpu.usagePercent,
-            "user_time": cpu.userTime,
-            "system_time": cpu.systemTime,
-            "idle_time": cpu.idleTime,
-            "io_wait_time": cpu.ioWaitTime,
-            "steal_time": cpu.stealTime,
-            "load_average": list(cpu.loadAverage),
-            "per_core_usage": list(cpu.perCoreUsage),
+            "usage_percent": cpu.usage_percent,
+            "user_time": cpu.user_time,
+            "system_time": cpu.system_time,
+            "idle_time": cpu.idle_time,
+            "io_wait_time": cpu.io_wait_time,
+            "steal_time": cpu.steal_time,
+            "load_average": list(cpu.load_average),
+            "per_core_usage": list(cpu.per_core_usage),
         }
 
     @staticmethod
     def _parse_memory_metrics(memory) -> Dict[str, Any]:
         """Parse memory metrics"""
         return {
-            "total_bytes": memory.totalBytes,
-            "used_bytes": memory.usedBytes,
-            "free_bytes": memory.freeBytes,
-            "available_bytes": memory.availableBytes,
-            "usage_percent": memory.usagePercent,
-            "cached_bytes": memory.cachedBytes,
-            "buffered_bytes": memory.bufferedBytes,
-            "swap_total": memory.swapTotal,
-            "swap_used": memory.swapUsed,
-            "swap_free": memory.swapFree,
+            "total_bytes": memory.total_bytes,
+            "used_bytes": memory.used_bytes,
+            "free_bytes": memory.free_bytes,
+            "available_bytes": memory.available_bytes,
+            "usage_percent": memory.usage_percent,
+            "cached_bytes": memory.cached_bytes,
+            "buffered_bytes": memory.buffered_bytes,
+            "swap_total": memory.swap_total,
+            "swap_used": memory.swap_used,
+            "swap_free": memory.swap_free,
         }
 
     @staticmethod
@@ -1152,16 +1151,16 @@ class MonitoringService:
         """Parse disk metrics"""
         return {
             "device": disk.device,
-            "mount_point": disk.mountPoint,
+            "mount_point": disk.mount_point,
             "filesystem": disk.filesystem,
-            "total_bytes": disk.totalBytes,
-            "used_bytes": disk.usedBytes,
-            "free_bytes": disk.freeBytes,
-            "usage_percent": disk.usagePercent,
-            "inodes_total": disk.inodesTotal,
-            "inodes_used": disk.inodesUsed,
-            "inodes_free": disk.inodesFree,
-            "inodes_usage_percent": disk.inodesUsagePercent,
+            "total_bytes": disk.total_bytes,
+            "used_bytes": disk.used_bytes,
+            "free_bytes": disk.free_bytes,
+            "usage_percent": disk.usage_percent,
+            "inodes_total": disk.inodes_total,
+            "inodes_used": disk.inodes_used,
+            "inodes_free": disk.inodes_free,
+            "inodes_usage_percent": disk.inodes_usage_percent,
         }
 
     @staticmethod
@@ -1169,43 +1168,43 @@ class MonitoringService:
         """Parse network metrics"""
         return {
             "interface": network.interface,
-            "bytes_received": network.bytesReceived,
-            "bytes_sent": network.bytesSent,
-            "packets_received": network.packetsReceived,
-            "packets_sent": network.packetsSent,
-            "errors_in": network.errorsIn,
-            "errors_out": network.errorsOut,
-            "drops_in": network.dropsIn,
-            "drops_out": network.dropsOut,
-            "receive_rate": network.receiveRate,
-            "transmit_rate": network.transmitRate,
+            "bytes_received": network.bytes_received,
+            "bytes_sent": network.bytes_sent,
+            "packets_received": network.packets_received,
+            "packets_sent": network.packets_sent,
+            "errors_in": network.errors_in,
+            "errors_out": network.errors_out,
+            "drops_in": network.drops_in,
+            "drops_out": network.drops_out,
+            "receive_rate": network.receive_rate,
+            "transmit_rate": network.transmit_rate,
         }
 
     @staticmethod
     def _parse_io_metrics(io) -> Dict[str, Any]:
         """Parse IO metrics"""
         result = {
-            "total_reads": io.totalReads,
-            "total_writes": io.totalWrites,
-            "read_bytes": io.readBytes,
-            "write_bytes": io.writeBytes,
-            "read_rate": io.readRate,
-            "write_rate": io.writeRate,
+            "total_reads": io.total_reads,
+            "total_writes": io.total_writes,
+            "read_bytes": io.read_bytes,
+            "write_bytes": io.write_bytes,
+            "read_rate": io.read_rate,
+            "write_rate": io.write_rate,
         }
 
-        if io.diskIO:
+        if io.disk_io:
             result["disk_io"] = []
-            for disk_io in io.diskIO:
+            for disk_io in io.disk_io:
                 result["disk_io"].append(
                     {
                         "device": disk_io.device,
-                        "reads_completed": disk_io.readsCompleted,
-                        "writes_completed": disk_io.writesCompleted,
-                        "read_bytes": disk_io.readBytes,
-                        "write_bytes": disk_io.writeBytes,
-                        "read_time": disk_io.readTime,
-                        "write_time": disk_io.writeTime,
-                        "io_time": disk_io.ioTime,
+                        "reads_completed": disk_io.reads_completed,
+                        "writes_completed": disk_io.writes_completed,
+                        "read_bytes": disk_io.read_bytes,
+                        "write_bytes": disk_io.write_bytes,
+                        "read_time": disk_io.read_time,
+                        "write_time": disk_io.write_time,
+                        "io_time": disk_io.io_time,
                         "utilization": disk_io.utilization,
                     }
                 )
@@ -1216,47 +1215,45 @@ class MonitoringService:
     def _parse_process_metrics(processes) -> Dict[str, Any]:
         """Parse process metrics"""
         result = {
-            "total_processes": processes.totalProcesses,
-            "running_processes": processes.runningProcesses,
-            "sleeping_processes": processes.sleepingProcesses,
-            "stopped_processes": processes.stoppedProcesses,
-            "zombie_processes": processes.zombieProcesses,
-            "total_threads": processes.totalThreads,
+            "total_processes": processes.total_processes,
+            "running_processes": processes.running_processes,
+            "sleeping_processes": processes.sleeping_processes,
+            "stopped_processes": processes.stopped_processes,
+            "zombie_processes": processes.zombie_processes,
+            "total_threads": processes.total_threads,
         }
 
-        if processes.topByCPU:
+        if processes.top_by_cpu:
             result["top_by_cpu"] = []
-            for proc in processes.topByCPU:
+            for proc in processes.top_by_cpu:
                 result["top_by_cpu"].append(
                     {
                         "pid": proc.pid,
                         "ppid": proc.ppid,
                         "name": proc.name,
                         "command": proc.command,
-                        "cpu_percent": proc.cpuPercent,
-                        "memory_percent": proc.memoryPercent,
-                        "memory_bytes": proc.memoryBytes,
+                        "cpu_percent": proc.cpu_percent,
+                        "memory_percent": proc.memory_percent,
+                        "memory_bytes": proc.memory_bytes,
                         "status": proc.status,
-                        "start_time": proc.startTime,
-                        "user": proc.user,
+                        "start_time": proc.start_time,
                     }
                 )
 
-        if processes.topByMemory:
+        if processes.top_by_memory:
             result["top_by_memory"] = []
-            for proc in processes.topByMemory:
+            for proc in processes.top_by_memory:
                 result["top_by_memory"].append(
                     {
                         "pid": proc.pid,
                         "ppid": proc.ppid,
                         "name": proc.name,
                         "command": proc.command,
-                        "cpu_percent": proc.cpuPercent,
-                        "memory_percent": proc.memoryPercent,
-                        "memory_bytes": proc.memoryBytes,
+                        "cpu_percent": proc.cpu_percent,
+                        "memory_percent": proc.memory_percent,
+                        "memory_bytes": proc.memory_bytes,
                         "status": proc.status,
-                        "start_time": proc.startTime,
-                        "user": proc.user,
+                        "start_time": proc.start_time,
                     }
                 )
 
@@ -1269,9 +1266,9 @@ class MonitoringService:
             "provider": cloud.provider,
             "region": cloud.region,
             "zone": cloud.zone,
-            "instance_id": cloud.instanceID,
-            "instance_type": cloud.instanceType,
-            "hypervisor_type": cloud.hypervisorType,
+            "instance_id": cloud.instance_id,
+            "instance_type": cloud.instance_type,
+            "hypervisor_type": cloud.hypervisor_type,
             "metadata": dict(cloud.metadata),
         }
 
@@ -1314,7 +1311,7 @@ class RuntimeService:
                     "language": runtime.language,
                     "version": runtime.version,
                     "description": runtime.description,
-                    "size_bytes": runtime.sizeBytes,
+                    "size_bytes": runtime.size_bytes,
                     "packages": list(runtime.packages),
                     "available": runtime.available,
                 }
@@ -1340,7 +1337,7 @@ class RuntimeService:
         Returns:
             Runtime information dictionary
         """
-        request = joblet_pb2.RuntimeInfoReq(runtime=runtime)
+        request = joblet_pb2.GetRuntimeInfoRequest(runtime=runtime)
 
         try:
             response = self.stub.GetRuntimeInfo(request)
@@ -1352,7 +1349,7 @@ class RuntimeService:
                 "language": response.runtime.language,
                 "version": response.runtime.version,
                 "description": response.runtime.description,
-                "size_bytes": response.runtime.sizeBytes,
+                "size_bytes": response.runtime.size_bytes,
                 "packages": list(response.runtime.packages),
                 "available": response.runtime.available,
             }
@@ -1376,7 +1373,7 @@ class RuntimeService:
         Returns:
             Test result dictionary
         """
-        request = joblet_pb2.RuntimeTestReq(runtime=runtime)
+        request = joblet_pb2.TestRuntimeRequest(runtime=runtime)
 
         try:
             response = self.stub.TestRuntime(request)
@@ -1384,7 +1381,7 @@ class RuntimeService:
                 "success": response.success,
                 "output": response.output,
                 "error": response.error,
-                "exit_code": response.exitCode,
+                "exit_code": response.exit_code,
             }
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to test runtime: {e.details()}")
@@ -1398,14 +1395,14 @@ class RuntimeService:
         Returns:
             Removal response dictionary
         """
-        request = joblet_pb2.RuntimeRemoveReq(runtime=runtime)
+        request = joblet_pb2.RemoveRuntimeRequest(runtime=runtime)
 
         try:
             response = self.stub.RemoveRuntime(request)
             return {
                 "success": response.success,
                 "message": response.message,
-                "freed_space_bytes": response.freedSpaceBytes,
+                "freed_space_bytes": response.freed_space_bytes,
             }
         except grpc.RpcError as e:
             raise RuntimeNotFoundError(f"Failed to remove runtime: {e.details()}")
@@ -1526,12 +1523,12 @@ class RuntimeService:
                 "message": response.message,
             }
 
-            if response.valid and response.HasField("parsed_spec"):
+            if response.valid and response.HasField("spec_info"):
                 result["parsed_spec"] = {
-                    "name": response.parsed_spec.name,
-                    "version": response.parsed_spec.version,
-                    "language": response.parsed_spec.language,
-                    "description": response.parsed_spec.description,
+                    "name": response.spec_info.name,
+                    "version": response.spec_info.version,
+                    "language": response.spec_info.language,
+                    "description": response.spec_info.description,
                 }
 
             if not response.valid:

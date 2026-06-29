@@ -4,10 +4,11 @@ Advanced Joblet Features
 
 This script demonstrates advanced Joblet features:
 1. Resource limits (CPU, memory)
-2. Environment variables
-3. Scheduled jobs
-4. GPU usage (if available)
-5. Network and volume management
+2. Execution timeout (requires Joblet server v5.6.x / proto v2.5.9+)
+3. Environment variables
+4. Scheduled jobs
+5. GPU usage (if available)
+6. Network and volume management
 """
 
 import time
@@ -39,6 +40,43 @@ def resource_limits_example(client):
         status = client.jobs.get_job_status(job["job_uuid"])
 
     print(f"✓ Job completed: {status['status']}\n")
+
+    client.jobs.delete_job(job["job_uuid"])
+
+
+def timeout_example(client):
+    """Example: Bounding a job's run time with an execution timeout.
+
+    ``timeout`` accepts a Go-style duration string ("30s", "5m", "1h").
+    The Joblet server terminates the job once the limit is reached, so a
+    command that would otherwise run forever finishes in a bounded time and
+    reports a failed/terminated status instead of hanging.
+
+    Requires Joblet server v5.6.x (proto v2.5.9+); older servers ignore the
+    field.
+    """
+    print("=== Execution Timeout Example ===\n")
+
+    # `sleep 30` would run for 30s, but the 3s timeout cuts it short.
+    job = client.jobs.run_job(
+        name="timeout-demo",
+        command="bash",
+        args=["-c", "echo 'starting long task'; sleep 30; echo 'never reached'"],
+        timeout="3s",
+    )
+
+    print(f"✓ Job with 3s timeout: {job['job_uuid']}")
+    print("  Command would sleep 30s, but should be terminated at ~3s")
+
+    start = time.time()
+    status = client.jobs.get_job_status(job["job_uuid"])
+    while status["status"] in ["PENDING", "RUNNING"]:
+        time.sleep(0.5)
+        status = client.jobs.get_job_status(job["job_uuid"])
+
+    elapsed = time.time() - start
+    print(f"✓ Job ended after ~{elapsed:.1f}s with status: {status['status']}")
+    print("  (expected well under 30s — the timeout terminated it)\n")
 
     client.jobs.delete_job(job["job_uuid"])
 
@@ -232,6 +270,7 @@ def main():
         try:
             # Run examples
             resource_limits_example(client)
+            timeout_example(client)
             environment_variables_example(client)
             scheduled_job_example(client)
             gpu_job_example(client)
