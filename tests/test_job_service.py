@@ -27,18 +27,18 @@ class TestJobService:
 
         # Create mock response
         mock_grpc_response = Mock()
-        mock_grpc_response.jobUuid = sample_job_response["job_uuid"]
+        mock_grpc_response.job_uuid = sample_job_response["job_uuid"]
         mock_grpc_response.status = sample_job_response["status"]
         mock_grpc_response.command = sample_job_response["command"]
         mock_grpc_response.args = sample_job_response["args"]
-        mock_grpc_response.maxCpu = sample_job_response["max_cpu"]
-        mock_grpc_response.cpuCores = sample_job_response["cpu_cores"]
-        mock_grpc_response.maxMemory = sample_job_response["max_memory"]
-        mock_grpc_response.maxIobps = sample_job_response["max_iobps"]
-        mock_grpc_response.startTime = sample_job_response["start_time"]
-        mock_grpc_response.endTime = sample_job_response["end_time"]
-        mock_grpc_response.exitCode = sample_job_response["exit_code"]
-        mock_grpc_response.scheduledTime = sample_job_response["scheduled_time"]
+        mock_grpc_response.max_cpu = sample_job_response["max_cpu"]
+        mock_grpc_response.cpu_cores = sample_job_response["cpu_cores"]
+        mock_grpc_response.max_memory = sample_job_response["max_memory"]
+        mock_grpc_response.max_io_bps = sample_job_response["max_iobps"]
+        mock_grpc_response.start_time = sample_job_response["start_time"]
+        mock_grpc_response.end_time = sample_job_response["end_time"]
+        mock_grpc_response.exit_code = sample_job_response["exit_code"]
+        mock_grpc_response.scheduled_time = sample_job_response["scheduled_time"]
 
         mock_stub.RunJob.return_value = mock_grpc_response
 
@@ -64,18 +64,18 @@ class TestJobService:
 
         # Create mock response
         mock_grpc_response = Mock()
-        mock_grpc_response.jobUuid = sample_job_response["job_uuid"]
+        mock_grpc_response.job_uuid = sample_job_response["job_uuid"]
         mock_grpc_response.status = sample_job_response["status"]
         mock_grpc_response.command = "python"
         mock_grpc_response.args = ["script.py"]
-        mock_grpc_response.maxCpu = 80
-        mock_grpc_response.cpuCores = "2"
-        mock_grpc_response.maxMemory = 2048
-        mock_grpc_response.maxIobps = 1000
-        mock_grpc_response.startTime = sample_job_response["start_time"]
-        mock_grpc_response.endTime = sample_job_response["end_time"]
-        mock_grpc_response.exitCode = sample_job_response["exit_code"]
-        mock_grpc_response.scheduledTime = sample_job_response["scheduled_time"]
+        mock_grpc_response.max_cpu = 80
+        mock_grpc_response.cpu_cores = "2"
+        mock_grpc_response.max_memory = 2048
+        mock_grpc_response.max_io_bps = 1000
+        mock_grpc_response.start_time = sample_job_response["start_time"]
+        mock_grpc_response.end_time = sample_job_response["end_time"]
+        mock_grpc_response.exit_code = sample_job_response["exit_code"]
+        mock_grpc_response.scheduled_time = sample_job_response["scheduled_time"]
 
         mock_stub.RunJob.return_value = mock_grpc_response
 
@@ -115,15 +115,15 @@ class TestJobService:
         call_args = mock_stub.RunJob.call_args[0][0]
         assert call_args.command == "python"
         assert list(call_args.args) == ["script.py"]
-        assert call_args.name == "test-job"
-        assert call_args.maxCpu == 80
-        assert call_args.cpuCores == "2"
-        assert call_args.maxMemory == 2048
-        assert call_args.maxIobps == 1000
+        # RunJobRequest.name was removed in proto v2.5.x; name is no longer sent
+        assert call_args.max_cpu == 80
+        assert call_args.cpu_cores == "2"
+        assert call_args.max_memory == 2048
+        assert call_args.max_io_bps == 1000
         assert call_args.network == "test-network"
         assert list(call_args.volumes) == ["vol1:/data", "vol2:/logs"]
         assert call_args.runtime == "python:3.11"
-        assert call_args.workDir == "/app"
+        assert call_args.work_dir == "/app"
         assert dict(call_args.environment) == {"ENV": "test", "DEBUG": "true"}
         assert dict(call_args.secret_environment) == {"API_KEY": "secret"}
         assert len(call_args.uploads) == 1
@@ -153,21 +153,21 @@ class TestJobService:
         mock_grpc_response.name = "test-job"
         mock_grpc_response.command = "echo"
         mock_grpc_response.args = ["hello"]
-        mock_grpc_response.maxCPU = 50
-        mock_grpc_response.cpuCores = ""
-        mock_grpc_response.maxMemory = 1024
-        mock_grpc_response.maxIOBPS = 0
+        mock_grpc_response.max_cpu = 50
+        mock_grpc_response.cpu_cores = ""
+        mock_grpc_response.max_memory = 1024
+        mock_grpc_response.max_io_bps = 0
         mock_grpc_response.status = "completed"
-        mock_grpc_response.startTime = "2023-01-01T12:00:00Z"
-        mock_grpc_response.endTime = "2023-01-01T12:00:05Z"
-        mock_grpc_response.exitCode = 0
-        mock_grpc_response.scheduledTime = ""
+        mock_grpc_response.start_time = "2023-01-01T12:00:00Z"
+        mock_grpc_response.end_time = "2023-01-01T12:00:05Z"
+        mock_grpc_response.exit_code = 0
+        mock_grpc_response.scheduled_time = ""
         mock_grpc_response.environment = {"ENV": "test"}
         mock_grpc_response.secret_environment = {}
         mock_grpc_response.network = ""
         mock_grpc_response.volumes = []
         mock_grpc_response.runtime = "python:3.11"
-        mock_grpc_response.workDir = "/app"
+        mock_grpc_response.work_dir = "/app"
         mock_grpc_response.uploads = []
         mock_grpc_response.gpu_indices = [0, 1]
         mock_grpc_response.gpu_count = 2
@@ -209,8 +209,8 @@ class TestJobService:
         mock_grpc_response = Mock()
         mock_grpc_response.uuid = "test-job-123"
         mock_grpc_response.status = "cancelled"
-        mock_grpc_response.endTime = "2023-01-01T12:00:05Z"
-        mock_grpc_response.exitCode = 130
+        mock_grpc_response.end_time = "2023-01-01T12:00:05Z"
+        mock_grpc_response.exit_code = 130
 
         mock_stub.StopJob.return_value = mock_grpc_response
 
@@ -325,44 +325,44 @@ class TestJobService:
         mock_job1.name = "test-job-1"
         mock_job1.command = "echo"
         mock_job1.args = ["hello"]
-        mock_job1.maxCPU = 50
-        mock_job1.cpuCores = ""
-        mock_job1.maxMemory = 1024
-        mock_job1.maxIOBPS = 0
+        mock_job1.max_cpu = 50
+        mock_job1.cpu_cores = ""
+        mock_job1.max_memory = 1024
+        mock_job1.max_io_bps = 0
         mock_job1.status = "completed"
-        mock_job1.startTime = "2023-01-01T12:00:00Z"
-        mock_job1.endTime = "2023-01-01T12:00:05Z"
-        mock_job1.exitCode = 0
-        mock_job1.scheduledTime = ""
+        mock_job1.start_time = "2023-01-01T12:00:00Z"
+        mock_job1.end_time = "2023-01-01T12:00:05Z"
+        mock_job1.exit_code = 0
+        mock_job1.scheduled_time = ""
         mock_job1.runtime = "python:3.11"
         mock_job1.environment = {}
         mock_job1.secret_environment = {}
         mock_job1.gpu_indices = []
         mock_job1.gpu_count = 0
         mock_job1.gpu_memory_mb = 0
-        mock_job1.nodeId = "node-1"
+        mock_job1.node_id = "node-1"
 
         mock_job2 = Mock()
         mock_job2.uuid = "job-2"
         mock_job2.name = "test-job-2"
         mock_job2.command = "python"
         mock_job2.args = ["script.py"]
-        mock_job2.maxCPU = 80
-        mock_job2.cpuCores = "2"
-        mock_job2.maxMemory = 2048
-        mock_job2.maxIOBPS = 1000
+        mock_job2.max_cpu = 80
+        mock_job2.cpu_cores = "2"
+        mock_job2.max_memory = 2048
+        mock_job2.max_io_bps = 1000
         mock_job2.status = "running"
-        mock_job2.startTime = "2023-01-01T12:05:00Z"
-        mock_job2.endTime = ""
-        mock_job2.exitCode = 0
-        mock_job2.scheduledTime = ""
+        mock_job2.start_time = "2023-01-01T12:05:00Z"
+        mock_job2.end_time = ""
+        mock_job2.exit_code = 0
+        mock_job2.scheduled_time = ""
         mock_job2.runtime = "python:3.11"
         mock_job2.environment = {"ENV": "test"}
         mock_job2.secret_environment = {}
         mock_job2.gpu_indices = []
         mock_job2.gpu_count = 0
         mock_job2.gpu_memory_mb = 0
-        mock_job2.nodeId = "node-2"
+        mock_job2.node_id = "node-2"
 
         mock_grpc_response = Mock()
         mock_grpc_response.jobs = [mock_job1, mock_job2]
@@ -385,18 +385,18 @@ class TestJobService:
 
         # Create mock response with GPU fields
         mock_grpc_response = Mock()
-        mock_grpc_response.jobUuid = sample_job_response["job_uuid"]
+        mock_grpc_response.job_uuid = sample_job_response["job_uuid"]
         mock_grpc_response.status = sample_job_response["status"]
         mock_grpc_response.command = "python"
         mock_grpc_response.args = ["train.py"]
-        mock_grpc_response.maxCpu = sample_job_response["max_cpu"]
-        mock_grpc_response.cpuCores = sample_job_response["cpu_cores"]
-        mock_grpc_response.maxMemory = sample_job_response["max_memory"]
-        mock_grpc_response.maxIobps = sample_job_response["max_iobps"]
-        mock_grpc_response.startTime = sample_job_response["start_time"]
-        mock_grpc_response.endTime = sample_job_response["end_time"]
-        mock_grpc_response.exitCode = sample_job_response["exit_code"]
-        mock_grpc_response.scheduledTime = sample_job_response["scheduled_time"]
+        mock_grpc_response.max_cpu = sample_job_response["max_cpu"]
+        mock_grpc_response.cpu_cores = sample_job_response["cpu_cores"]
+        mock_grpc_response.max_memory = sample_job_response["max_memory"]
+        mock_grpc_response.max_io_bps = sample_job_response["max_iobps"]
+        mock_grpc_response.start_time = sample_job_response["start_time"]
+        mock_grpc_response.end_time = sample_job_response["end_time"]
+        mock_grpc_response.exit_code = sample_job_response["exit_code"]
+        mock_grpc_response.scheduled_time = sample_job_response["scheduled_time"]
         mock_grpc_response.gpu_indices = [0, 1]
         mock_grpc_response.gpu_count = 2
         mock_grpc_response.gpu_memory_mb = 8192

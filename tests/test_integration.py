@@ -46,18 +46,18 @@ class TestJobletClientIntegration:
                 # Setup job service
                 mock_job_instance = Mock()
                 mock_job_response = Mock()
-                mock_job_response.jobUuid = "test-job-123"
+                mock_job_response.job_uuid = "test-job-123"
                 mock_job_response.status = "running"
                 mock_job_response.command = "echo"
                 mock_job_response.args = ["hello"]
-                mock_job_response.maxCpu = 50
-                mock_job_response.cpuCores = ""
-                mock_job_response.maxMemory = 1024
-                mock_job_response.maxIobps = 0
-                mock_job_response.startTime = "2023-01-01T12:00:00Z"
-                mock_job_response.endTime = ""
-                mock_job_response.exitCode = 0
-                mock_job_response.scheduledTime = ""
+                mock_job_response.max_cpu = 50
+                mock_job_response.cpu_cores = ""
+                mock_job_response.max_memory = 1024
+                mock_job_response.max_io_bps = 0
+                mock_job_response.start_time = "2023-01-01T12:00:00Z"
+                mock_job_response.end_time = ""
+                mock_job_response.exit_code = 0
+                mock_job_response.scheduled_time = ""
 
                 mock_job_instance.RunJob.return_value = mock_job_response
                 mock_job_stub.return_value = mock_job_instance
@@ -230,18 +230,18 @@ class TestServiceIntegration:
 
                 # Mock run_job response
                 mock_run_response = Mock()
-                mock_run_response.jobUuid = "test-job-123"
+                mock_run_response.job_uuid = "test-job-123"
                 mock_run_response.status = "running"
                 mock_run_response.command = "echo"
                 mock_run_response.args = ["hello"]
-                mock_run_response.maxCpu = 50
-                mock_run_response.cpuCores = ""
-                mock_run_response.maxMemory = 1024
-                mock_run_response.maxIobps = 0
-                mock_run_response.startTime = "2023-01-01T12:00:00Z"
-                mock_run_response.endTime = ""
-                mock_run_response.exitCode = 0
-                mock_run_response.scheduledTime = ""
+                mock_run_response.max_cpu = 50
+                mock_run_response.cpu_cores = ""
+                mock_run_response.max_memory = 1024
+                mock_run_response.max_io_bps = 0
+                mock_run_response.start_time = "2023-01-01T12:00:00Z"
+                mock_run_response.end_time = ""
+                mock_run_response.exit_code = 0
+                mock_run_response.scheduled_time = ""
                 mock_job_instance.RunJob.return_value = mock_run_response
 
                 # Mock get_job_status response
@@ -250,21 +250,21 @@ class TestServiceIntegration:
                 mock_status_response.name = "test-job"
                 mock_status_response.command = "echo"
                 mock_status_response.args = ["hello"]
-                mock_status_response.maxCPU = 50
-                mock_status_response.cpuCores = ""
-                mock_status_response.maxMemory = 1024
-                mock_status_response.maxIOBPS = 0
+                mock_status_response.max_cpu = 50
+                mock_status_response.cpu_cores = ""
+                mock_status_response.max_memory = 1024
+                mock_status_response.max_io_bps = 0
                 mock_status_response.status = "completed"
-                mock_status_response.startTime = "2023-01-01T12:00:00Z"
-                mock_status_response.endTime = "2023-01-01T12:00:05Z"
-                mock_status_response.exitCode = 0
-                mock_status_response.scheduledTime = ""
+                mock_status_response.start_time = "2023-01-01T12:00:00Z"
+                mock_status_response.end_time = "2023-01-01T12:00:05Z"
+                mock_status_response.exit_code = 0
+                mock_status_response.scheduled_time = ""
                 mock_status_response.environment = {}
                 mock_status_response.secret_environment = {}
                 mock_status_response.network = ""
                 mock_status_response.volumes = []
                 mock_status_response.runtime = ""
-                mock_status_response.workDir = ""
+                mock_status_response.work_dir = ""
                 mock_status_response.uploads = []
                 mock_status_response.gpu_indices = []
                 mock_status_response.gpu_count = 0

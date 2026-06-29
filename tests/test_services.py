@@ -68,7 +68,7 @@ class TestNetworkService:
             mock_network.name = net_data["name"]
             mock_network.cidr = net_data["cidr"]
             mock_network.bridge = net_data["bridge"]
-            mock_network.jobCount = net_data["job_count"]
+            mock_network.job_count = net_data["job_count"]
             mock_networks.append(mock_network)
 
         mock_grpc_response = Mock()
@@ -177,8 +177,8 @@ class TestVolumeService:
             mock_volume.size = vol_data["size"]
             mock_volume.type = vol_data["type"]
             mock_volume.path = vol_data["path"]
-            mock_volume.createdTime = vol_data["created_time"]
-            mock_volume.jobCount = vol_data["job_count"]
+            mock_volume.created_time = vol_data["created_time"]
+            mock_volume.job_count = vol_data["job_count"]
             mock_volumes.append(mock_volume)
 
         mock_grpc_response = Mock()
@@ -230,23 +230,17 @@ class TestMonitoringService:
         mock_grpc_response.timestamp = sample_system_status["timestamp"]
         mock_grpc_response.available = sample_system_status["available"]
 
-        # Mock host info
+        # Mock host info (proto v2.5.x HostInfo fields)
         mock_host = Mock()
         mock_host.hostname = sample_system_status["host"]["hostname"]
         mock_host.os = sample_system_status["host"]["os"]
-        mock_host.platform = sample_system_status["host"]["platform"]
-        mock_host.platformFamily = ""
-        mock_host.platformVersion = sample_system_status["host"]["platform_version"]
-        mock_host.kernelVersion = ""
-        mock_host.kernelArch = ""
+        mock_host.kernel_version = ""
         mock_host.architecture = ""
-        mock_host.cpuCount = sample_system_status["host"]["cpu_count"]
-        mock_host.totalMemory = sample_system_status["host"]["total_memory"]
-        mock_host.bootTime = ""
+        mock_host.boot_time = ""
         mock_host.uptime = 0
-        mock_host.nodeId = "test-node-123"
-        mock_host.serverIPs = ["192.168.1.100", "10.0.0.1"]
-        mock_host.macAddresses = ["00:1B:63:84:45:E6", "02:42:ac:11:00:02"]
+        mock_host.node_id = "test-node-123"
+        mock_host.server_ips = ["192.168.1.100", "10.0.0.1"]
+        mock_host.mac_addresses = ["00:1B:63:84:45:E6", "02:42:ac:11:00:02"]
 
         mock_grpc_response.HasField = lambda field: field in ["host", "cpu", "memory"]
         mock_grpc_response.host = mock_host
@@ -254,29 +248,29 @@ class TestMonitoringService:
         # Mock CPU info
         mock_cpu = Mock()
         mock_cpu.cores = sample_system_status["cpu"]["cores"]
-        mock_cpu.usagePercent = sample_system_status["cpu"]["usage_percent"]
-        mock_cpu.userTime = 0
-        mock_cpu.systemTime = 0
-        mock_cpu.idleTime = 0
-        mock_cpu.ioWaitTime = 0
-        mock_cpu.stealTime = 0
-        mock_cpu.loadAverage = sample_system_status["cpu"]["load_average"]
-        mock_cpu.perCoreUsage = []
+        mock_cpu.usage_percent = sample_system_status["cpu"]["usage_percent"]
+        mock_cpu.user_time = 0
+        mock_cpu.system_time = 0
+        mock_cpu.idle_time = 0
+        mock_cpu.io_wait_time = 0
+        mock_cpu.steal_time = 0
+        mock_cpu.load_average = sample_system_status["cpu"]["load_average"]
+        mock_cpu.per_core_usage = []
 
         mock_grpc_response.cpu = mock_cpu
 
         # Mock memory info
         mock_memory = Mock()
-        mock_memory.totalBytes = sample_system_status["memory"]["total_bytes"]
-        mock_memory.usedBytes = sample_system_status["memory"]["used_bytes"]
-        mock_memory.freeBytes = 0
-        mock_memory.availableBytes = 0
-        mock_memory.usagePercent = sample_system_status["memory"]["usage_percent"]
-        mock_memory.cachedBytes = 0
-        mock_memory.bufferedBytes = 0
-        mock_memory.swapTotal = 0
-        mock_memory.swapUsed = 0
-        mock_memory.swapFree = 0
+        mock_memory.total_bytes = sample_system_status["memory"]["total_bytes"]
+        mock_memory.used_bytes = sample_system_status["memory"]["used_bytes"]
+        mock_memory.free_bytes = 0
+        mock_memory.available_bytes = 0
+        mock_memory.usage_percent = sample_system_status["memory"]["usage_percent"]
+        mock_memory.cached_bytes = 0
+        mock_memory.buffered_bytes = 0
+        mock_memory.swap_total = 0
+        mock_memory.swap_used = 0
+        mock_memory.swap_free = 0
 
         mock_grpc_response.memory = mock_memory
         mock_grpc_response.disks = []
@@ -309,14 +303,14 @@ class TestMonitoringService:
 
             mock_cpu = Mock()
             mock_cpu.cores = 4
-            mock_cpu.usagePercent = 20.0 + i * 5
-            mock_cpu.userTime = 0
-            mock_cpu.systemTime = 0
-            mock_cpu.idleTime = 0
-            mock_cpu.ioWaitTime = 0
-            mock_cpu.stealTime = 0
-            mock_cpu.loadAverage = [1.0, 1.0, 1.0]
-            mock_cpu.perCoreUsage = []
+            mock_cpu.usage_percent = 20.0 + i * 5
+            mock_cpu.user_time = 0
+            mock_cpu.system_time = 0
+            mock_cpu.idle_time = 0
+            mock_cpu.io_wait_time = 0
+            mock_cpu.steal_time = 0
+            mock_cpu.load_average = [1.0, 1.0, 1.0]
+            mock_cpu.per_core_usage = []
 
             mock_metric.cpu = mock_cpu
             mock_metric.disks = []
@@ -335,7 +329,7 @@ class TestMonitoringService:
         # Verify the request
         mock_stub.StreamSystemMetrics.assert_called_once()
         call_args = mock_stub.StreamSystemMetrics.call_args[0][0]
-        assert call_args.intervalSeconds == 1
+        assert call_args.interval_seconds == 1
 
 
 class TestRuntimeService:
@@ -359,7 +353,7 @@ class TestRuntimeService:
             mock_runtime.language = runtime_data["language"]
             mock_runtime.version = runtime_data["version"]
             mock_runtime.description = runtime_data["description"]
-            mock_runtime.sizeBytes = runtime_data["size_bytes"]
+            mock_runtime.size_bytes = runtime_data["size_bytes"]
             mock_runtime.packages = runtime_data["packages"]
             mock_runtime.available = runtime_data["available"]
 
@@ -400,7 +394,7 @@ class TestRuntimeService:
         mock_runtime.language = "python"
         mock_runtime.version = "3.11.0"
         mock_runtime.description = "Python 3.11 runtime"
-        mock_runtime.sizeBytes = 1073741824
+        mock_runtime.size_bytes = 1073741824
         mock_runtime.packages = ["pip", "setuptools"]
         mock_runtime.available = True
 
@@ -446,7 +440,7 @@ class TestRuntimeService:
         mock_grpc_response.success = True
         mock_grpc_response.output = "Python 3.11.0"
         mock_grpc_response.error = ""
-        mock_grpc_response.exitCode = 0
+        mock_grpc_response.exit_code = 0
 
         mock_stub.TestRuntime.return_value = mock_grpc_response
 
@@ -466,7 +460,7 @@ class TestRuntimeService:
         mock_grpc_response.success = False
         mock_grpc_response.output = ""
         mock_grpc_response.error = "Runtime not available"
-        mock_grpc_response.exitCode = 1
+        mock_grpc_response.exit_code = 1
 
         mock_stub.TestRuntime.return_value = mock_grpc_response
 
@@ -484,7 +478,7 @@ class TestRuntimeService:
         mock_grpc_response = Mock()
         mock_grpc_response.success = True
         mock_grpc_response.message = "Runtime removed successfully"
-        mock_grpc_response.freedSpaceBytes = 1073741824  # 1GB
+        mock_grpc_response.freed_space_bytes = 1073741824  # 1GB
 
         mock_stub.RemoveRuntime.return_value = mock_grpc_response
 
